@@ -1,5 +1,4 @@
 const pupp = require( "puppeteer" );
-const parser = require( "./parser" );
 
 async function getSong( url, callback ) {
 	const browser = await pupp.launch();
@@ -42,10 +41,6 @@ async function getSong( url, callback ) {
 				raw_tabs: tab_view.wiki_tab.content
 			}
 		} );
-
-	if ( song.raw_tabs ) {
-		song.parsed_tabs = parser.tabs( song.raw_tabs );
-	}
 
 	browser.close();
 	callback( song );

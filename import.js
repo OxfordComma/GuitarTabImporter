@@ -73,6 +73,10 @@ function getAccessToken(oAuth2Client, callback) {
 function importDoc(auth) {	
 	url = process.argv.slice(2)[0]
 	console.log('url: ' + url)
+	if (typeof url === 'undefined'){
+		console.log('No URL provided.')
+		return;
+	}
 	var tab, artist, song_name, raw_tabs;
 	scraper.getSong(url, function() {
 		tab = arguments[0];
@@ -80,7 +84,7 @@ function importDoc(auth) {
 		song_name = tab.song_name;
 		raw_tabs = tab.raw_tabs.replace(/(\[ch\]|\[\/ch\])/g, '');
 	    console.log('Importing: ' + song_name + ' by ' + artist);
-	    console.log(raw_tabs)
+	    // console.log(raw_tabs)
 		
 		const docs = google.docs({version: 'v1', auth});
 		const drive = google.drive({version: 'v3', auth})

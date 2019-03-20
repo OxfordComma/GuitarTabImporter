@@ -1,0 +1,24 @@
+{
+  "name": "guitartabimporter",
+  "version": "1.0.0",
+  "description": "Import guitar tabs to Google Docs",
+  "main": "import.js",
+  "dependencies": {
+    "googleapis": "^37.2.0",
+    "puppeteer": "^1.13.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node import.js https://tabs.ultimate-guitar.com/tab/oasis/wonderwall_chords_39144"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OxfordComma/GuitarTabImporter.git"
+  },
+  "author": "Nick Lima",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OxfordComma/GuitarTabImporter/issues"
+  },
+  "homepage": "https://github.com/OxfordComma/GuitarTabImporter#readme"
+}
