@@ -1,5 +1,4 @@
 const scraper = require("./scraper");
-
 const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
@@ -82,24 +81,29 @@ function importDoc(auth) {
 		tab = arguments[0];
 		artist = tab.artist;
 		song_name = tab.song_name;
-		raw_tabs = tab.raw_tabs.replace(/(\[ch\]|\[\/ch\])/g, '');
+		// console.log(tab.raw_tabs)
+		raw_tabs = formatRawTabs(tab.raw_tabs);
+		console.log(raw_tabs)
 	    console.log('Importing: ' + song_name + ' by ' + artist);
-	    // console.log(raw_tabs)
 		
 		const docs = google.docs({version: 'v1', auth});
 		const drive = google.drive({version: 'v3', auth})
+		// console.log(auth)
 		var copyId;
 		drive.files.copy({
 			'fileId': '1K7dvZpTODZcfwxcLEsFJVCJhxaaO0_HfZBUn5rKcE3M',
 			'resource': { 'name': '[DRAFT] ' + song_name + ' - ' + artist}
 		}, (err, res) => {
-			if (err) return console.log('The API returned an error: ' + err);
+			if (err) {
+				console.log(err)
+				return console.log('The API returned an error while copying the template: ' + err);
+			}
 			copyId = res.data.id;
 			console.log('Copy id: ' + copyId)
 			docs.documents.get({
 				'documentId': copyId,
 			}, (err, res) => {
-				if (err) return console.log('The API returned an error: ' + err);
+				if (err) return console.log('The API returned an error while getting the document: ' + err);
 				// console.log(res.data.body.content)
 				const requests = [{
 						'replaceAllText': { 
@@ -132,10 +136,24 @@ function importDoc(auth) {
 						'requests': requests 
 					}
 				}, (err, res) => {
-					if (err) return console.log('The API returned an error: ' + err);
 					// console.log(res)
+					if (err) return console.log('The API returned an error while updating the document: ' + err);
 				})
 			});
 		})
 	});	
+}
+
+function formatRawTabs(raw_tabs) {
+	//Remove [ch][/ch] around chords
+	raw_tabs = raw_tabs.replace(/(\[ch\]|\[\/ch\])/g, '');
+	//Remove anything before an [Intro] tag
+	raw_tabs = raw_tabs.replace(/[\s\S]*?(?=\n.*?\[intro\])/i, '');
+	//Remove ellipses
+	raw_tabs = raw_tabs.replace(/(\.\.\.|…)/g, ' ');
+	//Remove [Intro], [Verse], etc
+	raw_tabs = raw_tabs.replace(/(\[(intro|verse[s]?|chorus|bridge|outro|hook|instrumental|interlude)\ ?\d?\]\n?)/gi, '');
+	// Remove periods, question marks, and commas
+	raw_tabs = raw_tabs.replace(/(\?|,|\.)/g, '');
+	return raw_tabs;
 }
