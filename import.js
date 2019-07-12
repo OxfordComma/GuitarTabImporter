@@ -2,6 +2,7 @@ const scraper = require("./scraper");
 const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
+const parseTab = require('./parseTab.js');
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/drive.file', 
@@ -82,7 +83,7 @@ function importDoc(auth) {
 		artist = tab.artist;
 		song_name = tab.song_name;
 		// console.log(tab.raw_tabs)
-		raw_tabs = formatRawTabs(tab.raw_tabs);
+		raw_tabs = parseTab.formatRawTabs(tab.raw_tabs);
 		console.log(raw_tabs)
 	    console.log('Importing: ' + song_name + ' by ' + artist);
 		
@@ -144,16 +145,3 @@ function importDoc(auth) {
 	});	
 }
 
-function formatRawTabs(raw_tabs) {
-	//Remove [ch][/ch] around chords
-	raw_tabs = raw_tabs.replace(/(\[ch\]|\[\/ch\])/g, '');
-	//Remove anything before an [Intro] tag
-	raw_tabs = raw_tabs.replace(/[\s\S]*?(?=\n.*?\[intro\])/i, '');
-	//Remove ellipses
-	raw_tabs = raw_tabs.replace(/(\.\.\.|…)/g, ' ');
-	//Remove [Intro], [Verse], etc
-	raw_tabs = raw_tabs.replace(/(\[(intro|verse[s]?|chorus|bridge|outro|hook|instrumental|interlude)\ ?\d?\]\n?)/gi, '');
-	// Remove periods, question marks, and commas
-	raw_tabs = raw_tabs.replace(/(\?|,|\.|:)/g, '');
-	return raw_tabs;
-}
