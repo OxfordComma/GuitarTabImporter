@@ -8,8 +8,8 @@ module.exports = (passport) => {
         done(null, user);
     });
     passport.use(new GoogleDriveStrategy({
-        clientID: '296193245260-prmltutuorpem0knakev0t4q1m709srh.apps.googleusercontent.com',
-        clientSecret: 'uDgP8aW5FE6phAfBWzBuYAG4',
+        clientID: 'CLIENT_ID',
+        clientSecret: 'CLIENT_SECRET',
         callbackURL: 'http://localhost:3000/import/auth/google/callback'
     },
     (token, refresh_token, profile, done) => {
