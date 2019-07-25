@@ -1,12 +1,13 @@
 const pupp = require( "puppeteer" );
 
-async function getSong( url, callback ) {
+async function getSong( url ) {
 	const browser = await pupp.launch();
 	const page = await browser.newPage();
-	
+
 	await page.goto( url );
 
 	let song = await page.evaluate( () => { 
+
 			let tab_view = window.UGAPP.store.page.data.tab_view;
 			let tab = window.UGAPP.store.page.data.tab;
 
@@ -41,9 +42,8 @@ async function getSong( url, callback ) {
 				raw_tabs: tab_view.wiki_tab.content
 			}
 		} );
+	return song
 
-	browser.close();
-	callback( song );
 };
 
 module.exports = {
