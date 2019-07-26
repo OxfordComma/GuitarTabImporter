@@ -13,7 +13,7 @@ module.exports = (passport) => {
         clientID: process.env.client_id,
         clientSecret: process.env.client_secret,
         callbackURL: 'https://guitartabimporter.herokuapp.com/import/auth/google/callback'
-    },
+    }, 
     (token, refresh_token, profile, done) => {
         user = {};
         user.token = token;
