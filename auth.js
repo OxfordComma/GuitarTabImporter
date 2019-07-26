@@ -10,7 +10,7 @@ module.exports = (passport) => {
     passport.use(new GoogleDriveStrategy({
         clientID: process.env.client_id,
         clientSecret: process.env.client_id,
-        callbackURL: 'http://localhost:3000/import/auth/google/callback'
+        callbackURL: 'http://guitartabimporter.herokuapp.com/import/auth/google/callback'
     },
     (token, refresh_token, profile, done) => {
         user = {};
