@@ -47,7 +47,7 @@ router.get('/auth/google/callback',
             // var copyId;
             drive.files.copy({
                 'fileId': '1K7dvZpTODZcfwxcLEsFJVCJhxaaO0_HfZBUn5rKcE3M',
-                'resource': { 'name': '[DRAFT] ' + song_name + ' - ' + artist}
+                'resource': { 'name': '[DRAFT] ' + artists + ' - ' + song_name}
             }, (err, res) => {
                 if (err) {
                     return console.log('The API returned an error while copying the template: ' + err);
