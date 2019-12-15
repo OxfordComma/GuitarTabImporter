@@ -8,11 +8,11 @@ module.exports = (passport) => {
     passport.deserializeUser((user, done) => {
         done(null, user);
     });
-    fs.readFile('credentials.json', (err, content) => {
-        if (err) 
-            console.log('Error loading client secret file:', err);
-        // console.log(JSON.parse(content))
-        creds = JSON.parse(content)
+    // fs.readFile('credentials.json', (err, content) => {
+    //     if (err) 
+    //         console.log('Error loading client secret file:', err);
+    //     // console.log(JSON.parse(content))
+    //     creds = JSON.parse(content)
         passport.use(new GoogleDriveStrategy({
             clientID: process.env.client_id || creds.web.client_id,
             clientSecret: process.env.client_secret|| creds.web.client_secret,
@@ -25,7 +25,7 @@ module.exports = (passport) => {
             user.profile = profile;
             return done(null, user)
         }));
-    });
+    // });
 
     
 };
