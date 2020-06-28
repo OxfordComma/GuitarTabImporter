@@ -1,6 +1,24 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+ 	background: #333;
+	margin: 0;
+	color: white;
+	font-family: 'Playfair Display', serif;
+}
+
+div#form {
+	display: grid;
+	grid-template-rows: 100%;
+	grid-template-columns: 100%;
+	width: 100vw;
+	height: 100vh;
+}
+
+form {
+	grid-row-start: 1;
+	grid-row-end: 2;
+	align-self: center;
+	justify-self: center;
+
 }
 
 a {
