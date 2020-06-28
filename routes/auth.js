@@ -2,36 +2,36 @@ var express = require('express');
 var router = express.Router();
 var passport = require('passport')
 
-var GoogleStrategy = require('passport-google-oauth2').Strategy
-var SpotifyStrategy = require('passport-spotify').Strategy;
+// var GoogleStrategy = require('passport-google-oauth2').Strategy
+// var SpotifyStrategy = require('passport-spotify').Strategy;
 // var LastFmStrategy = require('passport-lastfm')
 var GoogleDriveStrategy = require('passport-google-drive').Strategy
 
 // var mongoHelper = require('../js/dl/mongoDownloader.js')
 
-passport.use(
-    new GoogleStrategy({
-        clientID:  process.env.google_client_id, // e.g. asdfghjkljhgfdsghjk.apps.googleusercontent.com
-        clientSecret: process.env.google_client_secret, // e.g. _ASDFA%DFASDFASDFASD#FAD-
-        callbackURL: '/auth/google/callback',
-        scope: ['email'],
-        passReqToCallback: true,
-        authType: 'rerequest', 
-        // accessType: 'offline', 
-        // prompt: 'consent', 
-        includeGrantedScopes: true
-    },
-    function(request, accessToken, refreshToken, profile, done) { 
-        // console.log(profile)
-        return done(null, {
-            google: {
-                accessToken: accessToken,
-                refreshToken: refreshToken,
-                email: profile.email
-            }
-        });
-    }
-));
+// passport.use(
+//     new GoogleStrategy({
+//         clientID:  process.env.google_client_id, // e.g. asdfghjkljhgfdsghjk.apps.googleusercontent.com
+//         clientSecret: process.env.google_client_secret, // e.g. _ASDFA%DFASDFASDFASD#FAD-
+//         callbackURL: '/auth/google/callback',
+//         scope: ['email'],
+//         passReqToCallback: true,
+//         authType: 'rerequest', 
+//         // accessType: 'offline', 
+//         // prompt: 'consent', 
+//         includeGrantedScopes: true
+//     },
+//     function(request, accessToken, refreshToken, profile, done) { 
+//         // console.log(profile)
+//         return done(null, {
+//             google: {
+//                 accessToken: accessToken,
+//                 refreshToken: refreshToken,
+//                 email: profile.email
+//             }
+//         });
+//     }
+// ));
 
 passport.use(
     new GoogleDriveStrategy({
@@ -57,23 +57,23 @@ passport.use(
     }
 ));
 
-passport.use(
-    new SpotifyStrategy({
-        clientID: process.env.spotify_client_id,
-        clientSecret: process.env.spotify_client_secret,
-        callbackURL: '/auth/spotify/callback',
-        scope: ['playlist-modify-public', 'user-read-recently-played']
-    },
-    function(accessToken, refreshToken, expires_in, profile, done) {
-        return done(null, {
-            spotify: {
-                accessToken: accessToken,
-                refreshToken: refreshToken,
-                id: profile.id
-            }
-        });
-    })
-);
+// passport.use(
+//     new SpotifyStrategy({
+//         clientID: process.env.spotify_client_id,
+//         clientSecret: process.env.spotify_client_secret,
+//         callbackURL: '/auth/spotify/callback',
+//         scope: ['playlist-modify-public', 'user-read-recently-played']
+//     },
+//     function(accessToken, refreshToken, expires_in, profile, done) {
+//         return done(null, {
+//             spotify: {
+//                 accessToken: accessToken,
+//                 refreshToken: refreshToken,
+//                 id: profile.id
+//             }
+//         });
+//     })
+// );
 
 // passport.use(
 //     new LastFmStrategy({
@@ -119,19 +119,19 @@ router.get('/login',
 
 // Google authentication
 
-router.get('/google', passport.authenticate('google', {
-        prompt: 'consent',
-        accessType: 'offline',
-        scope: ['email']
-    })
-);
+// router.get('/google', passport.authenticate('google', {
+//         prompt: 'consent',
+//         accessType: 'offline',
+//         scope: ['email']
+//     })
+// );
 
-router.get('/google/callback', passport.authenticate('google'),
-    function(req, res, next) {
-        // console.log(req)
-        res.redirect(req.session.return)
-    }
-)
+// router.get('/google/callback', passport.authenticate('google'),
+//     function(req, res, next) {
+//         // console.log(req)
+//         res.redirect(req.session.return)
+//     }
+// )
 
 // Google drive authentication
 
@@ -152,18 +152,18 @@ router.get('/googledrive/callback', passport.authenticate('google-drive'),
 // Spotify authentication
 
 
-router.get('/spotify', passport.authenticate('spotify'));
+// router.get('/spotify', passport.authenticate('spotify'));
 
-router.get('/spotify/callback', passport.authenticate('spotify'),
-    function(req, res, next) {
-        console.log(req.session)
-        res.redirect(req.session.return)
-    }
-)
+// router.get('/spotify/callback', passport.authenticate('spotify'),
+//     function(req, res, next) {
+//         console.log(req.session)
+//         res.redirect(req.session.return)
+//     }
+// )
 
 // Last.fm authentication
 
-router.get('/lastfm', passport.authenticate('lastfm'))
+// router.get('/lastfm', passport.authenticate('lastfm'))
 
 // router.get('/lastfm/callback', passport.authenticate('lastfm'),
 //     function(req, res, next) {
