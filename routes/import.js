@@ -119,8 +119,8 @@ router.get('/tab', async (req, res) => {
 					}
 				}, (err, response) => {
 					if (err) return console.log('The API returned an error while updating the document: ' + err);
-					// res.redirect('https://docs.google.com/document/d/' + copyId);
-					res.redirect('/')
+					res.redirect('https://docs.google.com/document/d/' + copyId);
+					// res.redirect('/')
 				})
 			});
 		})
