@@ -51,20 +51,50 @@ async function getSong( url ) {
 
 };
 
-function formatRawTabs(raw_tabs) {
+function formatRawTabs(rawTabs) {
 	//Remove [ch][/ch] around chords
-	raw_tabs = raw_tabs.replace(/(\[ch\]|\[\/ch\])/g, '');
+	rawTabs = rawTabs.replace(/(\[ch\]|\[\/ch\])/g, '');
 	//Remove anything before an [Intro] tag
-	raw_tabs = raw_tabs.replace(/[\s\S]*?(?=\n.*?\[intro\])/i, '');
+	rawTabs = rawTabs.replace(/[\s\S]*?(?=\n.*?\[intro\])/i, '');
 	//Remove ellipses
-	raw_tabs = raw_tabs.replace(/(\.\.\.|…)/g, ' ');
+	rawTabs = rawTabs.replace(/(\.\.\.|…)/g, ' ');
 	//Remove [Intro], [Verse], etc
-	raw_tabs = raw_tabs.replace(/(\[(intro|verse[s]?|chorus|bridge|outro|hook|instrumental|interlude|pre-?chorus)\ ?\d?\]\n?)/gi, '');
+	rawTabs = rawTabs.replace(/(\[(intro|verse[s]?|chorus|bridge|outro|hook|instrumental|interlude|pre-?chorus)\ ?\d?\]\n?)/gi, '');
 	// Remove periods, question marks, and commas
-	raw_tabs = raw_tabs.replace(/(\?|,|\.|:|\*)/g, '');
+	rawTabs = rawTabs.replace(/(\?|,|\.|:|\*)/g, '');
 	// Remove this [tab] [/tab] thing that's coming up now
-	raw_tabs = raw_tabs.replace(/\[\/?tab\]/g, '')
-	return raw_tabs;
+	rawTabs = rawTabs.replace(/\[\/?tab\]/g, '')
+	// Remove any extra lines
+	rawTabs = rawTabs.replace(/\r?\n( *\r?\n)?/g, '\r\n')
+
+	var rawTabsSplit = rawTabs.split('\r\n').filter(d => d != '')
+	console.log(rawTabsSplit)
+	// Length - 1 so that we don't check after the last row
+	for (var i = 0; i < rawTabsSplit.length - 1; i++) {
+		var tabRow = rawTabsSplit[i]
+		var nextRow = rawTabsSplit[i+1]
+		console.log(tabRow)
+
+		// Check for chords on the next line with spaces at the front
+		// If this matches, we're in a chord row that needs to be moved
+		if (tabRow.match(/^ +[A-G]/g)) {
+			var numSpaces = tabRow.search(/\S/)
+
+			var nextLineText = nextRow.substring(0, numSpaces)
+			console.log(rawTabsSplit[i].substring(numSpaces))
+
+			// Break only on spaces
+			// nextLineText = nextLineText.substring(0, nextLineText.lastIndexOf(' ') + 1)
+
+			rawTabsSplit[i] = rawTabsSplit[i].substring(numSpaces)
+			rawTabsSplit[i-1] = rawTabsSplit[i-1] + ' ' + rawTabsSplit[i+1].substring(0, numSpaces).toLowerCase()
+			rawTabsSplit[i+1] = rawTabsSplit[i+1].substring(numSpaces)
+
+		}
+	}
+
+
+	return rawTabsSplit.join('\r\n');
 }
 
 module.exports = {

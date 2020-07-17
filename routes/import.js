@@ -10,6 +10,15 @@ router.get('/', (req, res) => {
 	res.render('import')
 });
 
+router.get('/tab/data', async (req, res) => {
+	console.log('/tab/data')
+	var tab = await ugHelper.getSong(req.query.url)
+	var tabArtist = tab.artist;
+	var tabSongName = tab.song_name;
+	var rawTabs = ugHelper.formatRawTabs(tab.raw_tabs);
+	console.log(rawTabs)
+	res.send(rawTabs)
+})
 
 router.get('/tab', async (req, res) => {
 	console.log(req.session)
