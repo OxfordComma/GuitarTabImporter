@@ -198,6 +198,8 @@ router.get('/tab', async (req, res) => {
 			}
 		})
 	}
+
+	res.redirect('https://docs.google.com/document/d/' + googleDoc.data.id)
 	
 })
 
