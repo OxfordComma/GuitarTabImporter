@@ -55,10 +55,10 @@ router.get('/tab', async (req, res) => {
 			spotifyApi.setAccessToken(data.body['access_token'])
 		)
 
-		const docs = google.docs({version: 'v1', auth: oauth2Client});
-		const drive = google.drive({version: 'v3', auth: oauth2Client});
+		const docs = google.docs({version: 'v1', auth: oauth2Client });
+		const drive = google.drive({version: 'v3', auth: oauth2Client });
 
-	  var tab = await ugHelper.getSong(req.query.url)
+		var tab = await ugHelper.getSong(req.query.url)
 		var tabArtist = tab.artist;
 		var tabSongName = tab.song_name;
 		var rawTabs = ugHelper.formatRawTabs(tab.raw_tabs);
@@ -72,66 +72,130 @@ router.get('/tab', async (req, res) => {
 	  var uri = spotifySearchResult.uri
 		console.log('Importing: ' + songName + ' by ' + artist);
 
-		var copyId;
 
-		drive.files.copy({
-			'fileId': '1K7dvZpTODZcfwxcLEsFJVCJhxaaO0_HfZBUn5rKcE3M',
-			'resource': { 'name': '[DRAFT] ' + artist + ' - ' + songName}
-		}, (err, response) => {
-			if (err) {
-				console.log(err)
-				return console.log('The API returned an error while copying the template: ' + err);
+		var googleDoc = await drive.files.create({
+			resource: { 
+				name: '[DRAFT] ' + artist + ' - ' + songName,
+				mimeType: 'application/vnd.google-apps.document',
+				parents: ['0B7wQpwvNx4sTUVZKMFFIVFByakE']
 			}
-			copyId = response.data.id;
-			console.log('Copy id: ' + copyId)
-			docs.documents.get({
-				'documentId': copyId,
-			}, (err, response) => {
-				if (err) return console.log('The API returned an error while getting the document: ' + err);
-				const requests = [{
-						'replaceAllText': { 
-							'replaceText' : artist,
-							'containsText': {
-								'text' : '_Artist_',
-								'matchCase' : true
-							}
+		})
+		console.log(googleDoc)
+
+	
+		const requests = [
+			{
+				'updateDocumentStyle': {
+					'documentStyle': {
+						'marginTop': {
+							'magnitude': 20,
+							'unit': 'PT'
+						},
+						'marginBottom': {
+							'magnitude': 20,
+							'unit': 'PT'
+						},
+						'marginLeft': {
+							'magnitude': 20,
+							'unit': 'PT'
+						},
+						'marginRight': {
+							'magnitude': 20,
+							'unit': 'PT'
 						}
-					},{
-						'replaceAllText': { 
-							'replaceText' : songName,
-							'containsText': {
-								'text' : '_Song_',
-								'matchCase' : true
-							}
-						} 
-					}, {                    
-						'replaceAllText': { 
-							'replaceText' : rawTabs,
-							'containsText': {
-								'text' : '_Content_',
-								'matchCase' : true
-							}
-						}
-					}, , {                    
-						'replaceAllText': { 
-							'replaceText' : uri,
-							'containsText': {
-								'text' : '_spotifyUri_',
-								'matchCase' : true
-							}
-						}
-					}]
-				docs.documents.batchUpdate({
-					'documentId': copyId,
-					'resource' : { 
-						'requests': requests 
+					},
+					'fields': 'marginTop,marginLeft,marginBottom,marginRight'
+				}
+			},{
+				'insertTable': {
+					rows: 1,
+					columns: 1,
+					endOfSegmentLocation: {
+						segmentId: ''
 					}
-				}, (err, response) => {
-					if (err) return console.log('The API returned an error while updating the document: ' + err);
-					res.redirect('https://docs.google.com/document/d/' + copyId);
-					// res.redirect('/')
-				})
-			});
+				}
+			},{
+				'insertText': {
+					'text': '_Content_',
+					location: {
+						index: 5
+					}
+				},
+			},{
+				'insertText': {
+					'text': "-----------------------------------------------------------------------------\u000b_Artist_ - _Song_\u000b----------------------------------------------------------------------------",
+					location: {
+						index: 1
+					}
+				}
+			},{
+				'updateTextStyle': {
+					'range': {
+						startIndex: 1,
+						endIndex: 188
+					},
+					textStyle: {
+						weightedFontFamily: {
+							fontFamily: 'PT Mono'
+						},
+						fontSize: {
+							magnitude: 9,
+							unit: 'PT'
+						}
+					},
+					fields: 'weightedFontFamily,fontSize'
+				}
+			},{
+				'updateParagraphStyle': {
+					paragraphStyle: {
+						alignment: 'CENTER'
+					},
+					'range': {
+						startIndex: 1,
+						endIndex: 170
+					},
+					fields: 'alignment'
+				}
+			},{
+					'replaceAllText': { 
+						'replaceText' : artist,
+						'containsText': {
+							'text' : '_Artist_',
+							'matchCase' : true
+						}
+					}
+			},{
+					'replaceAllText': { 
+						'replaceText' : songName,
+						'containsText': {
+							'text' : '_Song_',
+							'matchCase' : true
+						}
+					} 
+			},{                   
+					'replaceAllText': { 
+						'replaceText' : rawTabs,
+						'containsText': {
+							'text' : '_Content_',
+							'matchCase' : true
+						}
+					}
+			// },{                    
+			// 	'replaceAllText': { 
+			// 		'replaceText' : uri,
+			// 		'containsText': {
+			// 			'text' : '_spotifyUri_',
+			// 			'matchCase' : true
+			// 		}
+			// 	}
+			}]
+
+
+		var googleDocUpdated = docs.documents.batchUpdate({
+			'documentId': googleDoc.data.id,
+			'resource' : { 
+				'requests': requests 
+			}
 		})
 	}
 	

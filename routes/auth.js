@@ -29,16 +29,16 @@ passport.use(
 ));
 
 
-passport.serializeUser(function(user, cb) {
+passport.serializeUser(function(user, done) {
     // console.log(user)
-    cb(null, user);
+    done(null, user);
 });
 
-passport.deserializeUser(function(obj, cb) {
+passport.deserializeUser(function(obj, done) {
 
     // db.users.findById(id, function (err, user) {
     //   if (err) { return cb(err); }
-        cb(null, obj);
+        done(null, obj);
     // });
 });
 
@@ -60,7 +60,7 @@ router.get('/login',
 router.get('/googledrive', passport.authenticate('google-drive', {
         prompt: 'consent',
         accessType: 'offline',
-        scope: ['https://www.googleapis.com/auth/drive']
+        scope: ['https://www.googleapis.com/auth/drive.file']
     })
 );
 
