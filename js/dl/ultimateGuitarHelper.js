@@ -78,7 +78,7 @@ function formatRawTabs(rawTabs) {
 		// Check for chords on the next line with spaces at the front
 		// If this matches, we're in a chord row that needs to be moved
 		if (tabRow.match(/^ +[A-G]/g)) {
-			var numSpaces = tabRow.search(/\S/)
+			var numSpaces = tabRow.search(/\S/) - 1
 
 			var nextLineText = nextRow.substring(0, numSpaces)
 			console.log(rawTabsSplit[i].substring(numSpaces))
