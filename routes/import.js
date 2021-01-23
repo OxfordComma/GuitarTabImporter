@@ -96,7 +96,7 @@ router.get('/tab', async (req, res) => {
 							'unit': 'PT'
 						},
 						'marginLeft': {
-							'magnitude': 20,
+							'magnitude': 50,
 							'unit': 'PT'
 						},
 						'marginRight': {
@@ -191,7 +191,7 @@ router.get('/tab', async (req, res) => {
 			}]
 
 
-		var googleDocUpdated = docs.documents.batchUpdate({
+		var googleDocUpdated = await docs.documents.batchUpdate({
 			'documentId': googleDoc.data.id,
 			'resource' : { 
 				'requests': requests 
