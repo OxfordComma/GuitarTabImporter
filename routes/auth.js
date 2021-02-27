@@ -43,21 +43,18 @@ passport.deserializeUser(function(obj, done) {
 });
 
 
-router.get('/login', 
-    function(req, res, next) {
-        console.log(req.session)
-        next()
-
-    }, 
-    passport.authenticate(['google-drive', 'spotify']),
-    function(req, res) {
-        console.log(req.session)
+router.get('/', function(req, res) {
+    if (req.session.passport?.user) {
+        res.redirect('/import')
     }
-);
+    else
+        res.redirect('/auth/googledrive')
+
+})
 
 // Google drive authentication
-
-router.get('/googledrive', passport.authenticate('google-drive', {
+router.get('/googledrive', 
+    passport.authenticate('google-drive', {
         prompt: 'consent',
         accessType: 'offline',
         scope: ['https://www.googleapis.com/auth/drive.file']
@@ -65,9 +62,8 @@ router.get('/googledrive', passport.authenticate('google-drive', {
 );
 
 router.get('/googledrive/callback', passport.authenticate('google-drive'),
-    function(req, res, next) {
-        // console.log(req)
-        res.redirect(req.session.return)
+    function(req, res) {
+        res.redirect('/import')
     }
 )
 

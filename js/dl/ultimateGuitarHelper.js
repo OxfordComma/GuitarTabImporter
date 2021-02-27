@@ -61,39 +61,39 @@ function formatRawTabs(rawTabs) {
 	//Remove [Intro], [Verse], etc
 	rawTabs = rawTabs.replace(/(\[(intro|verse[s]?|chorus|bridge|outro|hook|instrumental|interlude|pre-?chorus)\ ?\d?\]\n?)/gi, '');
 	// Remove periods, question marks, and commas
-	rawTabs = rawTabs.replace(/(\?|,|\.|:|\*)/g, '');
+	rawTabs = rawTabs.replace(/(\?|,|\.|:|\||\*)/g, '');
 	// Remove this [tab] [/tab] thing that's coming up now
 	rawTabs = rawTabs.replace(/\[\/?tab\]/g, '')
 	// Remove any extra lines
 	rawTabs = rawTabs.replace(/\r?\n( *\r?\n)?/g, '\r\n')
 
-	var rawTabsSplit = rawTabs.split('\r\n').filter(d => d != '')
+	var rawTabsSplit = rawTabs.split(/\r\n/).filter(d => d != '')
 	console.log(rawTabsSplit)
 	// Length - 1 so that we don't check after the last row
 	for (var i = 0; i < rawTabsSplit.length - 1; i++) {
-		var tabRow = rawTabsSplit[i]
+		var currentRow = rawTabsSplit[i]
 		var nextRow = rawTabsSplit[i+1]
-		console.log(tabRow)
+		// console.log(currentRow)
 
 		// Check for chords on the next line with spaces at the front
 		// If this matches, we're in a chord row that needs to be moved
-		if (tabRow.match(/^ +[A-G]/g)) {
-			var numSpaces = tabRow.search(/\S/) - 1
+		if (currentRow.match(/^ +[A-G]/g)) {
+			var numSpaces = currentRow.search(/\S/)
 
-			var nextLineText = nextRow.substring(0, numSpaces)
-			console.log(rawTabsSplit[i].substring(numSpaces))
+			var nextLineText = nextRow.substring(0, numSpaces).toLowerCase().trim()
+			// console.log(nextLineText)
 
 			// Break only on spaces
 			// nextLineText = nextLineText.substring(0, nextLineText.lastIndexOf(' ') + 1)
 
-			rawTabsSplit[i] = rawTabsSplit[i].substring(numSpaces)
-			rawTabsSplit[i-1] = rawTabsSplit[i-1] + ' ' + rawTabsSplit[i+1].substring(0, numSpaces).toLowerCase()
-			rawTabsSplit[i+1] = rawTabsSplit[i+1].substring(numSpaces)
+			rawTabsSplit[i] = rawTabsSplit[i].substring(numSpaces).trim()
+			rawTabsSplit[i-1] = rawTabsSplit[i-1] + ' ' + nextLineText
+			rawTabsSplit[i+1] = rawTabsSplit[i+1].substring(numSpaces).trim()
 
 		}
 	}
 
-
+	console.log(rawTabsSplit)
 	return rawTabsSplit.join('\r\n');
 }
 
