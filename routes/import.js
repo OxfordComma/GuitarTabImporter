@@ -9,7 +9,7 @@ var SpotifyWebApi = require('spotify-web-api-node')
 router.get('/', (req, res) => {
 	// console.log(req.session)
 	// console.log(req.session.passport?.user?.google)
-	if (req.session.passport?.user) {
+	if (req.session.passport && req.session.passport.user) {
       res.redirect('/import')
   }
   else {
