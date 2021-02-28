@@ -43,15 +43,6 @@ passport.deserializeUser(function(obj, done) {
 });
 
 
-router.get('/', function(req, res) {
-    if (req.session.passport?.user) {
-        res.redirect('/import')
-    }
-    else
-        res.redirect('/auth/googledrive')
-
-})
-
 // Google drive authentication
 router.get('/googledrive', 
     passport.authenticate('google-drive', {
