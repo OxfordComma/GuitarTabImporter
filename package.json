@@ -24,7 +24,7 @@
     "passport": "^0.4.1",
     "passport-google-drive": "0.0.6",
     "passport-spotify": "^1.1.0",
-    "pug": "^3.0.0",
+    "pug": "^3.0.1",
     "puppeteer": "^1.20.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
