@@ -3,11 +3,13 @@ const router = express.Router()
 
 const {google} = require('googleapis');
 const ugHelper = require('../js/dl/ultimateGuitarHelper.js')
-var SpotifyWebApi = require('spotify-web-api-node')
+const SpotifyWebApi = require('spotify-web-api-node')
+const refresh = require('passport-oauth2-refresh');
 
 
 router.get('/', (req, res) => {
-	// console.log(req.session)
+	console.log(req.session)
+	console.log(req.user)
 	// console.log(req.session.passport?.user?.google)
 	if (req.session.passport && req.session.passport.user) {
       res.redirect('/import')
@@ -34,8 +36,8 @@ router.get('/tab', async (req, res) => {
 	const oauth2Client = new google.auth.OAuth2();
 
 	oauth2Client.setCredentials({
-		'access_token': req.session.passport.user.google.accessToken,
-		'refresh_token': req.session.passport.user.google.refreshToken
+		'access_token': req.session.passport.user.accessToken,
+		'refresh_token': req.session.passport.user.refreshToken
 	});
 
 
@@ -68,133 +70,144 @@ router.get('/tab', async (req, res) => {
 	console.log('Importing: ' + songName + ' by ' + artist);
 
 
-	var googleDoc = await drive.files.create({
-		resource: { 
-			name: '[DRAFT] ' + artist + ' - ' + songName,
-			mimeType: 'application/vnd.google-apps.document',
-			parents: ['0B7wQpwvNx4sTUVZKMFFIVFByakE']
-		}
-	})
-	console.log(googleDoc)
+	try {
+		var googleDoc = await drive.files.create({
+			resource: { 
+				name: '[DRAFT] ' + artist + ' - ' + songName,
+				mimeType: 'application/vnd.google-apps.document',
+				parents: ['0B7wQpwvNx4sTUVZKMFFIVFByakE']
+			}
+		})
 
-
-	const requests = [
-		{
-			'updateDocumentStyle': {
-				'documentStyle': {
-					'marginTop': {
-						'magnitude': 20,
-						'unit': 'PT'
+	// .then(async function(request, result) {
+		const requests = [
+			{
+				'updateDocumentStyle': {
+					'documentStyle': {
+						'marginTop': {
+							'magnitude': 20,
+							'unit': 'PT'
+						},
+						'marginBottom': {
+							'magnitude': 20,
+							'unit': 'PT'
+						},
+						'marginLeft': {
+							'magnitude': 50,
+							'unit': 'PT'
+						},
+						'marginRight': {
+							'magnitude': 20,
+							'unit': 'PT'
+						}
 					},
-					'marginBottom': {
-						'magnitude': 20,
-						'unit': 'PT'
+					'fields': 'marginTop,marginLeft,marginBottom,marginRight'
+				}
+			},{
+				'insertTable': {
+					rows: 1,
+					columns: 1,
+					endOfSegmentLocation: {
+						segmentId: ''
+					}
+				}
+			},{
+				'insertText': {
+					'text': '_Content_',
+					location: {
+						index: 5
+					}
+				},
+			},{
+				'insertText': {
+					'text': "-----------------------------------------------------------------------------\u000b_Artist_ - _Song_\u000b----------------------------------------------------------------------------",
+					location: {
+						index: 1
+					}
+				}
+			},{
+				'updateTextStyle': {
+					'range': {
+						startIndex: 1,
+						endIndex: 188
 					},
-					'marginLeft': {
-						'magnitude': 50,
-						'unit': 'PT'
+					textStyle: {
+						weightedFontFamily: {
+							fontFamily: 'PT Mono'
+						},
+						fontSize: {
+							magnitude: 9,
+							unit: 'PT'
+						}
 					},
-					'marginRight': {
-						'magnitude': 20,
-						'unit': 'PT'
-					}
-				},
-				'fields': 'marginTop,marginLeft,marginBottom,marginRight'
-			}
-		},{
-			'insertTable': {
-				rows: 1,
-				columns: 1,
-				endOfSegmentLocation: {
-					segmentId: ''
+					fields: 'weightedFontFamily,fontSize'
 				}
-			}
-		},{
-			'insertText': {
-				'text': '_Content_',
-				location: {
-					index: 5
-				}
-			},
-		},{
-			'insertText': {
-				'text': "-----------------------------------------------------------------------------\u000b_Artist_ - _Song_\u000b----------------------------------------------------------------------------",
-				location: {
-					index: 1
-				}
-			}
-		},{
-			'updateTextStyle': {
-				'range': {
-					startIndex: 1,
-					endIndex: 188
-				},
-				textStyle: {
-					weightedFontFamily: {
-						fontFamily: 'PT Mono'
+			},{
+				'updateParagraphStyle': {
+					paragraphStyle: {
+						alignment: 'CENTER'
 					},
-					fontSize: {
-						magnitude: 9,
-						unit: 'PT'
-					}
-				},
-				fields: 'weightedFontFamily,fontSize'
-			}
-		},{
-			'updateParagraphStyle': {
-				paragraphStyle: {
-					alignment: 'CENTER'
-				},
-				'range': {
-					startIndex: 1,
-					endIndex: 170
-				},
-				fields: 'alignment'
-			}
-		},{
-				'replaceAllText': { 
-					'replaceText' : artist,
-					'containsText': {
-						'text' : '_Artist_',
-						'matchCase' : true
-					}
+					'range': {
+						startIndex: 1,
+						endIndex: 170
+					},
+					fields: 'alignment'
 				}
-		},{
-				'replaceAllText': { 
-					'replaceText' : songName,
-					'containsText': {
-						'text' : '_Song_',
-						'matchCase' : true
+			},{
+					'replaceAllText': { 
+						'replaceText' : artist,
+						'containsText': {
+							'text' : '_Artist_',
+							'matchCase' : true
+						}
 					}
-				} 
-		},{                   
-				'replaceAllText': { 
-					'replaceText' : rawTabs,
-					'containsText': {
-						'text' : '_Content_',
-						'matchCase' : true
+			},{
+					'replaceAllText': { 
+						'replaceText' : songName,
+						'containsText': {
+							'text' : '_Song_',
+							'matchCase' : true
+						}
+					} 
+			},{                   
+					'replaceAllText': { 
+						'replaceText' : rawTabs,
+						'containsText': {
+							'text' : '_Content_',
+							'matchCase' : true
+						}
 					}
-				}
-		// },{                    
-		// 	'replaceAllText': { 
-		// 		'replaceText' : uri,
-		// 		'containsText': {
-		// 			'text' : '_spotifyUri_',
-		// 			'matchCase' : true
-		// 		}
-		// 	}
-		}]
+			// },{                    
+			// 	'replaceAllText': { 
+			// 		'replaceText' : uri,
+			// 		'containsText': {
+			// 			'text' : '_spotifyUri_',
+			// 			'matchCase' : true
+			// 		}
+			// 	}
+			}]
 
+		console.log('updating doc')
+		var googleDocUpdated = await docs.documents.batchUpdate({
+			'documentId': googleDoc.data.id,
+			'resource' : { 
+				'requests': requests 
+			}
+		})
 
-	var googleDocUpdated = await docs.documents.batchUpdate({
-		'documentId': googleDoc.data.id,
-		'resource' : { 
-			'requests': requests 
-		}
-	})
+		res.redirect('https://docs.google.com/document/d/' + googleDoc.data.id)
+	}
+	catch(err) {
+		console.log(err)
+		if (err.code==401) {
+			refresh.requestNewAccessToken('google', req.session.passport.user.google.refreshToken, function(err, accessToken) {
+        if (err || !accessToken) { return res.status(401).end() }
 
-	res.redirect('https://docs.google.com/document/d/' + googleDoc.data.id)
-	
+        // Save the new accessToken for future use
+       req.session.passport.user.google.accessToken = accessToken 
+     })
+    }
+	}
 })
 
 router.get('/tab/data', async (req, res) => {

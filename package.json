@@ -7,7 +7,7 @@
     "devstart": "nodemon ./bin/www"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "babel-loader": "^8.2.2",
     "cheerio": "^1.0.0-rc.3",
     "cookie-parser": "^1.4.5",
@@ -20,9 +20,11 @@
     "http-errors": "~1.6.3",
     "jquery": "^3.5.1",
     "latest": "^0.2.0",
+    "mongoose": "^5.13.5",
     "morgan": "~1.9.1",
     "passport": "^0.4.1",
     "passport-google-drive": "0.0.6",
+    "passport-oauth2-refresh": "^2.1.0",
     "passport-spotify": "^1.1.0",
     "pug": "^3.0.1",
     "puppeteer": "^1.20.0",

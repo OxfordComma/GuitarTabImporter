@@ -9,6 +9,7 @@ var session = require('express-session')
 
 var authRouter = require('./routes/auth')
 var importRouter = require('./routes/import')
+require('./models/User')
 
 var app = express();
 
