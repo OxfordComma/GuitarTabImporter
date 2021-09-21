@@ -1,4 +1,4 @@
-const pupp = require( "puppeteer" );
+const pupp = require( "puppeteer-core" );
 
 async function getSong( url ) {
 	const browser = await pupp.launch({
@@ -12,12 +12,12 @@ async function getSong( url ) {
       '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'
 	  ],
 	});
-	const page = await browser.newPage();
+	try {
+		const page = await browser.newPage();
 
-	await page.goto( url );
+		await page.goto( url );
 
-	let song = await page.evaluate( () => { 
-
+		let song = await page.evaluate( () => {
 			let tab_view = window.UGAPP.store.page.data.tab_view;
 			let tab = window.UGAPP.store.page.data.tab;
 
@@ -51,8 +51,15 @@ async function getSong( url ) {
 				tuning: tuning,
 				raw_tabs: tab_view.wiki_tab.content
 			}
-		} );
-	return song
+		});
+		return song
+	}
+	catch (e) {
+		console.log(e)
+	}
+	finally {
+		await browser.close()
+	}
 
 };
 

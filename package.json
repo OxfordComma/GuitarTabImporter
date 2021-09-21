@@ -27,7 +27,7 @@
     "passport-oauth2-refresh": "^2.1.0",
     "passport-spotify": "^1.1.0",
     "pug": "^3.0.1",
-    "puppeteer": "^1.20.0",
+    "puppeteer-core": "^10.4.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "spotify-web-api-node": "^4.0.0"
