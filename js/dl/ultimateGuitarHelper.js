@@ -1,4 +1,4 @@
-const pupp = require( "puppeteer-core" );
+const pupp = require( "puppeteer" );
 
 async function getSong( url ) {
 	const browser = await pupp.launch({
