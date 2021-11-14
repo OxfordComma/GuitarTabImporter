@@ -26,6 +26,6 @@ module.exports = [{
 		publicPath: '/',
 		filename: 'GuitarTabImporter.js'
 	},
-	mode: 'development'
+	mode: 'production'
 }
 ]

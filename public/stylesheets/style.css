@@ -5,17 +5,31 @@ body {
 	font-family: 'Playfair Display', serif;
 }
 
-div#form {
+.header {
+	grid-row-start: 1;
+	grid-row-end: 2;
+	/*grid-column-start: 1;
+	grid-column-end: 4;*/
+	background-color: black;
+
 	display: grid;
-	grid-template-rows: 100%;
+	grid-template-columns: repeat(auto-fill, 200px);
+	justify-items: center;
+	align-items: center;
+	text-align: center;
+}
+
+div#container {
+	display: grid;
+	grid-template-rows: 40px auto;
 	grid-template-columns: 100%;
 	width: 100vw;
 	height: 100vh;
 }
 
-form {
-	grid-row-start: 1;
-	grid-row-end: 2;
+#form {
+	grid-row-start: 2;
+	grid-row-end: 3;
 	align-self: center;
 	justify-self: center;
 

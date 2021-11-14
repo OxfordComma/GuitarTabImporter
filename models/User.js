@@ -7,7 +7,8 @@ mongoose.connect(process.env.mongodb_connection_string + 'guitartabimporter', {
 });
 
 const UserSchema = mongoose.Schema({
-    email: {type: String },
+    email: { type: String },
+    folder: {type: String },
     accessToken: { type: String },
     refreshToken: { type: String }
 }, {

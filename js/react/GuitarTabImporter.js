@@ -1,86 +1,68 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import ErrorBoundary from './ErrorBoundary.js'
+import Header from './Header.js'
+// import Picker from './GooglePicker.js'
 import 'regenerator-runtime/runtime'
+// import useDrivePicker from 'react-google-drive-picker'
+
 
 
 class GuitarTabImporter extends React.Component {
+
 	constructor(props) {
 		super(props);
-		
-		
-		
-		this.state = {
-			
-		};
+		console.log(props)
 
-		
+
+		this.state = {
+			// user: {
+				name: '',
+				folder: '/'
+			// }
+		};		
 	}
 
 	
 
 	async componentDidMount() {
-		// var dataUrl = "/data/cars/porsche/all/normalized"
-		// var data = await d3.json(dataUrl)
-		// var modelUrl = '/data/cars/porsche/model'
-		// var model = await d3.json(modelUrl)
+		var result = await fetch('/import/user')
+		var user = await result.json()
+		// console.log(user)
 
-		// var outputs = model[0].LinearRegression.outputs
-
-		// data = data.map(d => {
-		// 	d.selected = true;
-		// 	d.outputDiff = parseInt(d[outputs[0]]) - parseInt(d['^'+outputs[0]])
-		// 	d.outputDiffPercent = 100 * (d.outputDiff / d[outputs[0]])
-		// 	return d
-		// })
-
-		// var rawData = data
-
-		// var sidebar = this.state.sidebar
-		// Object.keys(sidebar).map(s => {
-		// 	if (sidebar[s] == 'all')
-		// 		return
-		// 	else
-		// 		data = data.filter(d => d[s]?.toString() == sidebar[s])
-		// })
-
-		// this.updateOptions(data)
-
-		// this.setState({ 
-		// 	data: data,
-		// 	rawData: rawData,
-		// 	machineLearningModel: model[0],
-		// })
+		this.setState({
+			name: user.email,
+			folder: user.folder
+		})
 	}
 
 	componentDidUpdate() {
-		// this.updateOptions(this.state.data)
+		console.log(this.state)
+
 	}
-
-	
-
 	
 
 	render() {
-		// if (this.state.data.length == 0) return null;
-
-
 		return (
+			<div id='container'> 
+				<Header options={[ this.state.name ]}/>
+				<div id="form">
+					<form action='/import/tab'>
+						<label htmlFor="url">Tab URL:</label>
+						<input type="text" name="url" id="url" required="required" autocomplete="off" autofocus/>
+						<input type="submit" hidden/>
+						<label htmlFor="url">Folder:</label>
+						<input type="text" name="folder" id="folder" required="required" autocomplete="off" autofocus value={this.state.folder}/>
+					</form>
+				</div>
+				
+			</div>
 
-			<div id="form">
-	      <form action='/tab'>
-	        <label htmlFor="url">
-	          <span>Tab URL:
-	        		<input type="text" name="url" id="url" required="required" autocomplete="off" autofocus/>
-	        		<input type="submit" hidden/>
-	        	</span>
-        	</label>
-        </form>
-	    </div>
 
 		)
 	}
 }
+
 
 
 // Render application
