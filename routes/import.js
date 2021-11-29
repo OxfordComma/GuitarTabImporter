@@ -10,6 +10,19 @@ const User = require('../models/User')
 
 
 router.get('/', (req, res) => {
+
+	let extraParams = { 
+		client_id: process.env.google_client_id, 
+		client_secret: process.env.google_client_secret 
+	}
+
+	refresh.requestNewAccessToken('google-drive', req.user.refreshToken, extraParams, function(err, accessToken) {
+    if (err || !accessToken) { 
+    	if (err) 
+    		console.log(err)
+    	return res.status(401).end() 
+    }
+  })
 	// console.log(req.session)
 	res.render('import', { style: '/stylesheets/style.css', user: req.user })
 })
@@ -233,13 +246,18 @@ router.get('/tab', async (req, res) => {
 	catch(err) {
 		console.log(err)
 		if (err.code == 401) {
+			console.log('Refresh?')
 			let extraParams = { 
 				client_id: process.env.google_client_id, 
 				client_secret: process.env.google_client_secret 
 			}
 
-			refresh.requestNewAccessToken('google', req.session.passport.user.google.refreshToken, extraParams, function(err, accessToken) {
-        if (err || !accessToken) { return res.status(401).end() }
+			refresh.requestNewAccessToken('google-drive', req.user.refreshToken, extraParams, function(err, accessToken) {
+        if (err || !accessToken) { 
+        	if (err) 
+        		console.log(err)
+        	return res.status(401).end() 
+        }
 
         // Save the new accessToken for future use
        req.session.passport.user.google.accessToken = accessToken 
