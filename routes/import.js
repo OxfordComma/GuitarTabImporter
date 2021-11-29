@@ -10,19 +10,6 @@ const User = require('../models/User')
 
 
 router.get('/', (req, res) => {
-
-	let extraParams = { 
-		client_id: process.env.google_client_id, 
-		client_secret: process.env.google_client_secret 
-	}
-
-	refresh.requestNewAccessToken('google-drive', req.user.refreshToken, extraParams, function(err, accessToken) {
-    if (err || !accessToken) { 
-    	if (err) 
-    		console.log(err)
-    	return res.status(401).end() 
-    }
-  })
 	// console.log(req.session)
 	res.render('import', { style: '/stylesheets/style.css', user: req.user })
 })
