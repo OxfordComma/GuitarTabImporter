@@ -60,6 +60,22 @@ router.get('/tab', async (req, res) => {
 	// Get google account so the new tab can be written
 	const oauth2Client = new google.auth.OAuth2(process.env.google_client_id, process.env.google_client_secret);
 
+	let extraParams = { 
+		client_id: process.env.google_client_id, 
+		client_secret: process.env.google_client_secret 
+	}
+
+	// refresh.requestNewAccessToken('google-drive', req.user.refreshToken, extraParams, function(err, accessToken) {
+	  // if (err || !accessToken) { 
+	  // 	if (err) 
+	  // 		console.log(err)
+	  // 	req.user.accessToken = accessToken
+	  // }
+
+	  // Save the new accessToken for future use
+	 // req.session.passport.user.google.accessToken = accessToken 
+	// })
+
 	oauth2Client.setCredentials({
 		'access_token': req.user.accessToken,
 		'refresh_token': req.user.refreshToken
@@ -232,7 +248,7 @@ router.get('/tab', async (req, res) => {
 	}
 	catch(err) {
 		console.log(err)
-		if (err.code == 401) {
+		if (err.code == 401 || err.code == 400) {
 			console.log('Refresh?')
 			let extraParams = { 
 				client_id: process.env.google_client_id, 
