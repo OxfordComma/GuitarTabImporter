@@ -47,7 +47,7 @@ class GuitarTabImporter extends React.Component {
 			<div id='container'> 
 				<Header options={[ this.state.name ]}/>
 				<div id="form">
-					<form action='/import/tab'>
+					<form action='/import/tab' target="_blank">
 						<label htmlFor="url">Tab URL:</label>
 						<input type="text" name="url" id="url" required="required" autocomplete="off" autofocus/>
 						<input type="submit" hidden/>
