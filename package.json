@@ -36,9 +36,6 @@
     "react-google-picker": "^0.1.0",
     "spotify-web-api-node": "^4.0.0"
   },
-  "engines": {
-    "node": "12.3.1"
-  },
   "devDependencies": {
     "@babel/core": "^7.14.2",
     "@babel/plugin-transform-runtime": "^7.17.0",
