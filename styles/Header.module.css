@@ -1,0 +1,34 @@
+.header {
+  grid-area: header;
+  /*max-width: 100%;*/
+
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  justify-items: center;
+  align-items: center;
+  background-color: black;
+}
+
+.header > * {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.links {
+  display: flex;
+  gap: 25px;
+}
+
+.login {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-column-start: -2;
+  grid-column-end:  -1;
+}
+
+.login-button {
+  justify-self: right;
+  align-self: center;
+  width: 'fit-content';
+  height:'fit-content';
+}
