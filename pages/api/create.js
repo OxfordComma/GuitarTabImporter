@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 	let url = req.query.url
 	let folder = req.query.folder
 
-	let response = await fetch(process.env.REDIRECT_URL + '/api/tab?url='+url).then(r => r.json())
+	let response = await fetch(process.env.NEXTAUTH_URL + '/api/tab?url='+url).then(r => r.json())
 	console.log(response)
 	let artist = response.artist
 	let songName = response.songName
