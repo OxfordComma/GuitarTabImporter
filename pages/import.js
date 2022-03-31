@@ -26,7 +26,7 @@ export default function Login(props) {
 
   	let response = await fetch('/api/create?folder='+folder+'&url='+url).then(r => r.json())
   	console.log(response)
-  	setGoogleDocs(googleDocs.concat(response))
+  	setGoogleDocs(googleDocs.concat([response]))
   	// setGoogleDocsUrls(googleDocsUrls.concat(response.googleUrl))
   	// setSongName([response.artist, response.songName].join(' - '))
   }
@@ -45,7 +45,7 @@ export default function Login(props) {
 			</div>
 			{
 				googleDocs.map(gd => 
-					<a href={gd.url}>{gd.songName}</a>
+					<a href={gd.googleUrl}>{gd.songName}</a>
 				)
 			}
 			
