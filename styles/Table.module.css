@@ -1,0 +1,42 @@
+.table {
+  grid-area: table;
+  align-items: start;
+  overflow: scroll;
+  padding: 5px;
+  width: 100%;
+  height:  100%;
+}
+
+.tablehead {
+  display: grid;
+  width: 100%;
+  text-align: left;
+}
+
+
+.tablebody {
+  display: grid;
+  width: 100%;
+}
+
+.row {
+  display: grid !important;
+  width:  100% !important;
+  grid-template-columns: repeat(auto-fill, 10%);
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 700px) {
+  .row {
+    display: grid !important;
+    width:  100%;
+    grid-template-columns: repeat(auto-fill, 10%);
+    overflow-wrap: break-word;
+  }
+}
+
+.cell {
+  display: grid;
+  width: 100% !important;
+  align-content: center;
+}

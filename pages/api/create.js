@@ -183,8 +183,8 @@ export default async function handler(req, res) {
 			let extraParams = { 
 				client_id: process.env.GOOGLE_ID, 
 				client_secret: process.env.GOOGLE_SECRET, 
-				refresh_token: profile.refresh_token,
-				grant_type: refresh_token,
+				refresh_token: account.refresh_token,
+				grant_type: 'refresh_token',
 			}
 
 			// Request refresh token
