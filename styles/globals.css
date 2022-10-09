@@ -55,6 +55,10 @@ label {
 	cursor: inherit;
 }
 
+input[disabled] {
+	opacity: 0.5;
+}
+
 
 a {
   color: inherit;

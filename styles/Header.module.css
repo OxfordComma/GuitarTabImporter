@@ -1,27 +1,25 @@
 .header {
   grid-area: header;
-  /*max-width: 100%;*/
-
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: repeat(auto-fill, 7.5%) 20%;
   justify-items: center;
   align-items: center;
   background-color: black;
 }
 
-.header > * {
+.headerlink {
   padding-left: 25px;
   padding-right: 25px;
 }
 
 .links {
   display: flex;
-  /*gap: 25px;*/
 }
 
 .login {
   display: grid;
   grid-template-columns: auto auto;
+  justify-self: end;
   grid-column-start: -2;
   grid-column-end:  -1;
 }
@@ -32,3 +30,4 @@
   width: 'fit-content';
   height:'fit-content';
 }
+

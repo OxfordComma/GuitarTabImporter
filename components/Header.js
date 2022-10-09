@@ -33,9 +33,12 @@ export default function Header (props) {
 
 	return (
     <div className={styles.header}>
-      <div className={styles.links}>
-        <Link href='/import'>Import</Link>
-      </div>
+      {status == 'authenticated' ?  [
+        <Link href='/import'>Import</Link>,
+        <Link href='/tabs'>Tabs</Link>,
+        <Link href='/profile'>Profile</Link>
+      ] :
+      <div></div>}
       <div className={styles.login}>
         <ShowLogin className={styles.headeritem}/>
       </div>

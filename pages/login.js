@@ -8,7 +8,7 @@ export default function Login(props) {
 	return (
 	<div className={styles.container}>
 		<main className={styles.main}>
-			<div className={styles.header}>Guitar Tab Importer</div>
+			<div className={styles.content}>Guitar Tab Importer</div>
 		</main>
 	</div>)
 }

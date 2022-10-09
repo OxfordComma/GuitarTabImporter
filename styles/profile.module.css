@@ -4,16 +4,9 @@
 	grid-template-columns: 100%;
 	width: 100%;
 	height: 100%;
-
-	
 }
 
-.form {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-	height: 100%;
-	padding: 50px;
-	gap: 15px;
-}
 
+.container > text {
+	color: cyan;
+}
