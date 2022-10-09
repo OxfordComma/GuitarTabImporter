@@ -23,6 +23,7 @@
     "http-errors": "~1.6.3",
     "jquery": "^3.5.1",
     "latest": "^0.2.0",
+    "mongodb": "^4.10.0",
     "mongoose": "^5.13.5",
     "morgan": "~1.9.1",
     "next": "^12.1.0",
