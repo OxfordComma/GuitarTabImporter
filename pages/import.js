@@ -20,6 +20,7 @@ export default function Import(props) {
 
   useEffect(async () => {
   	let user = await fetch('/api/user').then(r => r.json())
+  	console.log('user:', user)
 
   	let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
   	console.log(folderContents)
@@ -43,7 +44,7 @@ export default function Import(props) {
 
 	return (
 		<div className={styles.container}>
-			<div >
+			<div>
 				<form className={styles.form} onSubmit={e => onSubmit(e, folder, url)}>
 					<span>
 						<label htmlFor="url">Tab URL:</label>
