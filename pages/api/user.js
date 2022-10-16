@@ -3,10 +3,12 @@ import { getSession } from "next-auth/react"
 
 export default async function handler(req, res) {
 	let session = await getSession({ req })
+	console.log('session:', session)
 	let mongoClient = await clientPromise
 
 	if (req.method == 'GET') {
 		var db = await mongoClient.db('guitartabimporter')
+		console.log('db:', db)
 		var users = await db.collection('users')
 		var user = await users.findOne({ email: session.user.email })
 		console.log(user)
