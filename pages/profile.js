@@ -21,10 +21,10 @@ export default function Profile(props) {
   		let user = await fetch('/api/user').then(r => r.json())
 	  	console.log('user:', user)
 
-	  	let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
-	  	console.log(folderContents)
+	  // 	let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
+	  // 	console.log(folderContents)
 			setFolder(user.folder)
-			setGoogleDocs(folderContents)
+			// setGoogleDocs(folderContents)
   	}
 
   	updateFolder();
@@ -37,9 +37,9 @@ export default function Profile(props) {
   	let userUpdate = await fetch('/api/user?folder='+folder, { method: 'POST' }).then(r => r.json())
   	console.log(userUpdate)
 
-  	let response = await fetch('/api/create?folder='+folder+'&url='+url).then(r => r.json())
-  	console.log(response)
-  	setGoogleDocs(googleDocs.concat([response]))
+  	// let response = await fetch('/api/create?folder='+folder+'&url='+url).then(r => r.json())
+  	// console.log(response)
+  	// setGoogleDocs(googleDocs.concat([response]))
   	// setGoogleDocsUrls(googleDocsUrls.concat(response.googleUrl))
   	// setSongName([response.artist, response.songName].join(' - '))
   }
