@@ -16,13 +16,19 @@ export default function Profile(props) {
   let [googleDocs, setGoogleDocs] = useState([])
 
 
-  useEffect(async () => {
-  	let user = await fetch('/api/user').then(r => r.json())
+  useEffect(() => {
+  	async function updateFolder() {
+  		let user = await fetch('/api/user').then(r => r.json())
+	  	console.log('user:', user)
 
-  	let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
-  	console.log(folderContents)
-		setFolder(user.folder)
-		setGoogleDocs(folderContents)
+	  	let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
+	  	console.log(folderContents)
+			setFolder(user.folder)
+			setGoogleDocs(folderContents)
+  	}
+
+  	updateFolder();
+  	
 	}, [])
 
   
