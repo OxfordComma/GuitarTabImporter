@@ -63,10 +63,10 @@ export default function Tabs(props) {
 			accessor: d => d.name.replace(/\{.+}/i, '').split(' - ')[1],
 			Cell: d => <a href={'https://docs.google.com/document/d/' + d.row.original.id} target='blank'>{d.row.original.name.replace(/\{.+}/i, '').split(' - ')[1]}</a>,
 		},
-		'uri': {
-			accessor: d => d.name.match(/\{(.+)}/, '') ? d.name.match(/\{(.+)}/, '')[1] : '',
-			Cell: d => <a href={'https://docs.google.com/document/d/' + d.row.original.id} target='blank'>{d.row.original.name.match(/\{(.+)}/, '') ? d.row.original.name.match(/\{(.+)}/, '')[1] : ''}</a>,
-		},
+		// 'uri': {
+		// 	accessor: d => d.name.match(/\{(.+)}/, '') ? d.name.match(/\{(.+)}/, '')[1] : '',
+		// 	Cell: d => <a href={'https://docs.google.com/document/d/' + d.row.original.id} target='blank'>{d.row.original.name.match(/\{(.+)}/, '') ? d.row.original.name.match(/\{(.+)}/, '')[1] : ''}</a>,
+		// },
 		'link': {
 			Cell: d => <a href={'https://docs.google.com/document/d/' + d.row.original.id} target='blank'>link</a>,
 			width: '0.5fr'

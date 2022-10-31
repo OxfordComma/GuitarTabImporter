@@ -1,15 +1,15 @@
 .header {
   grid-area: header;
   display: grid;
-  grid-template-columns: repeat(auto-fill, 7.5%) 20%;
+  grid-template-columns: repeat(auto-fill, 75px) 20%;
   justify-items: center;
   align-items: center;
   background-color: black;
 }
 
 .headerlink {
-  padding-left: 25px;
-  padding-right: 25px;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 .links {
