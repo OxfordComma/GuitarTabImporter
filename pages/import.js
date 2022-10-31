@@ -1,9 +1,7 @@
 import Header from '../components/Header.js'
-import ReactTable from '../components/ReactTable.js'
 import styles from '../styles/import.module.css'
 import { useSession } from "next-auth/react"
 import { useState, useEffect } from 'react'
-// import clientPromise from "../lib/mongodb.js"
 import tableStyles from '../styles/Table.module.css'
 
 export default function Import(props) {
@@ -22,11 +20,11 @@ export default function Import(props) {
   	async function updateFolder() {
   		let user = await fetch('/api/user').then(r => r.json())
 	  	console.log('user:', user)
-
-	  	let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
-	  	console.log(folderContents)
 			setFolder(user.folder)
-			setGoogleDocs(folderContents)
+
+	  	// let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
+	  	// console.log(folderContents)
+			// setGoogleDocs(folderContents)
   	}
 
   	updateFolder();
