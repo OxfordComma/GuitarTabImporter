@@ -4,35 +4,43 @@ let ObjectID = require('mongodb').ObjectID
 const {google} = require('googleapis');
 
 export default async function handler(req, res) {
-	const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_ID, process.env.GOOGLE_SECRET);
-	
-	let session = await getSession({ req })
+	try {
 
-	let mongoClient = await clientPromise
-	var db = await mongoClient.db('guitartabimporter')
-	var users = await db.collection('users')
-	var user = await users.findOne({ email: session.user.email })
 
-	var id = user._id
-	var accounts = await db.collection('accounts')
-	var account = await accounts.findOne({ userId: id })
+		const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_ID, process.env.GOOGLE_SECRET);
+		
+		let session = await getSession({ req })
 
-	let url = req.query.url
-	let folder = req.query.folder
+		let mongoClient = await clientPromise
+		var db = await mongoClient.db('guitartabimporter')
+		var users = await db.collection('users')
+		var user = await users.findOne({ email: session.user.email })
 
-	let response = await fetch(process.env.NEXTAUTH_URL + '/api/tab?url='+url).then(r => r.json())
-	console.log(response)
-	let artist = response.artist
-	let songName = response.songName
-	let rawTabs = response.tabs
+		var id = user._id
+		var accounts = await db.collection('accounts')
+		var account = await accounts.findOne({ userId: id })
 
-	oauth2Client.setCredentials({
-		'access_token': account.access_token,
-		'refresh_token': account.refresh_token
-	});
+		let url = req.query.url
+		let folder = req.query.folder
 
-	const docs = google.docs({version: 'v1', auth: oauth2Client });
-	const drive = google.drive({version: 'v3', auth: oauth2Client });
+		let response = await fetch(process.env.NEXTAUTH_URL + '/api/tab?url='+url).then(r => r.json())
+		console.log(response)
+		let artist = response.artist
+		let songName = response.songName
+		let rawTabs = response.tabs
+
+		oauth2Client.setCredentials({
+			'access_token': account.access_token,
+			'refresh_token': account.refresh_token
+		});
+
+		const docs = google.docs({version: 'v1', auth: oauth2Client });
+		const drive = google.drive({version: 'v3', auth: oauth2Client });
+	}
+	catch(err) {
+		console.log(err)
+
+	}
 
 	console.log('Importing: ' + songName + ' by ' + artist);
 
