@@ -47,26 +47,25 @@ export default function Import(props) {
 
 	return (
 		<div className={styles.container}>
-			<div>
-				<form className={styles.form} onSubmit={e => onSubmit(e, folder, url)}>
-					<span>
-						<label htmlFor="url">Tab URL:</label>
-						<input style={{marginLeft: '3px', width: '250px'}}type="text" name="url" id="url" required="required" autocomplete="off" autofocus value={url} width='225px' onChange={e => setUrl(e.target.value)}/>
-					</span>
-					<span >
-						<input type="submit" hidden/>
-						<label htmlFor="url">Folder:</label>
-						<input style={{'marginLeft': '18px', width: '250px'}}type="text" name="folder" id="folder" disabled required="required" autocomplete="off" value={folder} width='250px' onChange={e => setFolder(e.target.value)}/>
-					</span>
-					<span>
-						<button type='submit'>submit</button>
-					</span>
-				</form>
-				<div>
-					{googleDocs.map((doc, i) => {
-						return <a href={googleDocsUrls[i]}>{doc.name}</a>
-					})}
-				</div>
+			<form className={styles['import-column']} onSubmit={e => onSubmit(e, folder, url)}>
+				<span>
+					<label htmlFor="url">Tab URL:</label>
+					<input style={{marginLeft: '3px', width: '250px'}}type="text" name="url" id="url" required="required" autocomplete="off" autofocus value={url} width='225px' onChange={e => setUrl(e.target.value)}/>
+				</span>
+				<span >
+					<input type="submit" hidden/>
+					<label htmlFor="url">Folder:</label>
+					<input style={{'marginLeft': '18px', width: '250px'}}type="text" name="folder" id="folder" disabled required="required" autocomplete="off" value={folder} width='250px' onChange={e => setFolder(e.target.value)}/>
+				</span>
+				<span>
+					<button type='submit'>submit</button>
+				</span>
+			</form>
+			<div className={styles['import-column']} >
+				{googleDocs.map((doc, i) => {
+					console.log(doc)
+					return <a href={googleDocsUrls[i]}>{doc.songName}</a>
+				})}
 			</div>
 			
 		</div>)

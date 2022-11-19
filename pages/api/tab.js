@@ -1,4 +1,6 @@
-const pupp = require( "puppeteer" );
+// const pupp = require( "puppeteer" );
+const chromium = require('chrome-aws-lambda');
+
 // Test URL
 
 export default async function handler(req, res) {
@@ -18,8 +20,8 @@ export default async function handler(req, res) {
 
 async function getSong(url) {
 
-	const browser = await pupp.launch({
-	  args: [
+	let browser = await chromium.puppeteer.launch({
+    args: [
 	    '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-infobars',
@@ -28,7 +30,23 @@ async function getSong(url) {
       '--ignore-certifcate-errors-spki-list',
       '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'
 	  ],
-	});
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath,
+    headless: true,
+    ignoreHTTPSErrors: true,
+  });
+
+	// const browser = await chromium.puppeteer.launch({
+	//   args: [
+	//     '--no-sandbox',
+  //     '--disable-setuid-sandbox',
+  //     '--disable-infobars',
+  //     '--window-position=0,0',
+  //     '--ignore-certifcate-errors',
+  //     '--ignore-certifcate-errors-spki-list',
+  //     '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'
+	//   ],
+	// });
 	try {
 		const page = await browser.newPage();
 

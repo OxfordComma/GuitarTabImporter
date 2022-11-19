@@ -1,14 +1,12 @@
 .container {
 	display: grid;
 	grid-template-rows: 100%;
-	grid-template-columns: 100%;
+	grid-template-columns: 50% 50%;
 	width: 100%;
 	height: 100%;
-
-	
 }
 
-.form {
+.import-column {
 	display: flex;
 	flex-direction: column;
 	width: 100%;

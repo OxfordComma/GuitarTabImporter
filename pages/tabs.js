@@ -75,13 +75,13 @@ export default function Tabs(props) {
 
 	return (
 		<div className={styles.container}>
-				<Table 
-					data={googleDocs}
-					options={tableOptions}
-					styles={tableStyles}
-					sortBy={'name'}
-					rowStyle={Object.keys(tableOptions).map(t => (tableOptions[t].width ? tableOptions[t].width : '1fr')).join(' ') + ' !important'}
-				/>
+			<Table 
+				data={googleDocs}
+				options={tableOptions}
+				styles={tableStyles}
+				sortBy={'name'}
+				rowStyle={Object.keys(tableOptions).map(t => (tableOptions[t].width ? tableOptions[t].width : '1fr')).join(' ') + ' !important'}
+			/>
 			
 		</div>)
 }
