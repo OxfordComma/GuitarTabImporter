@@ -33,7 +33,7 @@ async function getSong(url) {
     // args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
     defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath,
-    headless: false,
+    headless: true,
     ignoreHTTPSErrors: true,
   });
 
