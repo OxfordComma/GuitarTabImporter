@@ -53,11 +53,12 @@ async function getSong(url) {
 
 		page.goto( url );
 
-		await page.waitForTimeout(9 * 1000)
+		await page.waitForTimeout(5 * 1000)
 		await page.evaluate(() => window.stop())
 
 
 		let song = await page.evaluate( () => {
+			window.stop();
 			let tab_view = window.UGAPP.store.page.data.tab_view;
 			let tab = window.UGAPP.store.page.data.tab;
 
