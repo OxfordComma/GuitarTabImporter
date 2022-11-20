@@ -30,7 +30,7 @@ async function getSong(url) {
       '--ignore-certifcate-errors-spki-list',
       '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'
 	  ],
-    // args: [...chrome.args, '--hide-scrollbars', '--disable-web-security'],
+    // args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
     defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath,
     headless: false,
@@ -51,7 +51,11 @@ async function getSong(url) {
 	try {
 		const page = await browser.newPage();
 
-		await page.goto( url );
+		page.goto( url );
+
+		await page.waitForTimeout(9 * 1000)
+		await page.evaluate(() => window.stop())
+
 
 		let song = await page.evaluate( () => {
 			let tab_view = window.UGAPP.store.page.data.tab_view;
