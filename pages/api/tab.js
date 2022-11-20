@@ -1,4 +1,4 @@
-// const pupp = require( "puppeteer" );
+// const pupp = require( "puppeteer-core" );
 const chromium = require('chrome-aws-lambda');
 
 // Test URL
@@ -30,9 +30,10 @@ async function getSong(url) {
       '--ignore-certifcate-errors-spki-list',
       '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'
 	  ],
+    // args: [...chrome.args, '--hide-scrollbars', '--disable-web-security'],
     defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath,
-    headless: true,
+    headless: false,
     ignoreHTTPSErrors: true,
   });
 
