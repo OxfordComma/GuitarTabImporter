@@ -54,7 +54,7 @@ async function getSong(url) {
 		await page.goto( url, { timeout: 5 * 1000 } );
 
 		// await page.waitForTimeout(3 * 1000)
-		// await page.evaluate(() => window.stop())
+		await page.evaluate(() => window.stop())
 
 
 		let song = await page.evaluate( () => {
