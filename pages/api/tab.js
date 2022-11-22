@@ -51,10 +51,10 @@ async function getSong(url) {
 	try {
 		const page = await browser.newPage();
 
-		page.goto( url );
+		await page.goto( url, { timeout: 8 * 1000 } );
 
-		await page.waitForTimeout(3 * 1000)
-		await page.evaluate(() => window.stop())
+		// await page.waitForTimeout(3 * 1000)
+		// await page.evaluate(() => window.stop())
 
 
 		let song = await page.evaluate( () => {
