@@ -23,6 +23,8 @@ async function getSong(url) {
 	let browser = await chromium.puppeteer.launch({
     args: [
 	    '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--single-process'
       '--disable-setuid-sandbox',
       '--disable-infobars',
       '--window-position=0,0',
