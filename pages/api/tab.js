@@ -24,7 +24,7 @@ async function getSong(url) {
     args: [
 	    '--no-sandbox',
       '--disable-dev-shm-usage',
-      '--single-process'
+      '--single-process',
       '--disable-setuid-sandbox',
       '--disable-infobars',
       '--window-position=0,0',
