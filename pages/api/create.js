@@ -6,25 +6,32 @@ const {google} = require('googleapis');
 export default async function handler(req, res) {
 	const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_ID, process.env.GOOGLE_SECRET);
 	
-	let session = await getSession({ req })
+	// let session = await getSession({ req })
 
-	let mongoClient = await clientPromise
-	var db = await mongoClient.db('guitartabimporter')
-	var users = await db.collection('users')
-	var user = await users.findOne({ email: session.user.email })
+	// let mongoClient = await clientPromise
+	// var db = await mongoClient.db('guitartabimporter')
+	// var users = await db.collection('users')
+	// var user = await users.findOne({ email: session.user.email })
 
-	var id = user._id
-	var accounts = await db.collection('accounts')
-	var account = await accounts.findOne({ userId: id })
+	// var id = user._id
+	// var accounts = await db.collection('accounts')
+	// var account = await accounts.findOne({ userId: id })
 
-	let url = req.query.url
-	let folder = req.query.folder
+	// let url = req.query.url
+	// let folder = req.query.folder
+	console.log(req.body)
+	// console.log(JSON.parse(req.body))
+	let body = JSON.parse(req.body)
 
-	let response = await fetch(process.env.NEXTAUTH_URL + '/api/tab?url='+url).then(r => r.json())
-	console.log(response)
-	let artist = response.artist
-	let songName = response.songName
-	let rawTabs = response.tabs
+
+	// let response = await fetch(process.env.NEXTAUTH_URL + '/api/tab?url='+url).then(r => r.json())
+	console.log(body.tab)
+	let tab = body.tab
+	let artist = tab.artist
+	let songName = tab.songName
+	let rawTabs = tab.tabs
+
+	let account = body.account
 
 	oauth2Client.setCredentials({
 		'access_token': account.access_token,

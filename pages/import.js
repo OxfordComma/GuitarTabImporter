@@ -34,14 +34,30 @@ export default function Import(props) {
   
   let onSubmit = async function(event, folder, url) {
   	event.preventDefault()
-  	let userUpdate = await fetch('/api/user?folder='+folder, { method: 'POST' }).then(r => r.json())
-  	console.log(userUpdate)
+  	// let userUpdate = await fetch('/api/user?folder='+folder, { method: 'POST' }).then(r => r.json())
+  	// console.log(userUpdate)
 
-  	let response = await fetch('/api/create?folder='+folder+'&url='+url).then(r => r.json())
-  	console.log(response)
-  	setGoogleDocs(googleDocs.concat([response]))
-  	setGoogleDocsUrls(googleDocsUrls.concat(response.googleUrl))
-  	setSongName([response.artist, response.songName].join(' - '))
+  	let user = await fetch('/api/user').then(r => r.json())
+  	// console.log({user: user})
+
+  	let tab = await fetch('/api/tab?url='+url).then(r => r.json())
+		// console.log({tab: tab})
+
+		let account = await fetch(`/api/account?userid=${user._id}`).then(r => r.json())
+		// console.log({account: account})
+
+
+	
+		let googleDoc = await fetch(
+			'/api/create?folder=' + folder,
+			{ method: 'POST', body: JSON.stringify({tab: tab, user: user, account: account}) }
+		).then(r => r.json())
+
+  	// let response = await fetch('/api/create?folder='+folder+'&url='+url).then(r => r.json())
+  	console.log({doc: googleDoc})
+  	setGoogleDocs(googleDocs.concat([googleDoc]))
+  	setGoogleDocsUrls(googleDocsUrls.concat(googleDoc.googleUrl))
+  	setSongName([googleDoc.artist, googleDoc.songName].join(' - '))
   }
 
 

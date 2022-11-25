@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
 	if (req.method == 'GET') {
 		var db = await mongoClient.db('guitartabimporter')
-		console.log('db:', db)
+		// console.log('db:', db)
 		var users = await db.collection('users')
 		var user = await users.findOne({ email: session.user.email })
 		console.log(user)
