@@ -9,6 +9,8 @@ export default function Import(props) {
 
   let [folder, setFolder] = useState('')
   let [url, setUrl] = useState('')
+
+  let [loading, setLoading] = useState(false)
   
   let [googleDocsUrls, setGoogleDocsUrls] = useState([])
   let [songName, setSongName] = useState('')
@@ -19,12 +21,8 @@ export default function Import(props) {
   useEffect(() => {
   	async function updateFolder() {
   		let user = await fetch('/api/user').then(r => r.json())
-	  	console.log('user:', user)
+	  	// console.log('user:', user)
 			setFolder(user.folder)
-
-	  	// let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
-	  	// console.log(folderContents)
-			// setGoogleDocs(folderContents)
   	}
 
   	updateFolder();
@@ -33,6 +31,7 @@ export default function Import(props) {
 
   
   let onSubmit = async function(event, folder, url) {
+  	setLoading(true)
   	event.preventDefault()
   	// let userUpdate = await fetch('/api/user?folder='+folder, { method: 'POST' }).then(r => r.json())
   	// console.log(userUpdate)
@@ -53,11 +52,12 @@ export default function Import(props) {
 			{ method: 'POST', body: JSON.stringify({tab: tab, user: user, account: account}) }
 		).then(r => r.json())
 
-  	// let response = await fetch('/api/create?folder='+folder+'&url='+url).then(r => r.json())
-  	console.log({doc: googleDoc})
+  	// console.log({doc: googleDoc})
   	setGoogleDocs(googleDocs.concat([googleDoc]))
-  	setGoogleDocsUrls(googleDocsUrls.concat(googleDoc.googleUrl))
-  	setSongName([googleDoc.artist, googleDoc.songName].join(' - '))
+  	// setGoogleDocsUrls(googleDocsUrls.concat(googleDoc.googleUrl))
+  	// setSongName([googleDoc.artist, googleDoc.songName].join(' - '))
+
+  	setLoading(false)
   }
 
 
@@ -78,10 +78,8 @@ export default function Import(props) {
 				</span>
 			</form>
 			<div className={styles['import-column']} >
-				{googleDocs.map((doc, i) => {
-					console.log(doc)
-					return <a href={googleDocsUrls[i]}>{doc.songName}</a>
-				})}
+				<div>{loading ? 'loading...' : ''}</div>
+				{googleDocs.map((doc, i) => <a href={googleDocsUrls[i]}>{[doc.artist, doc.songName].join(' - ')}</a>)}
 			</div>
 			
 		</div>)

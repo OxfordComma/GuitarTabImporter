@@ -1,6 +1,6 @@
 import Header from '../components/Header.js'
 import ReactTable from '../components/ReactTable.js'
-import styles from '../styles/import.module.css'
+import styles from '../styles/profile.module.css'
 import { useSession } from "next-auth/react"
 import { useState, useEffect } from 'react'
 // import clientPromise from "../lib/mongodb.js"
@@ -47,8 +47,7 @@ export default function Profile(props) {
 
 	return (
 		<div className={styles.container}>
-			<div >
-				<form className={styles.form} onSubmit={e => onSubmit(e, folder, url)}>
+				<form className={styles.column} onSubmit={e => onSubmit(e, folder, url)}>
 					<span>
 						<input type="submit" hidden/>
 						<label htmlFor="url">Folder:</label>
@@ -58,7 +57,6 @@ export default function Profile(props) {
 						<button type='submit'>submit</button>
 					</span>
 				</form>
-			</div>
 			
 		</div>)
 }
