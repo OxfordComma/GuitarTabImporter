@@ -53,7 +53,7 @@ export default function Import(props) {
 		).then(r => r.json())
 
   	// console.log({doc: googleDoc})
-  	setGoogleDocs(googleDocs.concat([googleDoc]))
+  	setGoogleDocs([googleDoc].concat(googleDocs))
   	// setGoogleDocsUrls(googleDocsUrls.concat(googleDoc.googleUrl))
   	// setSongName([googleDoc.artist, googleDoc.songName].join(' - '))
 
@@ -79,7 +79,7 @@ export default function Import(props) {
 			</form>
 			<div className={styles['import-column']} >
 				<div>{loading ? 'loading...' : ''}</div>
-				{googleDocs.map((doc, i) => <a href={googleDocsUrls[i]}>{[doc.artist, doc.songName].join(' - ')}</a>)}
+				{googleDocs.map((doc, i) => <a target='_blank' href={doc.googleUrl}>{[doc.artist, doc.songName].join(' - ')}</a>)}
 			</div>
 			
 		</div>)

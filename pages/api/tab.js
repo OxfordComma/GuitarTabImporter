@@ -153,6 +153,32 @@ function formatRawTabs(rawTabs) {
 	}
 
 	console.log(rawTabsSplit)
+
+	// Find short chord groups to move
+	for (var i = 0; i < rawTabsSplit.length - 1; i++) {
+		var currentRow = rawTabsSplit[i]
+		var nextRow = rawTabsSplit[i+1] ?? ''
+		var thirdRow = rawTabsSplit[i+2] ?? ''
+		var fourthRow = rawTabsSplit[i+3] ?? ''
+
+		// Need to check the chords/lyrics that will be moving up
+		if (thirdRow.match(/^[A-Gb#]+( |$)/gm) && fourthRow.match(/^[A-Gb#]+( |$)/gm)) {
+			continue
+		}
+
+		if (currentRow.match(/^[A-Gb#]+( |$)/gm) && currentRow.split(' ').filter(i => i != '').length <= 2) {
+			// Move the next chord row up
+			rawTabsSplit[i] = currentRow + " ".repeat(nextRow.trim().length - currentRow.length + 1) + thirdRow
+			// Move the next lyric row up
+			rawTabsSplit[i+1] = nextRow.trim() + ' ' + fourthRow.trim().toLowerCase()
+			rawTabsSplit[i+2] = ''
+			rawTabsSplit[i+3] = ''
+		}
+	}
+	rawTabsSplit = rawTabsSplit.filter(i => i != '')
+
+	console.log(rawTabsSplit)
+
 	return rawTabsSplit.join('\r\n');
 }
 
