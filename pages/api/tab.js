@@ -1,7 +1,9 @@
 // const pupp = require( "puppeteer-core" );
 const chromium = require('chrome-aws-lambda');
-
+const puppeteer = require('puppeteer-extra')
 // Test URL
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+puppeteer.use(StealthPlugin())
 
 export default async function handler(req, res) {
 
@@ -19,8 +21,10 @@ export default async function handler(req, res) {
 }
 
 async function getSong(url) {
-
+	let proxies = ['https://us8281.nordvpn.com:89', 'https://us5087.nordvpn.com:89']
+	let proxy = proxies[Math.floor(Math.random()*proxies.length)]
 	let browser = await chromium.puppeteer.launch({
+	// let browser = await puppeteer.launch({
     args: [
 	    '--no-sandbox',
       '--disable-dev-shm-usage',
@@ -30,12 +34,15 @@ async function getSong(url) {
       '--window-position=0,0',
       '--ignore-certifcate-errors',
       '--ignore-certifcate-errors-spki-list',
-      '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'
+      '--user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"'
 	  ],
+
     // args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath,
-    headless: true,
+  	args: ['--proxy-server='+proxy],
+
+    // defaultViewport: chromium.defaultViewport,
+    // executablePath: await chromium.executablePath,
+    headless: false,
     ignoreHTTPSErrors: true,
   });
 
@@ -50,10 +57,16 @@ async function getSong(url) {
   //     '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'
 	//   ],
 	// });
+	const page = await browser.newPage();
 	try {
-		const page = await browser.newPage();
 
-		await page.goto( url, { waitUntil: 'domcontentloaded' });
+		 await page.authenticate({
+        username: process.env.PROXY_USERNAME,
+        password: process.env.PROXY_PASSWORD,
+    });
+
+
+		await page.goto( url, { waitUntil: 'domcontentloaded' } );
 
 		// await page.waitForTimeout(5 * 1000)
 		// await page.evaluate(() => window.stop())
@@ -103,7 +116,10 @@ async function getSong(url) {
 		console.log(e)
 	}
 	finally {
-		await browser.close()
+		page.waitForTimeout(10 * 1000).then(() => {
+			console.log('Closing browser')
+			browser.close()
+		})
 	}
 }
 
@@ -168,7 +184,11 @@ function formatRawTabs(rawTabs) {
 
 		if (currentRow.match(/^[A-Gb#]+( |$)/gm) && currentRow.split(' ').filter(i => i != '').length <= 2) {
 			// Move the next chord row up
-			rawTabsSplit[i] = currentRow + " ".repeat(nextRow.trim().length - currentRow.length + 1) + thirdRow
+			let repeatCount = nextRow.trim().length - currentRow.length + 1
+			if (repeatCount < 0) 
+				repeatCount = 0
+
+			rawTabsSplit[i] = currentRow + " ".repeat() + thirdRow
 			// Move the next lyric row up
 			rawTabsSplit[i+1] = nextRow.trim() + ' ' + fourthRow.trim().toLowerCase()
 			rawTabsSplit[i+2] = ''
