@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 	let mongoClient = await clientPromise
 
 	if (req.method == 'GET') {
-		var db = await mongoClient.db('guitartabimporter')
+		var db = await mongoClient.db('tabr')
 		// console.log('db:', db)
 		var users = await db.collection('users')
 		var user = await users.findOne({ email: session.user.email })
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 	}
 
 	if (req.method == 'POST' && req.query.folder) {
-		var db = await mongoClient.db('guitartabimporter')
+		var db = await mongoClient.db('tabr')
 		var users = await db.collection('users')
 		var user = await users.findOne({ email: session.user.email })
 

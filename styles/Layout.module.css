@@ -5,8 +5,16 @@
 	height: 100vh;
 	padding: 10;
 	grid-template-areas: 
-    'header'
-    'content';
+    'header header'
+    'content content';
+}
+
+.header {
+	display: flex;
+  background-color: black;
+	/*	grid-template-columns: 80% 20%;*/
+	/*	width: 100%;*/
+	grid-area: header;
 }
 
 .content {

@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 	let session = await getSession({ req })
 
 	let mongoClient = await clientPromise
-	var db = await mongoClient.db('guitartabimporter')
+	var db = await mongoClient.db('tabr')
 	var users = await db.collection('users')
 	var user = await users.findOne({ email: session.user.email })
 

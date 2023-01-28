@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 		if (!req.query.userid)
 			res.json({})
 
-		var db = await mongoClient.db('guitartabimporter')
+		var db = await mongoClient.db('tabr')
 		// console.log('db:', db)
 		var accounts = await db.collection('accounts')
 		var account = await accounts.findOne({ userId: ObjectID(req.query.userid) })
