@@ -46,11 +46,11 @@ export default async function handler(req, res) {
 	let NextPageToken = "";
   do {
     const params = {
-      q: `'${folder}' in parents`,
+      q: `'${folder}' in parents and trashed=false`,
       // orderBy: "name",
       pageToken: NextPageToken || "",
       pageSize: 1000,
-      fields: "nextPageToken, files(id, name)",
+      fields: "nextPageToken, files(id, name, starred, createdTime)",
       corpora: 'allDrives',
       supportsAllDrives: true,
       includeItemsFromAllDrives: true,
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
 
     Array.prototype.push.apply(fileList, res.data.files);
     NextPageToken = res.data.nextPageToken;
-    console.log(NextPageToken)
+    // console.log(NextPageToken)
     console.log(res.data.files.length)
   } while (NextPageToken);
 

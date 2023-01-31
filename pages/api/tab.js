@@ -27,7 +27,7 @@ export default async function handler(req, res) {
 	  let body = JSON.parse(req.body)
 	  console.log(body)
 
-	  if (body.id && body.userId && body.tabText && body.tabName) {
+	  if (body.id && body.userId) {
 	  	var db = await mongoClient.db('tabr')
 			var tabs = await db.collection('tabs')
 			// var tab = await tabs.findOne({ tabId: body.tabId })
@@ -41,6 +41,8 @@ export default async function handler(req, res) {
 					googleDocsId: body.googleDocsId,
 					tabText: body.tabText,
 					tabName: body.tabName,
+					createdTime: body.createdTime,
+					starred: body.starred,
 				}}, { 
 					upsert: true, 
 				}
