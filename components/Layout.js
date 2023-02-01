@@ -44,13 +44,23 @@ export default function Layout({ children }) {
     if (status == 'unauthenticated') {
       router.push('/login')
     }
+    if (status == 'authenticated') {
+      router.push('/edit')
+    }
   }, [session, status])
 
   return (
     <div className={styles['layout']}>
       <div className={styles['header']}>
         <Header 
-          headings={{ 'Import': '/import', 'Tabs': '/tabs', 'Edit': '/edit', 'Profile': '/profile' }}
+          headings={
+            { 
+              // 'Import': '/import', 
+              'Tabs': '/edit', 
+              // 'Edit': '/edit', 
+              'Profile': '/profile' 
+            }
+          }
         />
         <ShowLogin/>
       </div>
