@@ -1,31 +1,19 @@
 import React from 'react'
 import Header from './Header'
 import styles from '../styles/Layout.module.css'
-import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useSession, signIn, signOut } from "next-auth/react"
-// import Sidebar from './Sidebar'
+import { useState, useEffect } from 'react'
 
-// {status == 'authenticated' ?  [
-//         <Link href='/import'>Import</Link>,
-//         <Link href='/tabs'>Tabs</Link>,
-//         <Link href='/edit'>Edit</Link>,
-//         <Link href='/profile'>Profile</Link>
-//       ] :
-//       <div></div>}
-//       <div className={styles.login}>
-//         <ShowLogin className={styles.headeritem}/>
-//       </div>
+import AppContext from '../contexts/appContext';
 
 function ShowLogin() {
   const { data: session, status } = useSession()
   
   if (session) {
     return ([
-
-      <p key='email' style={{'paddingRight':'5px'}}>{session.user.email}</p>,
+      <p key='email' className={styles['login-email']}>{session.user.email}</p>,
       <button className={styles['login-button']} key='button' onClick={() => signOut({callbackUrl: '/login'})}>Sign out</button>
-
     ])
   }
   return (
@@ -39,6 +27,7 @@ function ShowLogin() {
 export default function Layout({ children }) {
   const router = useRouter()
   const { data: session, status } = useSession()
+  let [data, setData] = useState([])
 
   useEffect(() => {
     if (status == 'unauthenticated') {
@@ -47,24 +36,22 @@ export default function Layout({ children }) {
     if (status == 'authenticated') {
       router.push('/edit')
     }
-  }, [session, status])
+  }, [status])
 
   return (
     <div className={styles['layout']}>
-      <div className={styles['header']}>
+      <div className={styles['layout-header']}>
         <Header 
           headings={
             { 
-              // 'Import': '/import', 
               'Tabs': '/edit', 
-              // 'Edit': '/edit', 
               'Profile': '/profile' 
             }
           }
         />
         <ShowLogin/>
       </div>
-      <main className={styles.content}>{children}</main>
+      <main className={styles['layout-content']}>{children}</main>
     </div>
   )
 }

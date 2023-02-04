@@ -5,33 +5,20 @@ const {google} = require('googleapis');
 
 export default async function handler(req, res) {
 	const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_ID, process.env.GOOGLE_SECRET);
-	
-	// let session = await getSession({ req })
 
-	// let mongoClient = await clientPromise
-	// var db = await mongoClient.db('guitartabimporter')
-	// var users = await db.collection('users')
-	// var user = await users.findOne({ email: session.user.email })
-
-	// var id = user._id
-	// var accounts = await db.collection('accounts')
-	// var account = await accounts.findOne({ userId: id })
-
-	// let url = req.query.url
-	// let folder = req.query.folder
-	console.log(req.body)
-	// console.log(JSON.parse(req.body))
 	let body = JSON.parse(req.body)
 
+	let tab = body.tab.tabText
+	let artistName = body.tab.artistName
+	let songName = body.tab.songName
+	// let rawTabs = tab.tabs
+	let googleDocsId = body.tab.googleDocsId
+	let folder = body.folder
 
-	// let response = await fetch(process.env.NEXTAUTH_URL + '/api/tab?url='+url).then(r => r.json())
-	console.log(body.tab)
-	let tab = body.tab
-	let artist = tab.artist
-	let songName = tab.songName
-	let rawTabs = tab.tabs
 
 	let account = body.account
+
+	console.log('create body:', body)
 
 	oauth2Client.setCredentials({
 		'access_token': account.access_token,
@@ -41,147 +28,170 @@ export default async function handler(req, res) {
 	const docs = google.docs({version: 'v1', auth: oauth2Client });
 	const drive = google.drive({version: 'v3', auth: oauth2Client });
 
+	let requests = []
 
+	if (googleDocsId) {
+		var googleDoc = await docs.documents.get({
+			documentId: googleDocsId
+		})
 
-	console.log('Importing: ' + songName + ' by ' + artist);
+		var content = googleDoc.data.body.content
+		var maxIndex = content.reduce((acc, curr) => curr.endIndex > acc ? curr.endIndex : acc, 0)
 
-	try {
+		// console.log('doc:', content)
+		// console.log('maxIndex:', maxIndex)
+
+		requests = [
+		{
+			'deleteContentRange': {
+				'range': {
+					'startIndex': 1,
+					'endIndex': maxIndex-1,
+				}
+			}
+		}]
+	}
+	else {
 		var googleDoc = await drive.files.create({
 			resource: { 
-				name: '[DRAFT] ' + artist + ' - ' + songName, //+ ' {' + uri + '}',
+				name: '[DRAFT] ' + artistName + ' - ' + songName,
 				mimeType: 'application/vnd.google-apps.document',
-				parents: [req.query.folder]
+				parents: [folder]
 			}
 		})
 
-		const requests = [
-			// {
-			// 	'createHeader': {
-			// 		type: 'DEFAULT',
-			// 	},
-			// },
-			{
-				'updateDocumentStyle': {
-					'documentStyle': {
-						'marginTop': {
-							'magnitude': 20,
-							'unit': 'PT'
-						},
-						'marginBottom': {
-							'magnitude': 20,
-							'unit': 'PT'
-						},
-						'marginLeft': {
-							'magnitude': 50,
-							'unit': 'PT'
-						},
-						'marginRight': {
-							'magnitude': 20,
-							'unit': 'PT'
-						},
-						'defaultHeaderId': {
+		googleDocsId = googleDoc.data.id
+	}
 
-						}
+	requests = requests.concat(
+		[{
+			'updateDocumentStyle': {
+				'documentStyle': {
+					'marginTop': {
+						'magnitude': 20,
+						'unit': 'PT'
 					},
-					'fields': 'marginTop,marginLeft,marginBottom,marginRight'
-				}
-			},{
-				'insertTable': {
-					rows: 1,
-					columns: 1,
-					endOfSegmentLocation: {
-						segmentId: ''
-					}
-				}
-			},{
-				'insertText': {
-					'text': '_Content_',
-					location: {
-						index: 5
+					'marginBottom': {
+						'magnitude': 20,
+						'unit': 'PT'
+					},
+					'marginLeft': {
+						'magnitude': 50,
+						'unit': 'PT'
+					},
+					'marginRight': {
+						'magnitude': 20,
+						'unit': 'PT'
+					},
+					'defaultHeaderId': {
+
 					}
 				},
-			},{
-				'insertText': {
-					'text': "-----------------------------------------------------------------------------\u000b_Artist_ - _Song_\u000b----------------------------------------------------------------------------",
-					location: {
-						index: 1
+				'fields': 'marginTop,marginLeft,marginBottom,marginRight'
+			}
+		},{
+			'insertTable': {
+				rows: 1,
+				columns: 1,
+				endOfSegmentLocation: {
+					segmentId: ''
+				}
+			}
+		},{
+			'insertText': {
+				'text': '_Content_',
+				location: {
+					index: 5
+				}
+			},
+		},{
+			'insertText': {
+				'text': "-----------------------------------------------------------------------------\u000b_Artist_ - _Song_\u000b----------------------------------------------------------------------------",
+				location: {
+					index: 1
+				}
+			}
+		},{
+			'updateTextStyle': {
+				'range': {
+					startIndex: 1,
+					endIndex: 188
+				},
+				textStyle: {
+					weightedFontFamily: {
+						fontFamily: 'PT Mono'
+					},
+					fontSize: {
+						magnitude: 9,
+						unit: 'PT'
 					}
-				}
-			},{
-				'updateTextStyle': {
-					'range': {
-						startIndex: 1,
-						endIndex: 188
-					},
-					textStyle: {
-						weightedFontFamily: {
-							fontFamily: 'PT Mono'
-						},
-						fontSize: {
-							magnitude: 9,
-							unit: 'PT'
-						}
-					},
-					fields: 'weightedFontFamily,fontSize'
-				}
-			},{
-				'updateParagraphStyle': {
-					paragraphStyle: {
-						alignment: 'CENTER'
-					},
-					'range': {
-						startIndex: 1,
-						endIndex: 170
-					},
-					fields: 'alignment'
-				}
-			},{
-					'replaceAllText': { 
-						'replaceText' : artist,
-						'containsText': {
-							'text' : '_Artist_',
-							'matchCase' : true
-						}
-					}
-			},{
-					'replaceAllText': { 
-						'replaceText' : songName,
-						'containsText': {
-							'text' : '_Song_',
-							'matchCase' : true
-						}
-					} 
-			},{                   
+				},
+				fields: 'weightedFontFamily,fontSize'
+			}
+		},{
+			'updateParagraphStyle': {
+				paragraphStyle: {
+					alignment: 'CENTER'
+				},
+				'range': {
+					startIndex: 1,
+					endIndex: 170
+				},
+				fields: 'alignment'
+			}
+		},{
 				'replaceAllText': { 
-					'replaceText' : rawTabs,
+					'replaceText' : artistName,
 					'containsText': {
-						'text' : '_Content_',
+						'text' : '_Artist_',
 						'matchCase' : true
 					}
 				}
+		},{
+				'replaceAllText': { 
+					'replaceText' : songName,
+					'containsText': {
+						'text' : '_Song_',
+						'matchCase' : true
+					}
+				} 
+		},{             
+			'replaceAllText': { 
+				'replaceText' : tab,
+				'containsText': {
+					'text' : '_Content_',
+					'matchCase' : true
+				}
+			}
 
-			// },{                    
-			// 	'replaceAllText': { 
-			// 		'replaceText' : uri,
-			// 		'containsText': {
-			// 			'text' : '_spotifyUri_',
-			// 			'matchCase' : true
-			// 		}
-			// 	}
-		}]
+		// },{                    
+		// 	'replaceAllText': { 
+		// 		'replaceText' : uri,
+		// 		'containsText': {
+		// 			'text' : '_spotifyUri_',
+		// 			'matchCase' : true
+		// 		}
+			}
+		])
+	// }
 
+
+	// // console.log('Importing: ' + songName + ' by ' + artist);
+
+	try {
 		console.log('updating doc')
 		var googleDocUpdated = await docs.documents.batchUpdate({
-			'documentId': googleDoc.data.id,
+			// 'documentId': googleDoc.data.id,
+			'documentId': googleDocsId,
 			'resource' : { 
 				'requests': requests 
 			}
 		})
-		// res.redirect('https://docs.google.com/document/d/' + googleDoc.data.id)
+	// 	// res.redirect('https://docs.google.com/document/d/' + googleDoc.data.id)
 		res.send({
-			artist: artist,
+			artist: artistName,
 			songName: songName,
-			googleUrl: 'https://docs.google.com/document/d/' + googleDoc.data.id
+			googleUrl: 'https://docs.google.com/document/d/' + googleDocsId
 		})
 
 	}

@@ -9,17 +9,36 @@
     'content content';
 }
 
-.header {
+.layout-header {
 	display: flex;
   background-color: black;
-	/*	grid-template-columns: 80% 20%;*/
-	/*	width: 100%;*/
 	grid-area: header;
+  
 }
 
-.content {
+.layout-content {
 	grid-area: content;
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
+}
+
+
+.login {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-column-start: -2;
+  grid-column-end:  -1;
+}
+
+.login-button {
+  justify-self: right;
+  align-self: center;
+  width: 'fit-content';
+  height:'fit-content';
+}
+
+.login-email {
+	padding-right: 5px;
+	align-self: center;
 }

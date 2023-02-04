@@ -32,19 +32,21 @@ export default async function handler(req, res) {
 			var tabs = await db.collection('tabs')
 			// var tab = await tabs.findOne({ tabId: body.tabId })
 
-			var update = await tabs.updateOne({ 
+			var update = await tabs.findOneAndUpdate({ 
 					// email: session.user.email
 					id: body.id
 				}, {'$set':{ 
 					// folder: req.query.tabid
-					userId: body.userId,
-					googleDocsId: body.googleDocsId,
-					tabText: body.tabText,
-					tabName: body.tabName,
-					createdTime: body.createdTime,
-					starred: body.starred,
+					// userId: body.userId,
+					// googleDocsId: body.googleDocsId,
+					// tabText: body.tabText,
+					// tabName: body.tabName,
+					// createdTime: body.createdTime,
+					// starred: body.starred,
+					...body
 				}}, { 
 					upsert: true, 
+					returnNewDocument: true,
 				}
 			)
 			res.status(201).json(update)
@@ -54,6 +56,9 @@ export default async function handler(req, res) {
 	  }
 		
 
+	}
+	else {
+		res.send(404)
 	}
 
 }
