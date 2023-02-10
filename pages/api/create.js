@@ -11,14 +11,13 @@ export default async function handler(req, res) {
 	let tab = body.tab.tabText
 	let artistName = body.tab.artistName
 	let songName = body.tab.songName
-	// let rawTabs = tab.tabs
 	let googleDocsId = body.tab.googleDocsId
 	let folder = body.folder
 
 
 	let account = body.account
 
-	console.log('create body:', body)
+	// console.log('create body:', body)
 
 	oauth2Client.setCredentials({
 		'access_token': account.access_token,
@@ -38,9 +37,7 @@ export default async function handler(req, res) {
 		var content = googleDoc.data.body.content
 		var maxIndex = content.reduce((acc, curr) => curr.endIndex > acc ? curr.endIndex : acc, 0)
 
-		// console.log('doc:', content)
-		// console.log('maxIndex:', maxIndex)
-
+		// Remove contents before we start if the doc exists
 		requests = [
 		{
 			'deleteContentRange': {
@@ -51,6 +48,7 @@ export default async function handler(req, res) {
 			}
 		}]
 	}
+	// Otherwise we're good to make a new one
 	else {
 		var googleDoc = await drive.files.create({
 			resource: { 
@@ -173,22 +171,19 @@ export default async function handler(req, res) {
 		// 		}
 			}
 		])
-	// }
 
 
-	// // console.log('Importing: ' + songName + ' by ' + artist);
 
 	try {
-		console.log('updating doc')
+		// console.log('updating doc')
 		var googleDocUpdated = await docs.documents.batchUpdate({
-			// 'documentId': googleDoc.data.id,
 			'documentId': googleDocsId,
 			'resource' : { 
 				'requests': requests 
 			}
 		})
-	// 	// res.redirect('https://docs.google.com/document/d/' + googleDoc.data.id)
-		res.send({
+
+		res.status(200).send({
 			artist: artistName,
 			songName: songName,
 			googleUrl: 'https://docs.google.com/document/d/' + googleDocsId
@@ -214,7 +209,7 @@ export default async function handler(req, res) {
 			console.log(response)
 
 			// set new access token in DB
-			
+			// ???
     }
 	}
 

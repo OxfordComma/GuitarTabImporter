@@ -1,10 +1,8 @@
 import Header from '../components/Header.js'
-import ReactTable from '../components/ReactTable.js'
+
 import styles from '../styles/profile.module.css'
 import { useSession } from "next-auth/react"
 import { useState, useEffect } from 'react'
-// import clientPromise from "../lib/mongodb.js"
-import tableStyles from '../styles/Table.module.css'
 
 export default function Profile(props) {
   const { data: session, status } = useSession()

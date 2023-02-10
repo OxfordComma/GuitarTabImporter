@@ -68,68 +68,11 @@ export default NextAuth({
       authorization: {
         params: {
           scope: 'openid email https://www.googleapis.com/auth/drive',
-          // prompt: "consent",
           access_type: "offline",
-          // response_type: "code"
         }
       },
-      // async profile(profile) {
-      //   console.log('profile:', Object.keys(profile))
-      //   return profile
-      // }
-
     }),
   ],
-  // callbacks: {
-  //   signIn({user, account, profile}) {
-  //     // console.log('signIn:', account)
-
-  //     // let mongoClient = await clientPromise
-  //     // let db = await mongoClient.db('spotiflow')
-  //     // let cl = await db.collection('guitartabimporter')
-  //     // let user = await cl.findOne({ email: profile.email })
-  //     // let data = await cl.updateOne({ 
-  //     //   email: profile.email 
-  //     // }, {
-  //     //   '$set':{ 
-  //     //     // playlists: user.playlists,
-  //     //     // sources: user.sources,
-  //     //     access_token: account.access_token,
-  //     //     refresh_token: account.refresh_token
-  //     //   }
-  //     // }, { upsert: true })
-
-  //     return true
-  //   },
-  //   // redirect({ url, baseUrl }) {
-  //   //   // console.log('redirect:', url)
-  //   //   return url.startsWith(baseUrl) ? url : baseUrl
-  //   // },
-    // jwt({ token, user, account, profile, isNewUser }) {
-    // jwt(props) {
-    //   console.log('jwt:', props)
-    //   // console.log('token', token)
-    //   // return token
-    //   // return {
-    //     // ...token,
-    //     // ...user
-    //   // }
-    // },
-    // session(s, t, u) {
-    //   console.log('s:', s)
-    //   console.log('t:', t)
-    //   console.log('u:', u)
-    //   // console.log('session callback:', session)
-    //   // console.log('user:', user)
-    //   // console.log(token)
-    //   // session.id = user.id
-    //   // session.sources = user.sources
-    //   return {
-    //     ...session,
-    //   //   ...token
-    //   }
-    // },
-  // },
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: 'database',

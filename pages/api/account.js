@@ -1,5 +1,5 @@
 import clientPromise from "../../lib/mongodb.js"
-import { getSession } from "next-auth/react"
+import { getSession, useSession } from "next-auth/react"
 import { ObjectID } from "mongodb"
 
 export default async function handler(req, res) {
@@ -7,12 +7,20 @@ export default async function handler(req, res) {
 	console.log('session:', session)
 	let mongoClient = await clientPromise
 
+	// if (status === "loading") {
+	//   return <p>Loading...</p>
+	// }
+
+	if (!session) {
+	  return <p>Access Denied</p>
+	}
+
+	// Get the logged in user's account information
 	if (req.method == 'GET') {
 		if (!req.query.userid)
-			res.json({})
+			res.json({ })
 
 		var db = await mongoClient.db('tabr')
-		// console.log('db:', db)
 		var accounts = await db.collection('accounts')
 		var account = await accounts.findOne({ userId: ObjectID(req.query.userid) })
 		console.log(account)

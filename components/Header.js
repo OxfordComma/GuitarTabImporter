@@ -9,7 +9,7 @@ export default function Header ({
 	return (
     <div className={styles['header']}>
       {
-        Object.keys(headings).map(h => <div className={styles['header-item']}>
+        Object.keys(headings).map(h => <div key={h} className={styles['header-item']}>
           <Link key={h} onClick={() => {}} legacyBehavior={false} href={headings[h]}>{h}</Link>
         </div>)
       }
