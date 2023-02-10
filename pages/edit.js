@@ -7,8 +7,6 @@ import styles from '../styles/edit.module.css'
 import { useSession } from "next-auth/react"
 import { useState, useEffect } from 'react'
 
-import AppContext from '../contexts/appContext';
-
 function ConfirmDelete ({ show, tabs, setTabs, tabId, setDeleteTab }) {
 	let tab = tabs.find(t => t.id == tabId)
 
