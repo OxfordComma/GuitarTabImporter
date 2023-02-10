@@ -1,0 +1,50 @@
+.container {
+	display: grid;
+	grid-template-rows: 25px calc(100% - 25px);
+	height: 100%;
+}
+
+.edit-tab-bar {
+	display: flex;
+	flex: 0 0 0;
+	flex-direction: row;
+	gap: 10px;
+	background-color: black;
+}
+
+.edit-tab-bar-item {
+	padding-left: 5px;
+	padding-right: 5px;
+	z-index: 1;
+	min-width: 0;
+	margin-left: 5px;
+
+}
+
+.edit-tab-bar-header-item {
+	width: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	
+}
+.edit-tab-bar-dropdown-item {
+	background-color: black;
+	margin-left: -5px;
+	padding: 10px;
+	white-space: nowrap;
+	width: fit-content;
+}
+
+.edit-tab-bar-dropdown-item:hover{
+	background-color: #222222;
+}
+
+
+.text-area {
+	padding: 5px;
+	caret-color: white;
+	background-color: #333333;
+	font-family: monospace;
+	color: white;
+}
