@@ -72,6 +72,7 @@ export default function Editor ({
   }
 
   async function exportTab() {
+    console.log(tabs)
     let sidebarTab = tabs.find(t => t['id'] == sidebarItemId)
     console.log('exporting:', sidebarTab)
     let user = await fetch('api/user').then(r => r.json())
@@ -100,6 +101,18 @@ export default function Editor ({
         // starred: sidebarTab.starred,
       })
     }).then(r => r.json())  
+
+    console.log(saveResponse)
+    tabs = tabs.map(t => {
+      if (t['id'] == sidebarItemId) {
+        t['googleDocsId'] = saveResponse['googleDocsId']
+      }
+      return t
+    })
+    // console.log(tabs)
+    saveTab()
+
+    setTabs(tabs)
   }
   
   function formatTab() {

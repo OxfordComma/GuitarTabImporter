@@ -55,8 +55,7 @@ export default function Edit(props) {
   useEffect( () => {
     const getData = async () => {
     let user = await fetch('/api/user').then(r => r.json())
-    console.log('user:', user)       
-
+    console.log('user:', user)
 
     let userTabs = await fetch('/api/tabs?userid=' + user._id).then(r => r.json())
     console.log('userTabs:', userTabs)
@@ -89,7 +88,7 @@ export default function Edit(props) {
        }
      	}).filter(fc => !userTabs.map(ut => ut['googleDocsId']).includes(fc['googleDocsId']))
 
-     	// console.log('folderContents:', folderContents)
+     	console.log('folderContents:', folderContents)
 
      	let allTabs = [...userTabs, ...folderContents]
      	allTabs = allTabs.map((at, i) => {

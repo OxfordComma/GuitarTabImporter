@@ -186,7 +186,7 @@ export default function Sidebar ({ tabs, setTabs, setDeleteTab, sidebarItemId, s
          : null}
         {sidebarItems.map(d => (
           <SidebarItem
-            key={d} 
+            key={d.id} 
             datum={d} 
             sidebarItemId={sidebarItemId}
             setSidebarItemId={setSidebarItemId}

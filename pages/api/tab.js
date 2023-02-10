@@ -36,8 +36,7 @@ export default async function handler(req, res) {
 		
 
 	}
-
-	if (req.method == 'DELETE' && req.query.tabid) {
+	else if (req.method == 'DELETE' && req.query.tabid) {
 		var db = await mongoClient.db('tabr')
 		var tabs = await db.collection('tabs')
 		var tab = await tabs.findOneAndDelete({ id: req.query.tabid })
