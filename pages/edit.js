@@ -90,7 +90,7 @@ export default function Edit(props) {
 
      	console.log('folderContents:', folderContents)
 
-     	let allTabs = [...userTabs, ...folderContents]
+     	let allTabs = [...userTabs.reverse(), ...folderContents]
      	allTabs = allTabs.map((at, i) => {
       	at['index'] = i
       	return at
