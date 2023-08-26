@@ -1,10 +1,87 @@
 import styles from '../styles/TabEditor.module.css'
+import menuBarStyles from '../styles/MenuBar.module.css'
 import Link from 'next/link'
-
+import React from 'react'
+import { Dropdown } from 'quantifyjs'
 import MenuBar from './MenuBar.js'
 import { useState, useEffect } from 'react'
 
 import { formatRawTabs } from '../lib/tabhelper.js'
+
+const data = [{
+      id: 'id1',
+      time: 1,
+      distance: 1,
+      quality: 100,
+      category: 'red',
+      date: new Date(2023, 0, 1),
+    }, {
+      id: 'id1',
+      time: 1,
+      distance: 1,
+      quality: 90,
+      category: 'red',
+      date: new Date(2023, 0, 1),
+    }, {
+      id: 'id1',
+      time: 1,
+      distance: 1,
+      quality: 95,
+      category: 'red',
+      date: new Date(2023, 0, 1),
+    }, {
+      id: 'id1',
+      time: 1,
+      distance: 1,
+      quality: 85,
+      category: 'red',
+      date: new Date(2023, 0, 1),
+    }, {
+      id: 'id1',
+      time: 1,
+      distance: 1,
+      quality: 80,
+      category: 'red',
+      date: new Date(2023, 0, 1),
+    }, {
+      id: 'id2', 
+      time: 2,
+      distance: 3,
+      quality: 75,
+      category: 'blue',
+      date: new Date(2023, 1, 1),
+    }, {
+      id: 'id3',
+      time: 3,
+      distance: 3,
+      quality: 25,
+      category: 'red',
+      date: new Date(2023, 2, 1),
+    }, {
+      id: 'id4', 
+      time: 4,
+      distance: 6,
+      quality: 75,
+      category: 'blue',
+      date: new Date(2023, 3, 1),
+    }, {
+      id: 'id5', 
+      time: 5,
+      distance: 7,
+      quality: 50,
+      category: 'red',
+      date: new Date(2023, 4, 1),
+  }]
+
+function PrintHelper({ tabText, setTabText }) {
+  return (
+    <p> 
+      className={styles['text-area']}
+      value={tabText}
+      readOnly={false}
+      onChange={e => setTabText(e.target.value)}
+    </p>)
+}
 
 function TabTextArea({ tabText, setTabText}) {
   return (
@@ -35,6 +112,7 @@ export default function Editor ({
     setTabText(tabText)
 
   }
+
 
   async function saveTab() {
     // console.log('SAVE TAB')
@@ -145,6 +223,13 @@ export default function Editor ({
 
   return (
     <div className={styles['container']}>
+      {/*<NewMenuBar/>*/}
+       <Dropdown
+        options={Object.keys(data[0])}
+        selected={'time'}
+        // onDropdownChange={setPlotSize}
+        label='size'
+      />
       <MenuBar
         menuItems={{
           'file': [{ title: 'save tab', onClick: saveTab, }],
@@ -152,6 +237,7 @@ export default function Editor ({
           'export': [{ title: 'export tab to Google Docs', onClick: exportTab, disabled: false }],
           'format': [{ title: 'format tab text', onClick: formatTab, }],
         }}
+        styles={menuBarStyles}
       />
       {/*<TabEditBar 
         sidebarItemId={sidebarItemId}
@@ -163,6 +249,9 @@ export default function Editor ({
       <TabTextArea 
         tabText={tabText}
         setTabText={setTabText}/>
+      <PrintHelper
+        tabText={tabText}
+      />
     </div>
   )
 }

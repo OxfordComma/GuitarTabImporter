@@ -1,8 +1,8 @@
 .menu-bar {
-  display: flex;
+  /*display: flex;
   flex: 0 0 0;
-  flex-direction: row;
-  gap: 10px;
+  flex-direction: row;*/
+/*  gap: 10px;*/
   background-color: black;
   cursor: pointer;
 }
@@ -14,7 +14,7 @@
   min-width: 0;
   margin-left: 5px;
   align-self: center;
-  border-radius: 5px;
+  border-radius: 1px;
 }
 
 .menu-bar-item:hover {
@@ -23,11 +23,11 @@
 }
 
 .menu-bar-dropdown {
-  position: fixed;
+  /*position: fixed;
   display: flex;
   flex-direction: column;
+  z-index: 1;*/
   background-color: black;
-  z-index: 1;
   padding-left: 5px;
   padding-right: 5px;
 }
@@ -44,11 +44,12 @@
   opacity: 0.8;
 }
 
-.background {
+/*.background {
   position: absolute;
   width: 100vw;
   height: 100vh;
-  opacity: 0;
+  opacity: 100%;
   top: 0;
   left: 0;
-}
+  background-color: green;
+}*/

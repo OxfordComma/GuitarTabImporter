@@ -1,5 +1,8 @@
 import Header from '../components/Header.js'
+import React from 'react'
+// import { Scatterplot } from 'quantifyjs'
 import MenuBar from '../components/MenuBar.js'
+import menuBarStyles from '../styles/MenuBar.module.css'
 
 import styles from '../styles/TabEditorSidebar.module.css'
 import { useSession, signIn, signOut } from "next-auth/react"
@@ -169,6 +172,7 @@ export default function Sidebar ({ tabs, setTabs, setDeleteTab, sidebarItemId, s
               ],
             }
           }
+          styles={menuBarStyles}
         />
         <button className={styles['add-tab-button']}  onClick={() => setCreateNew(true)}>+</button>
       </div>

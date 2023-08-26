@@ -7,6 +7,18 @@
 	overflow: hidden;
 }
 
+
+@media print {
+	.container {
+/*		display: grid;*/
+/*		grid-template-rows: 100%;*/
+		grid-template-columns: 0% 100%;
+/*		width: 100%;*/
+/*		height: 100%;*/
+/*		overflow: hidden;*/
+	}
+}
+
 .editor {
 	height: 100%;
 }

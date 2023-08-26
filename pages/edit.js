@@ -38,6 +38,7 @@ function ConfirmDelete ({ show, tabs, setTabs, tabId, setDeleteTab }) {
   </div> : null)
 }
 
+
 export default function Edit(props) {
   const { data: session, status } = useSession()
 
@@ -118,25 +119,26 @@ export default function Edit(props) {
 				tabs={tabs} 
 				setTabs={setTabs}
 				tabId={deleteTab}
-				setDeleteTab={setDeleteTab}/>
-				<div className={styles.sidebar}>
-					<Sidebar
-						tabs={tabs}
-						setTabs={setTabs}
-						sidebarItemId={sidebarItemId}
-						setSidebarItemId={setSidebarItemId}
-						setDeleteTab={setDeleteTab}
-					/>
-				</div>
-				<div className={styles.editor}>
-					<Editor
-						sidebarItemId={sidebarItemId}
-						userId={user?._id}
-						tabs={tabs}
-						setTabs={setTabs}
-					/>
-				</div>			
+				setDeleteTab={setDeleteTab}
+      />
+			<div className={styles.sidebar}>
+				<Sidebar
+					tabs={tabs}
+					setTabs={setTabs}
+					sidebarItemId={sidebarItemId}
+					setSidebarItemId={setSidebarItemId}
+					setDeleteTab={setDeleteTab}
+				/>
 			</div>
-		)
+			<div className={styles.editor}>
+				<Editor
+					sidebarItemId={sidebarItemId}
+					userId={user?._id}
+					tabs={tabs}
+					setTabs={setTabs}
+				/>
+			</div>			
+		</div>
+	)
 }
 

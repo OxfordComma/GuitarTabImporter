@@ -9,6 +9,20 @@
     'content content';
 }
 
+
+@media print {
+	.layout {
+		display: grid;
+		grid-template-rows: 0px 100vh;
+		width: 100vw;
+		height: 100vh;
+		padding: 10;
+		grid-template-areas: 
+	    'header header'
+	    'content content';
+	}	
+}
+
 .layout-header {
 	display: flex;
   background-color: black;

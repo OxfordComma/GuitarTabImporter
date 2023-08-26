@@ -4,6 +4,17 @@
 	height: 100%;
 }
 
+@media print {
+	.container {
+/*		display: grid;*/
+	grid-template-rows: 0px 100%;
+/*		grid-template-columns: 0% 100%;*/
+/*		width: 100%;*/
+/*		height: 100%;*/
+/*		overflow: hidden;*/
+	}
+}
+
 .edit-tab-bar {
 	display: flex;
 	flex: 0 0 0;
@@ -47,4 +58,6 @@
 	background-color: #333333;
 	font-family: monospace;
 	color: white;
+	white-space: pre-line;
+
 }
