@@ -1,7 +1,8 @@
 import styles from '../styles/TabEditor.module.css'
 import Link from 'next/link'
-
-import MenuBar from './MenuBar.js'
+import React from 'react'
+import {MenuBar} from 'quantifyjs'
+// import MenuBar from './MenuBar.js'
 import { useState, useEffect } from 'react'
 
 import { formatRawTabs } from '../lib/tabhelper.js'
@@ -145,8 +146,9 @@ export default function Editor ({
 
   return (
     <div className={styles['container']}>
+      {/*<NewMenuBar/>*/}
       <MenuBar
-        menuItems={{
+        items={{
           'file': [{ title: 'save tab', onClick: saveTab, }],
           'import': [{ title: 'import tab from Google Docs', onClick: importTab, }],
           'export': [{ title: 'export tab to Google Docs', onClick: exportTab, disabled: false }],
