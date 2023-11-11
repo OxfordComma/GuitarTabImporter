@@ -43,6 +43,7 @@ export default function Layout({ children }) {
           headings={
             { 
               'Tabs': '/edit', 
+              'Projects': '/projects',
               'Profile': '/profile' 
             }
           }

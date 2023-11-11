@@ -2,19 +2,35 @@ import styles from '../styles/TabEditor.module.css'
 import Link from 'next/link'
 import React from 'react'
 import {MenuBar} from 'quantifyjs'
+import menuBarStyles from '../styles/MenuBar.module.css'
 // import MenuBar from './MenuBar.js'
+
 import { useState, useEffect } from 'react'
 
 import { formatRawTabs } from '../lib/tabhelper.js'
 
-function TabTextArea({ tabText, setTabText}) {
+function TabTextArea({ tabText, setTabText, fontSize }) {
   return (
     <textarea 
       className={styles['text-area']}
       value={tabText}
       readOnly={false}
       onChange={e => setTabText(e.target.value)}
+      style={{ fontSize: fontSize }}
     />)
+}
+
+function StyleEditor({
+  fontSize,
+  setFontSize,
+}) {
+  return (
+    <div style={{display:'flex',}}>
+      <button onClick={() => setFontSize(fontSize+1)}>+</button>
+      <button onClick={() => setFontSize(fontSize-1)}>-</button>
+      <div>{fontSize}</div>
+    </div>
+  )
 }
 
 export default function Editor ({ 
@@ -23,7 +39,8 @@ export default function Editor ({
   tabs, 
   setTabs,
 }) {
-  let [tabText, setTabText] = useState('')
+  const [tabText, setTabText] = useState('')
+  const [fontSize, setFontSize] = useState(12)
   async function importTab() {
 
     if (!sidebarItemId)
@@ -123,7 +140,6 @@ export default function Editor ({
 
   }
 
-
   useEffect(() => {
     async function updateTab() {
       let sidebarTab = tabs.find(t => t['id'] == sidebarItemId)
@@ -146,15 +162,23 @@ export default function Editor ({
 
   return (
     <div className={styles['container']}>
-      {/*<NewMenuBar/>*/}
-      <MenuBar
-        items={{
-          'file': [{ title: 'save tab', onClick: saveTab, }],
-          'import': [{ title: 'import tab from Google Docs', onClick: importTab, }],
-          'export': [{ title: 'export tab to Google Docs', onClick: exportTab, disabled: false }],
-          'format': [{ title: 'format tab text', onClick: formatTab, }],
-        }}
-      />
+      
+      {/*<div style={{display: 'flex', width: '100%', height: '100%',}}>
+      </div>
+      */} 
+        <MenuBar
+          items={{
+            'file': [{ title: 'save tab', onClick: saveTab, }],
+            'import': [{ title: 'import tab from Google Docs', onClick: importTab, }],
+            'export': [{ title: 'export tab to Google Docs', onClick: exportTab, disabled: false }],
+            'format': [{ title: 'format tab text', onClick: formatTab, }],
+          }}
+          styles={menuBarStyles}
+        />
+      {/*<StyleEditor 
+        fontSize={fontSize} 
+        setFontSize={setFontSize}
+      />*/}
       {/*<TabEditBar 
         sidebarItemId={sidebarItemId}
         tabText={tabText}
@@ -164,7 +188,9 @@ export default function Editor ({
         setTabs={setTabs}/>*/}
       <TabTextArea 
         tabText={tabText}
-        setTabText={setTabText}/>
+        setTabText={setTabText}
+        fontSize={fontSize}
+      />
     </div>
   )
 }

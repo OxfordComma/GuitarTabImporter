@@ -9,6 +9,13 @@
     'content content';
 }
 
+@media print {
+	.layout {
+		grid-template-rows: 0px 100%;
+/*		grid-template-columns: 0% 100%;*/
+	}
+}
+
 .layout-header {
 	display: flex;
   background-color: black;

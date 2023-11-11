@@ -2,10 +2,18 @@
   display: flex;
   flex: 0 0 0;
   flex-direction: row;
-  gap: 10px;
+/*  gap: 10px;*/
   background-color: black;
   cursor: pointer;
 }
+
+
+@media print { 
+  .menu-bar {
+    opacity: 0;
+  }
+}
+
 
 .menu-bar-item {
   padding-left: 5px;

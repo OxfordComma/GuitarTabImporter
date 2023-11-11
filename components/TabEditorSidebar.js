@@ -1,5 +1,7 @@
 import Header from '../components/Header.js'
-import MenuBar from '../components/MenuBar.js'
+
+import { MenuBar } from 'quantifyjs'
+import menuBarStyles from '../styles/MenuBar.module.css'
 
 import styles from '../styles/TabEditorSidebar.module.css'
 import { useSession, signIn, signOut } from "next-auth/react"
@@ -150,7 +152,7 @@ export default function Sidebar ({ tabs, setTabs, setDeleteTab, sidebarItemId, s
     <div className={styles['sidebar']}>
       <div className={styles['menu-bar']}>
         <MenuBar
-          menuItems={
+          items={
             {
               sort: [
                 {
@@ -169,6 +171,7 @@ export default function Sidebar ({ tabs, setTabs, setDeleteTab, sidebarItemId, s
               ],
             }
           }
+          styles={menuBarStyles}
         />
         <button className={styles['add-tab-button']}  onClick={() => setCreateNew(true)}>+</button>
       </div>
