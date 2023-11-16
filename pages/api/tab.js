@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 		res.status(200).json(tab)
 	}
 
-	if (req.method == 'POST') {
+	else if (req.method == 'POST') {
 	  let body = JSON.parse(req.body)
 	  console.log(body)
 

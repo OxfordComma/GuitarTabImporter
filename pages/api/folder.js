@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       // orderBy: "name",
       pageToken: NextPageToken || "",
       pageSize: 1000,
-      fields: "nextPageToken, files(id, name, starred, createdTime)",
+      fields: "nextPageToken, files(id, name, starred, createdTime, mimeType, shortcutDetails)",
       corpora: 'allDrives',
       supportsAllDrives: true,
       includeItemsFromAllDrives: true,

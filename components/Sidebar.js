@@ -9,23 +9,26 @@ import { useState, useEffect } from 'react'
 
 
 
+
 function SidebarItem ({ 
     datum, 
     content,
     enabled=true,
     sidebarItemId, 
     setSidebarItemId, 
-    setDelete
+    setDelete,
+    onClickSidebarItem,
   }) {
   return (
     <div
       className={styles['sidebar-item']} 
-      onClick={() => {
+      onClick={(e) => {
         console.log('setSidebarItemId', datum, sidebarItemId)
-        setSidebarItemId(datum.id)} 
-      }
+        setSidebarItemId(datum.id)
+        onClickSidebarItem(datum.id)
+      } }
       style={{ 
-        'opacity': enabled ? 0.6 : 1,
+        'opacity': enabled ? 1 : 0.6,
         'border': (sidebarItemId == null) ? '1px solid green' : 
           (datum['id'] == sidebarItemId) ? '1px solid pink' : null,
       }}>
@@ -34,55 +37,97 @@ function SidebarItem ({
   )
 }
 
+function NewSidebarItem ({ sidebarItems, setSidebarItems, setSidebarItemId, setCreateNew, setSortBy }) {
+  let [artistName, setArtistName] = useState('')
+  let [songName, setSongName] = useState('')
+
+  function addTab() {
+    console.log('adding tab?')
+
+    let newItem = {
+      id: Math.random().toString(16).slice(2),
+      googleDocsId: null,
+      tabText: '',
+      tabName: artistName + ' - ' + songName,
+      artistName: artistName,
+      songName: songName,
+      holiday: false,
+      draft: false,
+      uri: null,
+      createdTime: new Date(),
+      starred: false,
+      capo: 0,
+      tuning: 'EADGBe',
+    }
+    // setSortBy('createdTime descending')
+    setCreateNew(false)
+    setSidebarItems([
+      newItem,
+      ...sidebarItems//.sort((a, b) => a.createdTime < b.createdTime ? 1 : -1 ),
+
+    ])
+    setSidebarItemId(newItem.id)
+
+  }
+  return (
+    <div className={styles['sidebar-item']}>
+      <input 
+        placeholder='artist name'
+        value={artistName}
+        onChange={e => setArtistName(e.target.value)}
+      />
+      <input 
+        placeholder='song name'
+        value={songName}
+        onChange={e => setSongName(e.target.value)}
+      />
+      <button onClick={() => setCreateNew(false)}>✗</button>
+      <button onClick={() => addTab()}>✓</button>
+    </div>
+  )
+}
+
+function SearchBar({ onChange, searchTerm }) {
+  return (<div>
+    <input style={{width: '100%'}} value={searchTerm} onChange={onChange}></input>
+  </div>)
+}
+
 export default function Sidebar ({ 
-    SidebarItemComponent,
     sidebarItems, 
     setSidebarItems, 
     setDeleteItem, 
     sidebarItemId, 
     setSidebarItemId,
-    menuBar
+    sidebarSortBy='index',
+    setSidebarSortBy=()=>{},
+    createNewSidebarItem=false,
+    setCreateNewSidebarItem=()=>{},
+    search=false,
+    searchFunction= d => d.id,
+    
+    itemIsEnabled = d => true,
+    SidebarItemComponent,
+    menuBar,
+    onClickSidebarItem = () => {},
   }) {
-  let [sortBy, setSortBy] = useState('index')
-  // let [sidebarItems, setSidebarItems] = useState(tabs)
-  let [createNew, setCreateNew] = useState(false)
+  let [filteredSidebarItems, setFilteredSidebarItems] = useState(sidebarItems)
+  let [sortBy, setSortBy] = useState(sidebarSortBy)
+  let [showSearchBar, setShowSearchBar] = useState(search)
+  let [searchTerm, setSearchTerm] = useState('')
+  
+  useEffect(() => setSidebarSortBy(sortBy), [sortBy])
+  
+  useEffect(() => {
+    setFilteredSidebarItems(sidebarItems)
+  }, [sidebarItems])
 
-  // useEffect(() => {
-  //   let newSidebarItems = tabs
-
-  //   console.log('tabs changed, new sidebar items:', newSidebarItems)
-  //   setSidebarItems(newSidebarItems)
-  // }, [tabs])
-
-  // useEffect(() => {
-  //   console.log('sortBy:', sortBy)
-  //   let newSidebarItems = sidebarItems.sort((a, b) => {
-  //     if (sortBy == 'index') {
-  //       return a['index'] > b['index'] ? 1 : -1
-  //     }
-  //     if (sortBy == 'artist ascending') {
-  //       return a['artistName'].toLowerCase() > b['artistName'].toLowerCase() ? 1 : -1
-  //     }
-  //     if (sortBy == 'artist descending') {
-  //       return a['artistName'].toLowerCase() < b['artistName'].toLowerCase() ? 1 : -1
-  //     }
-  //     if (sortBy == 'song ascending') {
-  //       return a['songName'].toLowerCase() > b['songName'].toLowerCase() ? 1 : -1
-  //     }
-  //     if (sortBy == 'song descending') {
-  //       return a['artistName'].toLowerCase() < b['artistName'].toLowerCase() ? 1 : -1
-  //     }
-  //     if (sortBy == 'createdTime descending') {
-  //       return a['createdTime'] < b['createdTime'] ? 1 : -1
-  //     }
-  //     if (sortBy == 'createdTime ascending') {
-  //       return a['createdTime'] > b['createdTime'] ? 1 : -1
-  //     }
-
-  //   })
-  //   console.log('new sidebar items:', newSidebarItems)
-  //   setSidebarItems(newSidebarItems)
-  // }, [sortBy])
+  let onSearchBarChange = function(e) { 
+    e.preventDefault(); 
+    setSearchTerm(e.target.value)
+    let newSidebarItems = sidebarItems.filter(item => searchFunction(item).toLowerCase().includes(e.target.value.toLowerCase()))
+    setFilteredSidebarItems(newSidebarItems)
+  }
 
   let sidebarItemContent = function( datum ) {
     console.log(datum)
@@ -97,7 +142,25 @@ export default function Sidebar ({
         {menuBar ? menuBar : <div></div>}
       </div>
       <div className={styles['sidebar-items']}>
-        {sidebarItems.map(d => (
+        {
+          showSearchBar ? 
+            <SearchBar
+              searchTerm={searchTerm}
+              onChange={onSearchBarChange}
+            /> : 
+            null
+        }
+        {createNewSidebarItem ? 
+          <NewSidebarItem
+            datum={{}}
+            sidebarItems={sidebarItems}
+            setSidebarItems={setSidebarItems}
+            setCreateNew={setCreateNewSidebarItem}
+            setSortBy={setSortBy}
+            setSidebarItemId={setSidebarItemId}
+          /> : 
+          null}
+        {filteredSidebarItems.map(d => (
           <SidebarItem
             key={d.id} 
             datum={d} 
@@ -105,9 +168,12 @@ export default function Sidebar ({
             setSidebarItemId={setSidebarItemId}
             setDeleteItem={setDeleteItem}
             content={SidebarItemComponent ?? sidebarItemContent}
+            enabled={itemIsEnabled(d)}
+            onClickSidebarItem={onClickSidebarItem}
           />)
         )}
       </div>
     </div>
   )
 }
+

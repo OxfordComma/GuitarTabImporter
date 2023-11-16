@@ -40,7 +40,7 @@ function MenuBarItem({
               legacyBehavior={false} 
               onClick={(e) => {
                 event.preventDefault(); 
-                console.log(`${menuItem.title} clicked`)
+                console.log(`${menuItem.title} menu item clicked`)
                 if (!disabled)
                   func()
                   setShow(false)                

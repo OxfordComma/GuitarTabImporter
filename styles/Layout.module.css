@@ -42,7 +42,8 @@
   justify-self: right;
   align-self: center;
   width: 'fit-content';
-  height:'fit-content';
+  height: 50%;
+  white-space: nowrap;
 }
 
 .login-email {

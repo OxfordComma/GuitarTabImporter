@@ -9,6 +9,14 @@ import styles from '../styles/projects.module.css'
 import { useSession } from "next-auth/react"
 import { useState, useEffect } from 'react'
 
+function formatTabName(tab) {
+  return `${tab.artistName} - ${tab.songName}`
+}
+
+function formatProjectName(project) {
+  return `${project.name}`
+}
+
 function FullscreenWindow({ 
     show, 
     content, 
@@ -21,321 +29,321 @@ function FullscreenWindow({
       
       {content}
       
-      <div>
-        <label></label>
-        <button onClick={action}>{actionLabel}</button>
-       </div>
+      <div style={{display: 'flex', justifyContent: 'right'}}>
+        <label for='action'></label>
+        <button name='action' onClick={action}>{actionLabel}</button>
 
-       <div>
-        <label></label>
-        <button onClick={close}>close</button>
+        <label for='action'></label>
+        <button name='close' onClick={close}>close</button>
        </div>
     </div>
   </div> : null)
 }
 
-function OpenProjectWindow({ 
-    projects, 
-    openProject,
-    setOpenProject, 
-    setPickProject,
-    show 
-  }) {
-  // const project = projects.find(p => p.id == projectId)
-  const [selectedProjectId, setSelectedProjectId] = useState(openProject ?? projects[0]?.id)
+function PickProjectWindow({ 
+  projects, 
+  openProject,
+  setOpenProject, 
+  setPickProject,
+  show 
+}) {
+// const project = projects.find(p => p.id == projectId)
+const [selectedProjectId, setSelectedProjectId] = useState(openProject ?? projects[0]?.id)
 
-  function open() {
-    console.log('open', selectedProjectId)
-    setOpenProject(selectedProjectId)
-    setPickProject(false)
-  }
+function open() {
+  console.log('open', selectedProjectId)
+  setOpenProject(selectedProjectId)
+  setPickProject(false)
+}
 
-  function close() {
-    console.log('close')
-    setPickProject(false)
-  }
+function close() {
+  console.log('close')
+  setPickProject(false)
+}
 
-  return <FullscreenWindow
-    show={show}
-    action={open}
-    actionLabel='open'
-    close={close}
-    content={<select size='5' onChange={e => { e.preventDefault(); console.log(e.target.value); setSelectedProjectId(e.target.value)}}>
-      {projects.map(project => {
-        return (<option selected={project.id==selectedProjectId} id={project.id} value={project.id}>
-          {project.name}
-        </option>)
-      })}
-    </select>}
-  />
+return <FullscreenWindow
+  show={show}
+  action={open}
+  actionLabel='open'
+  close={close}
+  content={<select size='5' onChange={e => { e.preventDefault(); console.log(e.target.value); setSelectedProjectId(e.target.value)}}>
+    {projects.map(project => {
+      return (<option selected={project.id==selectedProjectId} id={project.id} value={project.id}>
+        {project.name}
+      </option>)
+    })}
+  </select>}
+/>
 }
 
 function PickTabWindow({ 
-    googleTabs,
-    projectTabs, 
-    addTabToProject,
-    // openProject,
-    // setOpenProject, 
-    setPickTabs,
-    show 
-  }) {
-  // const project = projects.find(p => p.id == projectId)
-  const [selectedId, setSelectedId] = useState(googleTabs[0]?.id)
-  const [filteredTabs, setFilteredTabs] = useState(
+  googleTabs,
+  projectTabs, 
+  addTabToProject,
+  // openProject,
+  // setOpenProject, 
+  setPickTabs,
+  show 
+}) {
+// const project = projects.find(p => p.id == projectId)
+const [selectedId, setSelectedId] = useState(googleTabs[0]?.id)
+const [filteredTabs, setFilteredTabs] = useState(
+  googleTabs
+)
+const [searchTerm, setSearchTerm] = useState('')
+
+useEffect(() => {
+  setFilteredTabs(
     googleTabs
+      .filter(gt => !projectTabs.map(pt => formatTabName(pt)).includes(formatTabName(gt)) 
+        && formatTabName(gt).toLowerCase().includes(searchTerm.toLowerCase()))
   )
-  const [searchTerm, setSearchTerm] = useState('')
+}, [googleTabs, projectTabs, searchTerm])
 
-  useEffect(() => {
-    setFilteredTabs(
-      googleTabs
-        .filter(gt => !projectTabs.map(pt => formatTabName(pt)).includes(formatTabName(gt)) 
-          && formatTabName(gt).toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-  }, [googleTabs, projectTabs, searchTerm])
+// useEffect(() => setFilteredTabs(googleTabs), [googleTabs])
+function pick() {
+  console.log('pick', selectedId)
+  addTabToProject(selectedId)
+  // setOpenProject(selectedProjectId)
+  // setPickProject(false)
+  // setSearchTerm('')
+  setSelectedId(null)
+  setFilteredTabs(
+    filteredTabs.filter(t => t.id != selectedId)
+  )
+}
 
-  // useEffect(() => setFilteredTabs(googleTabs), [googleTabs])
-  function pick() {
-    console.log('pick', selectedId)
-    addTabToProject(selectedId)
-    // setOpenProject(selectedProjectId)
-    // setPickProject(false)
-    // setSearchTerm('')
-    setSelectedId(null)
-    setFilteredTabs(
-      filteredTabs.filter(t => t.id != selectedId)
-    )
-  }
-
-  function close() {
-    console.log('close')
-    setPickTabs(false)
-  }
-
-  function formatTabName(tab) {
-    return `${tab.artistName} - ${tab.songName}`
-  }
-
-  function onSelect(e) {
-    e.preventDefault(); 
-    console.log(e.target.value); 
-    setSelectedId(e.target.value)
-  }
-
-  function onSearch(e) {
-    e.preventDefault()
-    const newSearchTerm = e.target.value
-    console.log('search term:', newSearchTerm)
-    setSearchTerm(newSearchTerm)
-    // googleTabs.map(gt => console.log(projectTabs.map(pt => pt.googleDocsId), gt.songName, gt.googleDocsId))
-    // setFilteredTabs(
-    //   googleTabs.filter(gt => !projectTabs.map(pt => formatTabName(pt)).includes(formatTabName(gt)))
-    // )
-  }
+function close() {
+  console.log('close')
+  setPickTabs(false)
+}
 
 
-  return <FullscreenWindow
-    show={show}
-    action={pick}
-    actionLabel='pick'
-    close={close}
-    content={
-      <div>
-        <input onChange={onSearch} value={searchTerm}></input>
-        <select size='5' onChange={onSelect}>
-        {filteredTabs.map(tab => {
-          // console.log('filtered tab:', tab)
-          return (<option selected={tab.googleDocsId==selectedId} id={tab.googleDocsId} value={tab.googleDocsId}>
-            {formatTabName(tab)}
-          </option>)
-        })}
-      </select>
-    </div>}
-  />
+
+function onSelect(e) {
+  e.preventDefault(); 
+  console.log(e.target.value); 
+  setSelectedId(e.target.value)
+}
+
+function onSearch(e) {
+  e.preventDefault()
+  const newSearchTerm = e.target.value
+  console.log('search term:', newSearchTerm)
+  setSearchTerm(newSearchTerm)
+}
+
+
+return <FullscreenWindow
+  show={show}
+  action={pick}
+  actionLabel='pick'
+  close={close}
+  content={
+    <div>
+      <input onChange={onSearch} value={searchTerm}></input>
+      <select size='5' onChange={onSelect}>
+      {filteredTabs.map(tab => {
+        // console.log('filtered tab:', tab)
+        return (<option selected={tab.googleDocsId==selectedId} id={tab.googleDocsId} value={tab.googleDocsId}>
+          {formatTabName(tab)}
+        </option>)
+      })}
+    </select>
+  </div>}
+/>
 }
 
 function ConfirmDelete ({ show, tabs, setTabs, tabId, setDeleteProject }) {
-	let tab = tabs.find(t => t.id == tabId)
+let tab = tabs.find(t => t.id == tabId)
 
-	let deleteProject = async () => {
-		let deletedTab = await fetch('/api/tab?tabid='+tabId, {
-			method: 'DELETE',
-		}).then(r => r.json())
+let deleteProject = async () => {
+	let deletedTab = await fetch('/api/tab?tabid='+tabId, {
+		method: 'DELETE',
+	}).then(r => r.json())
 
-    console.log('deleted:', deletedTab)
-		console.log('updating this tab:', tab)
-		setDeleteProject(null)
-    if (tab.googleDocsId) {
-      tab['tabText'] = ''
-      tab['_id'] = null
+  console.log('deleted:', deletedTab)
+	console.log('updating this tab:', tab)
+	setDeleteProject(null)
+  if (tab.googleDocsId) {
+    tab['tabText'] = ''
+    tab['_id'] = null
 
-      setTabs(tabs.map(t => t.id == tab.id ? tab : t))
-    }
-    else {
-      setTabs(tabs.filter(t => t.id != tabId))
-    }
-	}
+    setTabs(tabs.map(t => t.id == tab.id ? tab : t))
+  }
+  else {
+    setTabs(tabs.filter(t => t.id != tabId))
+  }
+}
 
-  return (show ? <div className={styles['confirm-delete']}>
-    <div className={styles['confirm-delete-window']}>
-      <div style={{opacity: 1}}>Are you sure you want to delete {tab.tabName}?</div>
-      <button onClick={() => setDeleteProject(null)}>no</button>
-      <button onClick={() => deleteProject(tabId)}>yes</button>
-    </div>
-  </div> : null)
+return (show ? <div className={styles['confirm-delete']}>
+  <div className={styles['confirm-delete-window']}>
+    <div style={{opacity: 1}}>Are you sure you want to delete {tab.tabName}?</div>
+    <button onClick={() => setDeleteProject(null)}>no</button>
+    <button onClick={() => deleteProject(tabId)}>yes</button>
+  </div>
+</div> : null)
 }
 
 function EditProject({ 
-    projects, 
-    setProjects, 
-    projectId, 
-    editProject,
-    setEditProject, 
-    styles 
-  }) {
-  const show = editProject != null
-  const [project, setProject] = useState(projects.find(p => p.id == projectId))
+  projects, 
+  setProjects, 
+  projectId, 
+  editProject,
+  setEditProject, 
+  styles 
+}) {
+const show = editProject != null
+const [project, setProject] = useState(projects.find(p => p.id == projectId))
 
-  useEffect(() => {
-    setProject(projects.find(p => p.id == projectId))
-  }, [projects])
-  
-  function setProjectName(event) {
-    event.preventDefault()
-    setProject({
-      ...project,
-      name: event.target.value
-    })
+useEffect(() => {
+  setProject(projects.find(p => p.id == projectId))
+}, [projects, projectId])
+
+function setProjectName(event) {
+  event.preventDefault()
+  setProject({
+    ...project,
+    name: event.target.value
+  })
+}
+
+function setProjectFolder(event) {
+  event.preventDefault()
+  setProject({
+    ...project,
+    folder: event.target.value
+  })
+}
+
+async function save(event) {
+  event.preventDefault()
+
+  await fetch(`/api/project`, {
+    method: 'POST',
+    body: JSON.stringify(project)
+  })
+
+  console.log({
+    projects,
+    projectId,
+    p: projects.map(p => p.id).includes(projectId),
+  })
+
+  if (projects.map(p => p.id).includes(projectId)) {
+    // console.log('replacing', )
+    setProjects(projects.map(p => p.id == projectId ? project : p))
+  }
+  else {
+    console.log('appending')
+
+    setProjects([...projects, project])
   }
 
-  function setProjectFolder(event) {
-    event.preventDefault()
-    setProject({
-      ...project,
-      folder: event.target.value
-    })
-  }
+  console.log('saved ', project)
+  close(event)
+}
 
-  async function save(event) {
-    event.preventDefault()
+function close(event) {
+  event.preventDefault()
+  setEditProject(null)
+}
 
-    await fetch(`/api/project`, {
-      method: 'POST',
-      body: JSON.stringify(project)
-    })
-
-    if (projects.map(p => p.id).includes(projectId)) {
-      setProjects(projects.map(p => p.id == projectId ? project : p))
-    }
-    else {
-      setProjects([...projects, project])
-    }
-
-    console.log('saved ', project)
-    close(event)
-  }
-
-  function close(event) {
-    event.preventDefault()
-    setEditProject(null)
-  }
-
-  return (show ? <div className={styles['fullscreen-background']}>
-    <div className={styles['fullscreen-window']}>
+return (<FullscreenWindow
+  show={show}
+  action={save}
+  close={close}
+  actionLabel='save'
+  content={
     <div>
-      <label htmlFor="id">id</label>
-      <input type="text" name="id" value={project?.id} disabled/>
-     </div>
+      {
+        project != null ? Object.entries(project).map(entry => {
+          let key = entry[0]
+          let value = entry[1]
 
-     <div>
-      <label htmlFor="name">name</label>
-      <input type="text" name="name" value={project?.name} onChange={setProjectName}/>
-     </div>
-
-     <div>
-      <label htmlFor="folder">folder</label>
-      <input type="text" name="folder" value={project?.folder} onChange={setProjectFolder}/>
-     </div>
-
-     <div>
-      <label htmlFor="creator">creator</label>
-      <input type="text" name="creator" value={project?.creator} disabled/>
-     </div>
-
-     <div>
-      <label htmlFor="owner">owner</label>
-      <input type="text" name="owner" value={project?.owner} disabled/>
-     </div>
-
-     <div>
-      <label></label>
-      <button onClick={save}>save</button>
-     </div>
-
-     <div>
-      <label></label>
-      <button onClick={close}>close</button>
-     </div>
-
+          return (<div style={{display: 'flex'}}>
+            <label style={{flex: 1}} htmlFor={key}>{key}</label>
+            <input style={{flex: 1}} type="text" name={key} value={value} disabled/>
+          </div>)
+        }) : null
+      }
     </div>
-  </div> : null)
+  }
+  />)
 }
 
 function SidebarMenuBar({ 
-    newProjectMenu,
-    openProjectMenu,
-    editProjectMenu, 
-    addTabMenu,
-    setEditProject, 
-    projects,
-    setProjects,
-  }) { 
+  newProjectMenu,
+  openProjectMenu,
+  editProjectMenu, 
+  addTabMenu,
+  setEditProject, 
+  projects,
+  setProjects,
+  sidebarSortBy,
+  setSidebarSortBy,
+  openProject,
+}) { 
 
-  return (<div>
-    <MenuBar
-      items={
-        {
-          file: [{
-            title: 'new project',
-            onClick: () => newProjectMenu(),
-          },{
-            title: 'open project',
-            onClick: () => openProjectMenu(),
-          },{
-            title: 'edit project',
-            onClick: () => editProjectMenu(),
-          },{
-            title: 'share project',
-            onClick: () => {},
-          },{
-            title: 'unfollow project',
-            onClick: () => {},
-          }],
-          project: [{
-            title: 'add tab',
-            onClick: () => addTabMenu(),
-          }],
-          sort: [
-            {
-              title: 'sort by artist',
-              onClick: () => sortBy == 'artist ascending' ? setSortBy('artist descending') : setSortBy('artist ascending')
-            }, {
-              title: 'sort by song name',
-              onClick: () => sortBy == 'songName ascending' ? setSortBy('songName descending') : setSortBy('songName ascending')
-            }, {
-              title: 'sort by created date',
-              onClick: () => sortBy == 'createdTime ascending' ? setSortBy('createdTime descending') : setSortBy('createdTime ascending')
-            }, {
-              title: "don't sort",
-              onClick: () => setSortBy('index')
-            }
-          ],
-        }
+let disabled = openProject==null
+
+
+return (<div style={{display: 'flex', width: '100%',}}>
+  <MenuBar
+    items={
+      {
+        file: [{
+          title: 'new project',
+          onClick: () => newProjectMenu(),
+          disabled: disabled,
+        },{
+          title: 'open project',
+          onClick: () => openProjectMenu(),
+          disabled: false,
+        },{
+          title: 'edit project',
+          onClick: () => editProjectMenu(),
+          disabled: disabled,
+        },{
+          title: 'share project',
+          onClick: () => {},
+          disabled: disabled,
+        },{
+          title: 'unfollow project',
+          onClick: () => {},
+          disabled: disabled,
+        }],
+        project: [{
+          title: 'add tab',
+          onClick: () => addTabMenu(),
+        }],
+        sort: [
+          {
+            title: 'sort by artist',
+            onClick: () => sidebarSortBy == 'artist ascending' ? setSidebarSortBy('artist descending') : setSidebarSortBy('artist ascending')
+          }, {
+            title: 'sort by song name',
+            onClick: () => sidebarSortBy == 'songName ascending' ? setSidebarSortBy('songName descending') : setSidebarSortBy('songName ascending')
+          }, {
+            title: 'sort by created date',
+            onClick: () => sidebarSortBy == 'createdTime ascending' ? setSidebarSortBy('createdTime descending') : setSidebarSortBy('createdTime ascending')
+          }, {
+            title: "don't sort",
+            onClick: () => setSidebarSortBy('index')
+          }
+        ],
       }
-      styles={menuBarStyles}
-    />
-    {/*<button className={styles['add-tab-button']}  onClick={() => setCreateNew(true)}>+</button>*/}
-  </div>)
+    }
+    styles={menuBarStyles}
+  />
+  <div style={{marginLeft: 'auto'}}>
+    {openProject ? projects.filter(p => p.id==openProject).map(project => {
+      return (
+        formatProjectName(project)
+      )
+    }) : ''}
+  </div>
+</div>)
 }
 
 export default function Projects(props) {
@@ -344,12 +352,13 @@ export default function Projects(props) {
   let [user, setUser] = useState(null)
   let [folder, setFolder] = useState('')
   let [url, setUrl] = useState('') 
-  
+
   let [projects, setProjects] = useState([])
 
   let [projectTabs, setProjectTabs] = useState([])
   let [userGoogleTabs, setUserGoogleTabs] = useState([])
   let [sidebarItemId, setSidebarItemId] = useState(null)
+  let [sidebarSortBy, setSidebarSortBy] = useState(null)
 
   let [openProject, setOpenProject] = useState(null)
 
@@ -368,11 +377,15 @@ export default function Projects(props) {
     let uri = fc['name'].match('\{(.+)\}')
     // To avoid repeating the regex
     if (uri) uri = uri[1]
-    let songName = fc['name'].split(' - ')[1].replace(`\{${uri}\}`, '')  
+    let songName = fc['name'].split(' - ')[1].replace(`\{${uri}\}`, '') 
+    let googleDocsId = fc.shortcutDetails?.targetId != undefined ? 
+      fc.shortcutDetails.targetId : 
+      fc.id
+
 
     return {
       id: Math.random().toString(16).slice(2),
-      googleDocsId: fc['id'],
+      googleDocsId: googleDocsId,
       userId: user._id,
       tabText: '',
       tabName: fc['name'],
@@ -383,6 +396,8 @@ export default function Projects(props) {
       songName: songName,
       createdTime: new Date(fc['createdTime']),
       starred: fc['starred'],
+      capo: 0,
+      tuning: 'EADGBe',
     }
   } 
 
@@ -433,7 +448,7 @@ export default function Projects(props) {
       setProjectTabs(allTabs)
     }
     getData()
-  }, [openProject])
+  }, [editProject, openProject])
 
   function newProjectMenu() {
     let newProject = {
@@ -441,8 +456,10 @@ export default function Projects(props) {
       name: 'name',
       owner: user._id,
       creator: user._id,
+      collaborators: [],
     }
-    setEditProject(newProject.id)
+    setOpenProject(newProject.id)
+    setEditProject(true)
     setProjects([...projects, newProject])
   }
 
@@ -451,7 +468,8 @@ export default function Projects(props) {
   }
 
   function editProjectMenu() {
-    // setEditProject(sidebarItemId)
+    setOpenProject(openProject)
+    setEditProject(true)
   }
 
   function addTabMenu() {
@@ -487,24 +505,86 @@ export default function Projects(props) {
   }
 
   function sidebarItem( datum ) {
-    return <div>
-      <div>{datum.artistName} - {datum.songName}</div>
-    </div>
+    let loaded = datum.tabText != ''
+    return ([
+      <div style={{opacity: loaded? 1 : 0.6}}>{datum.artistName} - {datum.songName}</div>,
+      <div style={{opacity: loaded? 1 : 0.6, marginLeft: 'auto'}}>{loaded? '✓' : null}</div>,
+      <div style={{width: '10px'}}>{datum.googleDocsId ? 'G' : null}</div>,
+  ])
   }
 
-	return (
+  useEffect(() => {
+    console.log('sidebarSortBy:', sidebarSortBy)
+    let newSidebarItems = projectTabs.slice(0).sort((a, b) => {
+      if (sidebarSortBy == 'index') {
+        return a['index'] > b['index'] ? 1 : -1
+      }
+      if (sidebarSortBy == 'artist ascending') {
+        return a['artistName'].toLowerCase() > b['artistName'].toLowerCase() ? 1 : -1
+      }
+      if (sidebarSortBy == 'artist descending') {
+        return a['artistName'].toLowerCase() < b['artistName'].toLowerCase() ? 1 : -1
+      }
+      if (sidebarSortBy == 'songName ascending') {
+        return a['songName'].toLowerCase() > b['songName'].toLowerCase() ? 1 : -1
+      }
+      if (sidebarSortBy == 'songName descending') {
+        return a['artistName'].toLowerCase() < b['artistName'].toLowerCase() ? 1 : -1
+      }
+      if (sidebarSortBy == 'createdTime descending') {
+        return a['createdTime'] < b['createdTime'] ? 1 : -1
+      }
+      if (sidebarSortBy == 'createdTime ascending') {
+        return a['createdTime'] > b['createdTime'] ? 1 : -1
+      }
 
-		<div className={styles.container}>
-			<div className={styles.sidebar}>
-				<Sidebar
-					sidebarItems={projectTabs}
-					setSidebarItems={setProjectTabs}
-					sidebarItemId={sidebarItemId}
-					setSidebarItemId={setSidebarItemId}
-					setDeleteProject={setDeleteProject}
+    })
+    console.log('new sidebar items:', newSidebarItems)
+    setProjectTabs(newSidebarItems)
+  }, [sidebarSortBy])
+
+
+  return (
+  	<div className={styles.container}>
+  		<div className={styles.sidebar}>
+  			<Sidebar
+  				sidebarItems={projectTabs}
+  				setSidebarItems={setProjectTabs}
+  				sidebarItemId={sidebarItemId}
+  				setSidebarItemId={setSidebarItemId}
+  				setDeleteProject={setDeleteProject}
+          sidebarSortBy={sidebarSortBy}
+          setSidebarSortBy={setSidebarSortBy}
           SidebarItemComponent={sidebarItem}
+          itemIsEnabled={d => d.tabText != ''}
+          onClickSidebarItem={async id => {
+            console.log('d', id)
+            let tab = projectTabs.find(t => t.id == id)
+            if (tab.googleDocsId){
+              let tabText = await fetch('api/document?documentid='+tab.googleDocsId)
+              .then(r => r.json())
+            
+              tab.tabText = tabText
+                .replace(formatTabName(tab), '')
+                .replace(/-{76,77}/g, '')
+                .replace(/^ +$/m, '')
+                .replace(/^(\r\n|\r|\n)/mg, '')
+                .slice(2)
+
+             
+              console.log('google doc text:', tab.tabText.slice(0, 5))
+            }
+
+            setProjectTabs(
+              projectTabs.map(t => t.id == tab.id ? tab : t)
+            )
+          }}
           menuBar = {
             <SidebarMenuBar
+              sidebarSortBy={sidebarSortBy}
+              setSidebarSortBy={setSidebarSortBy}
+              projects={projects}
+              openProject={openProject}
               newProjectMenu={newProjectMenu}
               openProjectMenu={openProjectMenu}
               editProjectMenu={editProjectMenu}
@@ -512,16 +592,16 @@ export default function Projects(props) {
               setEditProject={setEditProject}
             />
           }
-				/>
-			</div>
-			<div className={styles.editor}>
-				<Editor
-					sidebarItemId={sidebarItemId}
-					userId={user?._id}
-					tabs={projects}
-					setTabs={setProjects}
-				/>
-			</div>		
+  			/>
+  		</div>
+  		<div className={styles.editor}>
+  			<Editor
+  				tabs={projectTabs}
+          tabId={sidebarItemId}
+  				setTabs={setProjects}
+          userId={user?._id}
+  			/>
+  		</div>		
       <div>
 
       {/*<ConfirmDelete 
@@ -533,13 +613,13 @@ export default function Projects(props) {
       />*/}
       <EditProject
         projects={projects}
-        projectId={editProject}
+        projectId={openProject}
         setProjects={setProjects}
         editProject={editProject}
         setEditProject={setEditProject}
         styles={styles}
       />
-      <OpenProjectWindow
+      <PickProjectWindow
         projects={projects}
         // projectId={editProject}
         openProject={openProject}
@@ -558,7 +638,7 @@ export default function Projects(props) {
         show={pickTab}
       />
       </div>	
-		</div>
-	)
+  	</div>
+  )
 }
 

@@ -23,7 +23,7 @@
 }
 
 
-.confirm-delete {
+.fullscreen-background {
 	position: fixed;
 	left: 0;
 	top: 0;
@@ -32,7 +32,7 @@
  	background-color: rgba(0, 0, 0, 0.5);
 }
 
-.confirm-delete-window {
+.fullscreen-window{
 	position: fixed;
 	top: calc(50% - 75px);
 	left: calc(50% - 150px);
@@ -43,3 +43,4 @@
 	padding: 10px;
 	border-radius: 10px;
 }
+

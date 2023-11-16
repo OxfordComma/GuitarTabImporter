@@ -27,27 +27,35 @@ export default function Layout({ children }) {
   const { data: session, status } = useSession()
   let [data, setData] = useState([])
 
-  useEffect(() => {
-    if (status == 'unauthenticated') {
-      router.push('/login')
-    }
-    if (status == 'authenticated') {
-      router.push('/edit')
-    }
-  }, [status])
+  // useEffect(() => {
+    // if (status == 'unauthenticated') {
+    //   router.push('/login')
+    // }
+    // if (status == 'authenticated') {
+    //   router.push('/profile')
+    // }
+  // }, [status])
 
   return (
     <div className={styles['layout']}>
       <div className={styles['layout-header']}>
-        <Header 
-          headings={
-            { 
-              'Tabs': '/edit', 
-              'Projects': '/projects',
-              'Profile': '/profile' 
-            }
-          }
-        />
+        {
+          status=='unauthenticated' ? 
+            <Header 
+              headings={{
+                'TABR': '/login'
+              }}
+            /> : 
+            <Header 
+              headings={
+                { 
+                  'Tabs': '/edit', 
+                  'Projects': '/projects',
+                  'Profile': '/profile' 
+                }
+              }
+            />
+        }
         <ShowLogin/>
       </div>
       <main className={styles['layout-content']}>{children}</main>

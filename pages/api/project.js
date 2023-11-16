@@ -20,14 +20,14 @@ export default async function handler(req, res) {
 
 	if (req.method == 'POST') {
 		let body = JSON.parse(req.body)
-		if (!(body.id && body.name && body.folder && body.creator && body.owner))
+		if (!(body.id && body.name && body.folder && body.creator && body.owner && body.collaborators))
 			res.status(404)
 
 		var db = await mongoClient.db('tabr')
 		var collection = await db.collection('projects')
 
 		var update = await collection.updateOne({ 
-				id: req.query.id
+				id: body.id
 			}, {
 				'$set':{ 
 					id: body.id,
@@ -35,6 +35,7 @@ export default async function handler(req, res) {
 					folder: body.folder,
 					creator: ObjectID(body.creator),
 					owner: ObjectID(body.owner),
+					collaborators: body.collaborators,
 				}
 			}, {
 				upsert: true,
