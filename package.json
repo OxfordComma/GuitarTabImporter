@@ -1,9 +1,6 @@
 {
   "name": "guitartabimporter",
   "version": "0.0.0",
-  "engines": {
-    "node": "^14"
-  },
   "private": true,
   "scripts": {
     "dev": "next dev",
