@@ -172,11 +172,11 @@ return (<FullscreenWindow
     <div>
       {
         tab ? [
-          <InfoRow label='id' value={tab?.id} disabled={true}/>,
-          <InfoRow label='artistName' value={tab?.artistName} onChange={setArtistName} disabled={false}/>,
-          <InfoRow label='songName' value={tab?.songName} onChange={setSongName} disabled={false}/>,
-          <InfoRow label='capo' value={tab?.capo ?? 0} onChange={setCapo}  disabled={false}/>,
-          <InfoRow label='tuning' value='EADGBe' items={['EADGBe', 'DADGBe', 'D#A#D#F#A#d#']} value={tab?.tuning} onChange={setTuning} disabled={false}/>,
+          <InfoRow key='id' label='id' value={tab?.id} disabled={true}/>,
+          <InfoRow key='artistName' label='artistName' value={tab?.artistName} onChange={setArtistName} disabled={false}/>,
+          <InfoRow key='songName' label='songName' value={tab?.songName} onChange={setSongName} disabled={false}/>,
+          <InfoRow key='capo' label='capo' value={tab?.capo ?? 0} onChange={setCapo}  disabled={false}/>,
+          <InfoRow key='tuning' label='tuning'items={['EADGBe', 'DADGBe', 'D#A#D#F#A#d#']} value={tab?.tuning} onChange={setTuning} disabled={false}/>,
         ] : null
       }
       {/*
@@ -346,10 +346,10 @@ export default function Edit(props) {
               //     (datum['id'] == sidebarItemId) ? '1px solid pink' : null,
               // }}
               // >
-                <div>{datum.artistName} - {datum.songName}</div>,
-                <div style={{marginLeft: 'auto'}}>{datum._id ? '✓' : null}</div>,
-                <div style={{width: '10px'}}>{datum.googleDocsId ? 'G' : null}</div>,
-                <div style={{width: '10px'}}id={datum.id} onClick={e => {e.stopPropagation(); setDeleteTab(e.target.id)}} >{datum._id ? '♻' : null}</div>,
+                <div key='name'>{datum.artistName} - {datum.songName}</div>,
+                <div key='loaded' style={{marginLeft: 'auto'}}>{datum._id ? '✓' : null}</div>,
+                <div key='docsId' style={{width: '10px'}}>{datum.googleDocsId ? 'G' : null}</div>,
+                <div key='delete' style={{width: '10px'}} onClick={e => {e.stopPropagation(); setDeleteTab(e.target.id)}} >{datum._id ? '♻' : null}</div>,
             // </div>
             ])
           }}

@@ -132,7 +132,7 @@ export default function Sidebar ({
   let sidebarItemContent = function( datum ) {
     console.log(datum)
     return [
-      <div>{datum.id}</div>
+      <div key='id'>{datum.id}</div>
     ]
   }
 

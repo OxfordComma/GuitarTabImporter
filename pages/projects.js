@@ -68,7 +68,7 @@ return <FullscreenWindow
   close={close}
   content={<select size='5' onChange={e => { e.preventDefault(); console.log(e.target.value); setSelectedProjectId(e.target.value)}}>
     {projects.map(project => {
-      return (<option selected={project.id==selectedProjectId} id={project.id} value={project.id}>
+      return (<option key={project.id} selected={project.id==selectedProjectId} id={project.id} value={project.id}>
         {project.name}
       </option>)
     })}
@@ -145,7 +145,7 @@ return <FullscreenWindow
       <select size='5' onChange={onSelect}>
       {filteredTabs.map(tab => {
         // console.log('filtered tab:', tab)
-        return (<option selected={tab.googleDocsId==selectedId} id={tab.googleDocsId} value={tab.googleDocsId}>
+        return (<option key={tab.id} selected={tab.googleDocsId==selectedId} id={tab.googleDocsId} value={tab.googleDocsId}>
           {formatTabName(tab)}
         </option>)
       })}
@@ -261,7 +261,7 @@ return (<FullscreenWindow
           let key = entry[0]
           let value = entry[1]
 
-          return (<div style={{display: 'flex'}}>
+          return (<div key={key} style={{display: 'flex'}}>
             <label style={{flex: 1}} htmlFor={key}>{key}</label>
             <input style={{flex: 1}} type="text" name={key} value={value} disabled/>
           </div>)
@@ -507,9 +507,9 @@ export default function Projects(props) {
   function sidebarItem( datum ) {
     let loaded = datum.tabText != ''
     return ([
-      <div style={{opacity: loaded? 1 : 0.6}}>{datum.artistName} - {datum.songName}</div>,
-      <div style={{opacity: loaded? 1 : 0.6, marginLeft: 'auto'}}>{loaded? '✓' : null}</div>,
-      <div style={{width: '10px'}}>{datum.googleDocsId ? 'G' : null}</div>,
+      <div key='name' style={{opacity: loaded? 1 : 0.6}}>{datum.artistName} - {datum.songName}</div>,
+      <div key='loaded' style={{opacity: loaded? 1 : 0.6, marginLeft: 'auto'}}>{loaded? '✓' : null}</div>,
+      <div key='docsId' style={{width: '10px'}}>{datum.googleDocsId ? 'G' : null}</div>,
   ])
   }
 
