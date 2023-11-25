@@ -122,11 +122,15 @@ export default function Sidebar ({
     setFilteredSidebarItems(sidebarItems)
   }, [sidebarItems])
 
+  useEffect(() => {
+    let newSidebarItems = sidebarItems.filter(item => searchFunction(item).toLowerCase().includes(searchTerm.toLowerCase()))
+    setFilteredSidebarItems(newSidebarItems)
+  }, [sidebarItems, searchTerm])
+
   let onSearchBarChange = function(e) { 
     e.preventDefault(); 
     setSearchTerm(e.target.value)
-    let newSidebarItems = sidebarItems.filter(item => searchFunction(item).toLowerCase().includes(e.target.value.toLowerCase()))
-    setFilteredSidebarItems(newSidebarItems)
+    
   }
 
   let sidebarItemContent = function( datum ) {

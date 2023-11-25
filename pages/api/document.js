@@ -37,5 +37,5 @@ export default async function handler(req, res) {
 	}).then(success => {
 		// console.log(success.data)
 		res.json(success.data)
-	}).catch(failure => res.error(failure))
+	}).catch(failure => console.log(failure))
 }

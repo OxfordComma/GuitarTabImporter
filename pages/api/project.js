@@ -36,6 +36,7 @@ export default async function handler(req, res) {
 					creator: ObjectID(body.creator),
 					owner: ObjectID(body.owner),
 					collaborators: body.collaborators,
+					spotifyPlaylistId: body.spotifyPlaylistId,
 				}
 			}, {
 				upsert: true,

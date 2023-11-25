@@ -43,14 +43,43 @@ function TitleBar({ tab }) {
 }
 
 function DetailBar({ tab }) {
-  let showTuning = tab?.tuning && tab.tuning != 'EADGBe'
-  let showCapo = tab?.capo && parseInt(tab.capo) > 0
-  return (
-    <div style={{width: '250px', textAlign: 'right'}}>
-      {showTuning ? `${tab.tuning}` : ''}
-      {showTuning && showCapo ? ', ' : ''}
-      {showCapo ? `capo ${tab.capo}` : ''}
-    </div>
+  let tabTuning = tab?.tuning
+  let tabCapo = tab?.capo
+  let showTuning = tabTuning && tabTuning != 'EADGBe'
+  let showCapo = parseInt(tabCapo) > 0
+  
+  function tuning(tuning, showTuning) {
+    let tuningStyle = {
+      color: showTuning ? 'white' : 'gray'
+    }
+    return (<div style={tuningStyle}>
+      {tuning ? tuning : 'no tuning'}
+    </div>)
+  }
+
+  function separator(showTuning, showCapo) {
+    let sepStyle = {
+      color: showTuning ? 'white' : 'gray'
+    }
+    return (<div style={sepStyle}>
+      {', '}
+    </div>)
+  }
+
+  function capo(capo, showCapo) {
+    let capoStyle = {
+      color: showCapo ? 'white' : 'gray'
+    }
+    return (<div style={capoStyle}>
+      {capo ? `capo ${capo}` : 'no capo'}
+    </div>)
+  }
+
+  return (tab ? <div style={{display: 'flex', flexDirection: 'row'} } >
+      {tuning(tabTuning, showTuning)}
+      {separator(showTuning, showCapo)}
+      {capo(tabCapo, showCapo)}
+    </div> : <div></div>
   )
 }
 
@@ -143,20 +172,24 @@ export default function Editor ({
     }
   }
 
+  function openTabInDocs() {
+    if (tab.googleDocsId)
+      window.open(`https://docs.google.com/document/d/${tab.googleDocsId}`)
+
+  }
+
   async function exportTab() {
-    console.log(tabs)
-    let sidebarTab = tabs.find(t => t['id'] == tabId)
+    // console.log(tabs)
+    // let sidebarTab = tabs.find(t => t['id'] == tabId)
+    let sidebarTab = tab
     console.log('exporting:', sidebarTab)
     let user = await fetch('api/user').then(r => r.json())
     let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
 
-    let saveResponse = await fetch('api/create', {
+    let saveResponse = await fetch(`api/create`, {
       method: 'POST',
       body: JSON.stringify({
-        tab: {
-          ...sidebarTab,
-          tabText: tabText,
-        },
+        tab: tab,
         account: account,
         folder: user.folder,
         // id: sidebarTab.id,
@@ -223,7 +256,7 @@ export default function Editor ({
               disabled: false 
             },{
               title: 'open tab in Google Docs',
-              onClick: () => {},
+              onClick: openTabInDocs,
               disabled: false,
             }],
             'format': [{ title: 'format tab text', onClick: formatTab, }],

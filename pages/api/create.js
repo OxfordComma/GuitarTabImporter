@@ -16,10 +16,11 @@ export default async function handler(req, res) {
 	let songName = body.tab.songName
 	let googleDocsId = body.tab.googleDocsId
 	let folder = body.folder
+	let capo = body.tab.capo ?? '0'
+	let tuning = body.tab.tuning ?? 'EADGBe'
 
 
 	let account = body.account
-
 
 	oauth2Client.setCredentials({
 		'access_token': account.access_token,
@@ -57,10 +58,19 @@ export default async function handler(req, res) {
 			var googleDoc = await docs.documents.get({
 				documentId: googleDocsId
 			})
+			console.log('document:', googleDoc)
+			console.log('document:', googleDoc.data)
+			console.log('document:', googleDoc.data.body)
+			console.log('document:', googleDoc.data.body.content)
+			console.log('document:', googleDoc.data.body.content)
 
 			var content = googleDoc.data.body.content
 			var maxIndex = content.reduce((acc, curr) => curr.endIndex > acc ? curr.endIndex : acc, 0)
 
+			console.log({
+				content, 
+				maxIndex
+			})
 			// Remove contents before we start if the doc exists
 			requests = [
 			{
@@ -85,7 +95,86 @@ export default async function handler(req, res) {
 			googleDocsId = googleDoc.data.id
 		}
 
-		requests = requests.concat(
+
+
+
+
+		try {
+			let headerId, headerContent, maxHeaderIndex
+			if (googleDoc.data?.headers != undefined) {
+				headerId = Object.keys(googleDoc.data.headers)[0]
+				headerContent = googleDoc.data.headers[headerId].content
+				maxHeaderIndex = headerContent.reduce((acc, curr) => curr.endIndex > acc ? curr.endIndex : acc, 0)
+
+
+				if (maxHeaderIndex > 2) {
+					requests = requests.concat([
+					
+					{
+						'deleteContentRange': {
+							'range': {
+								'startIndex': 0,
+								'endIndex': maxHeaderIndex-1,
+								segmentId: headerId,
+							}
+						},
+					},
+					{
+						'updateTextStyle': {
+							'range': {
+								startIndex: 0,
+								endIndex: 1,
+								segmentId: headerId,
+							},
+							textStyle: {
+								weightedFontFamily: {
+									fontFamily: 'PT Mono'
+								},
+								fontSize: {
+									magnitude: 9,
+									unit: 'PT'
+								}
+							},
+							fields: 'weightedFontFamily,fontSize'
+						}
+					},
+					])
+				}
+			}
+			else {
+				let createHeader = await docs.documents.batchUpdate({
+					'documentId': googleDocsId,
+					'resource' : { 
+						'requests': [{
+							"createHeader": {
+				        "sectionBreakLocation": {
+				          "index": 0
+				        },
+				        "type": "DEFAULT"
+				      }
+						}]
+					}
+				})
+
+				console.log('create header:', createHeader)
+				console.log('create header:', createHeader.data.replies[0].createHeader.headerId)
+				headerId = createHeader.data.replies[0].createHeader.headerId
+			}
+
+			let headerText = (capo == '0' && tuning == 'EADGBe') ? ' ' :
+						(capo != '0' && tuning != 'EADGBe') ? `${tuning}, capo ${capo}` : 
+						(capo != '0') ? `capo ${capo}` : 
+						(tuning != 'EADGBe') ? tuning : ' '
+
+			console.log({
+				capo,
+				tuning,
+				headerText,
+				headerContent,
+				maxHeaderIndex
+			})
+
+			requests = requests.concat(
 			[{
 				'updateDocumentStyle': {
 					'documentStyle': {
@@ -105,11 +194,15 @@ export default async function handler(req, res) {
 							'magnitude': 20,
 							'unit': 'PT'
 						},
+						marginHeader: {
+							'magnitude': 0.1 * 72,
+							'unit': 'PT'
+						},
 						'defaultHeaderId': {
 
 						}
 					},
-					'fields': 'marginTop,marginLeft,marginBottom,marginRight'
+					'fields': 'marginTop,marginLeft,marginBottom,marginRight,marginHeader'
 				}
 			},{
 				'insertTable': {
@@ -119,6 +212,14 @@ export default async function handler(req, res) {
 						segmentId: ''
 					}
 				}
+			},{
+				'insertText': {
+					'text': headerText,
+					location: {
+						segmentId: headerId,
+						index: 0,
+					}
+				},
 			},{
 				'insertText': {
 					'text': '_Content_',
@@ -162,6 +263,18 @@ export default async function handler(req, res) {
 					fields: 'alignment'
 				}
 			},{
+				'updateParagraphStyle': {
+					paragraphStyle: {
+						alignment: 'END'
+					},
+					'range': {
+						startIndex: 1,
+						endIndex: 2,
+						segmentId: headerId,
+					},
+					fields: 'alignment'
+				}
+			},{
 					'replaceAllText': { 
 						'replaceText' : artistName,
 						'containsText': {
@@ -196,9 +309,6 @@ export default async function handler(req, res) {
 				}
 			])
 
-
-
-		try {
 			// console.log('updating doc')
 			var googleDocUpdated = await docs.documents.batchUpdate({
 				'documentId': googleDocsId,

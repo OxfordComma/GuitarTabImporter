@@ -84,27 +84,27 @@ useEffect(() => {
   setTab(tabs.find(t => t.id == tabId))
 }, [tabs, tabId])
 
-function setArtistName(val) {
-  // event.preventDefault()
+function setArtistName(event) {
+  event.preventDefault()
   setTab({
     ...tab,
-    artistName: val
+    artistName: event.target.value
   })
 }
 
-function setSongName(val) {
-  // event.preventDefault()
+function setSongName(event) {
+  event.preventDefault()
   setTab({
     ...tab,
-    songName: val
+    songName: event.target.value
   })
 }
 
-function setCapo(val) {
-  // event.preventDefault()
+function setCapo(event) {
+  event.preventDefault()
   setTab({
     ...tab,
-    capo: val
+    capo: event.target.value
   })
 }
 
@@ -176,7 +176,7 @@ return (<FullscreenWindow
           <InfoRow key='artistName' label='artistName' value={tab?.artistName} onChange={setArtistName} disabled={false}/>,
           <InfoRow key='songName' label='songName' value={tab?.songName} onChange={setSongName} disabled={false}/>,
           <InfoRow key='capo' label='capo' value={tab?.capo ?? 0} onChange={setCapo}  disabled={false}/>,
-          <InfoRow key='tuning' label='tuning'items={['EADGBe', 'DADGBe', 'D#A#D#F#A#d#']} value={tab?.tuning} onChange={setTuning} disabled={false}/>,
+          <InfoRow key='tuning' label='tuning'items={['EADGBe', 'DADGBe', 'D#G#C#F#A#D#']} value={tab?.tuning} onChange={setTuning} disabled={false}/>,
         ] : null
       }
       {/*

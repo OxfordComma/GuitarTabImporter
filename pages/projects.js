@@ -6,8 +6,11 @@ import menuBarStyles from '../styles/MenuBar.module.css'
 
 import styles from '../styles/projects.module.css'
 
-import { useSession } from "next-auth/react"
+import { useSession, signIn } from "next-auth/react"
 import { useState, useEffect } from 'react'
+
+import cheerio from 'cheerio'
+
 
 function formatTabName(tab) {
   return `${tab.artistName} - ${tab.songName}`
@@ -143,12 +146,15 @@ return <FullscreenWindow
     <div>
       <input onChange={onSearch} value={searchTerm}></input>
       <select size='5' onChange={onSelect}>
-      {filteredTabs.map(tab => {
-        // console.log('filtered tab:', tab)
-        return (<option key={tab.id} selected={tab.googleDocsId==selectedId} id={tab.googleDocsId} value={tab.googleDocsId}>
-          {formatTabName(tab)}
-        </option>)
-      })}
+      {filteredTabs
+        .sort((a, b) => a['artistName']+a['songName'] < b['artistName']+a['songName'] ? -1 : 1)
+        .map(tab => {
+          // console.log('filtered tab:', tab)
+          return (<option key={tab.id} selected={tab.googleDocsId==selectedId} id={tab.googleDocsId} value={tab.googleDocsId}>
+            {formatTabName(tab)}
+          </option>)
+        })
+      }
     </select>
   </div>}
 />
@@ -185,6 +191,7 @@ return (show ? <div className={styles['confirm-delete']}>
 </div> : null)
 }
 
+
 function EditProject({ 
   projects, 
   setProjects, 
@@ -193,84 +200,96 @@ function EditProject({
   setEditProject, 
   styles 
 }) {
-const show = editProject != null
-const [project, setProject] = useState(projects.find(p => p.id == projectId))
+  const show = editProject != null
+  const [project, setProject] = useState(projects.find(p => p.id == projectId))
 
-useEffect(() => {
-  setProject(projects.find(p => p.id == projectId))
-}, [projects, projectId])
+  useEffect(() => {
+    setProject(projects.find(p => p.id == projectId))
+  }, [projects, projectId])
 
-function setProjectName(event) {
-  event.preventDefault()
-  setProject({
-    ...project,
-    name: event.target.value
-  })
-}
-
-function setProjectFolder(event) {
-  event.preventDefault()
-  setProject({
-    ...project,
-    folder: event.target.value
-  })
-}
-
-async function save(event) {
-  event.preventDefault()
-
-  await fetch(`/api/project`, {
-    method: 'POST',
-    body: JSON.stringify(project)
-  })
-
-  console.log({
-    projects,
-    projectId,
-    p: projects.map(p => p.id).includes(projectId),
-  })
-
-  if (projects.map(p => p.id).includes(projectId)) {
-    // console.log('replacing', )
-    setProjects(projects.map(p => p.id == projectId ? project : p))
-  }
-  else {
-    console.log('appending')
-
-    setProjects([...projects, project])
+  function setProjectName(event) {
+    event.preventDefault()
+    setProject({
+      ...project,
+      name: event.target.value
+    })
   }
 
-  console.log('saved ', project)
-  close(event)
-}
-
-function close(event) {
-  event.preventDefault()
-  setEditProject(null)
-}
-
-return (<FullscreenWindow
-  show={show}
-  action={save}
-  close={close}
-  actionLabel='save'
-  content={
-    <div>
-      {
-        project != null ? Object.entries(project).map(entry => {
-          let key = entry[0]
-          let value = entry[1]
-
-          return (<div key={key} style={{display: 'flex'}}>
-            <label style={{flex: 1}} htmlFor={key}>{key}</label>
-            <input style={{flex: 1}} type="text" name={key} value={value} disabled/>
-          </div>)
-        }) : null
-      }
-    </div>
+  function setProjectFolder(event) {
+    event.preventDefault()
+    setProject({
+      ...project,
+      folder: event.target.value
+    })
   }
-  />)
+
+  async function save(event) {
+    event.preventDefault()
+
+    await fetch(`/api/project`, {
+      method: 'POST',
+      body: JSON.stringify(project)
+    })
+
+    console.log({
+      projects,
+      projectId,
+      p: projects.map(p => p.id).includes(projectId),
+    })
+
+    if (projects.map(p => p.id).includes(projectId)) {
+      // console.log('replacing', )
+      setProjects(projects.map(p => p.id == projectId ? project : p))
+    }
+    else {
+      console.log('appending')
+
+      setProjects([...projects, project])
+    }
+
+    console.log('saved ', project)
+    close(event)
+  }
+
+  function close(event) {
+    event.preventDefault()
+    setEditProject(null)
+  }
+
+  return (<FullscreenWindow
+    show={show}
+    action={save}
+    close={close}
+    actionLabel='save'
+    content={
+      <div>
+        {
+          project != null ? Object.entries(project).map(entry => {
+            let key = entry[0]
+            let value = entry[1]
+
+            return (<div key={key} style={{display: 'flex'}}>
+              <label style={{flex: 1}} htmlFor={key}>{key}</label>
+              <input 
+                style={{flex: 1}} 
+                type="text" 
+                name={key} 
+                value={value} 
+                disabled={key!='name'}
+                onChange={e => {e.preventDefault(); setProject({
+                  ...project, [key]: e.target.value 
+                });}}
+              />
+            </div>)
+          }) : null
+        }
+      </div>
+    }
+    />
+  )
 }
+
+
 
 function SidebarMenuBar({ 
   newProjectMenu,
@@ -283,9 +302,15 @@ function SidebarMenuBar({
   sidebarSortBy,
   setSidebarSortBy,
   openProject,
+  createSpotifyPlaylist,
+  signInWithSpotify,
 }) { 
 
 let disabled = openProject==null
+
+let project = projects.find(p => p.id==openProject)
+
+
 
 
 return (<div style={{display: 'flex', width: '100%',}}>
@@ -295,7 +320,7 @@ return (<div style={{display: 'flex', width: '100%',}}>
         file: [{
           title: 'new project',
           onClick: () => newProjectMenu(),
-          disabled: disabled,
+          disabled: false,
         },{
           title: 'open project',
           onClick: () => openProjectMenu(),
@@ -316,20 +341,38 @@ return (<div style={{display: 'flex', width: '100%',}}>
         project: [{
           title: 'add tab',
           onClick: () => addTabMenu(),
+          disabled: disabled
+        },{
+          title: 'open project folder in Drive',
+          onClick: () => window.open(`https://drive.google.com/drive/u/0/folders/${project.folder}`),
+          disabled: disabled,
+        },{
+          title: 'create Spotify playlist',
+          onClick: () => createSpotifyPlaylist(),
+          disabled: disabled,
+        },{
+          title: 'sign in with Spotify',
+          onClick: () => signInWithSpotify(),
+          disabled: disabled,
         }],
         sort: [
           {
             title: 'sort by artist',
-            onClick: () => sidebarSortBy == 'artist ascending' ? setSidebarSortBy('artist descending') : setSidebarSortBy('artist ascending')
+            onClick: () => sidebarSortBy == 'artist ascending' ? setSidebarSortBy('artist descending') : setSidebarSortBy('artist ascending'),
+            disabled: disabled,
           }, {
             title: 'sort by song name',
-            onClick: () => sidebarSortBy == 'songName ascending' ? setSidebarSortBy('songName descending') : setSidebarSortBy('songName ascending')
+            onClick: () => sidebarSortBy == 'songName ascending' ? setSidebarSortBy('songName descending') : setSidebarSortBy('songName ascending'),
+            disabled: disabled,
+            
           }, {
             title: 'sort by created date',
-            onClick: () => sidebarSortBy == 'createdTime ascending' ? setSidebarSortBy('createdTime descending') : setSidebarSortBy('createdTime ascending')
+            onClick: () => sidebarSortBy == 'createdTime ascending' ? setSidebarSortBy('createdTime descending') : setSidebarSortBy('createdTime ascending'),
+            disabled: disabled,
           }, {
             title: "don't sort",
-            onClick: () => setSidebarSortBy('index')
+            onClick: () => setSidebarSortBy('index'),
+            disabled: disabled,
           }
         ],
       }
@@ -341,7 +384,7 @@ return (<div style={{display: 'flex', width: '100%',}}>
       return (
         formatProjectName(project)
       )
-    }) : ''}
+    }) : 'No Open Project'}
   </div>
 </div>)
 }
@@ -476,6 +519,34 @@ export default function Projects(props) {
     setPickTab(true)
   }
 
+  function signInWithSpotify() {
+    signIn('spotify', { callbackUrl: `/projects` })
+  }
+
+  async function createSpotifyPlaylist() {
+    // window.open();  
+    let spotifyPlaylist = await fetch(`/api/createplaylist`, {
+      method: 'POST',
+      body: JSON.stringify({
+        userId: user._id,
+        projectId: openProject,
+        tabs: projectTabs,
+      })
+    }).then(r => r.json())
+
+    console.log('spotifyPlaylist:', spotifyPlaylist)
+
+    let project = projects.find(p => p.id == openProject)
+    let newProject = {
+      ...project,
+      spotifyPlaylistId: spotifyPlaylist.id
+    }
+    setProjects(
+      projects.map(p => p.id == openProject ? newProject : p)
+    )
+  }
+
+
   async function addTabToProject(tabId) {
     let tab = userGoogleTabs.find(t => t.googleDocsId == tabId)
     let project = projects.find(p => p.id == openProject)
@@ -562,17 +633,41 @@ export default function Projects(props) {
             let tab = projectTabs.find(t => t.id == id)
             if (tab.googleDocsId){
               let tabText = await fetch('api/document?documentid='+tab.googleDocsId)
-              .then(r => r.json())
-            
+                .then(r => r.json())
+
               tab.tabText = tabText
+
+              // const $ = cheerio.load(tabHtml);
+
+              // let tabTextList = []
+
+              // $('tr > td > p').each((i, elem) => {
+                // console.log( $(elem).html() )
+                // tabTextList.push( $(elem).text() )
+                // tabTextList.push( $(elem, '* > not(sup)').text() )
+              // })
+              // console.log('cheerio text:', tabTextList)
+              // console.log('cheerio text:', tabTextList.join('\n'))
+            
+              tab.tabText = tab.tabText
                 .replace(formatTabName(tab), '')
                 .replace(/-{76,77}/g, '')
                 .replace(/^ +$/m, '')
                 .replace(/^(\r\n|\r|\n)/mg, '')
-                .slice(2)
 
-             
-              console.log('google doc text:', tab.tabText.slice(0, 5))
+              // if (tab.tuning) {
+                // tab.tabText = tab.tabText.replace(`${tab.tuning}'\n'`, '')
+                tab.tabText = tab.tabText.replace(/([DE]ADGBe)|D#G#C#F#A#d#/g, '')
+              // }
+
+              // if (tab.capo) {
+                // tab.tabText = tab.tabText.replace(`capo ${tab.tuning}'\n'`, '')
+                tab.tabText = tab.tabText.replace(/capo \d/g, '')
+              // }
+              
+              tab.tabText = tab.tabText.slice(2)
+
+              console.log('google doc text:', tab.tabText)
             }
 
             setProjectTabs(
@@ -590,6 +685,8 @@ export default function Projects(props) {
               editProjectMenu={editProjectMenu}
               addTabMenu={addTabMenu}
               setEditProject={setEditProject}
+              createSpotifyPlaylist={createSpotifyPlaylist}
+              signInWithSpotify={signInWithSpotify}
             />
           }
   			/>

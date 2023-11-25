@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google";
+import SpotifyProvider from "next-auth/providers/spotify";
 
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter"
 import clientPromise from "../../../lib/mongodb.js"
@@ -58,6 +59,7 @@ async function refreshAccessToken(token) {
 }
 
 
+let spotifyScope = ['user-read-email', 'playlist-modify-private', 'playlist-modify-public']
 
 export default NextAuth({
   // Configure one or more authentication providers
@@ -72,11 +74,19 @@ export default NextAuth({
         }
       },
     }),
+    SpotifyProvider({
+      clientId: process.env.SPOTIFY_ID,
+      clientSecret: process.env.SPOTIFY_SECRET,
+      authorization: 'https://accounts.spotify.com/authorize?scope=' + spotifyScope.join(','),
+      params: { 
+        grant_type: 'authorization_code', 
+      },
+    }), 
   ],
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: 'database',
   },
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: MongoDBAdapter(clientPromise, { databaseName: 'tabr' }),
 
 })
