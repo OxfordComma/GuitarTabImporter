@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 			res.status(201).json(update)
 	  }
 	  else {
-	  	res.status(500)
+	  	res.send(500)
 	  }
 		
 

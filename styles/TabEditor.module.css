@@ -1,6 +1,7 @@
 .container {
 	display: grid;
 	grid-template-rows: 25px calc(100% - 25px);
+	width: 100%;
 	height: 100%;
 }
 
@@ -9,8 +10,8 @@
 /*		display: grid;*/
 	grid-template-rows: 0px 100%;
 /*		grid-template-columns: 0% 100%;*/
-/*		width: 100%;*/
-/*		height: 100%;*/
+		width: 100%;
+		height: 100%;
 /*		overflow: hidden;*/
 	}
 	.text-area {
@@ -61,5 +62,20 @@
 	background-color: #333333;
 	font-family: monospace;
 	color: white;
+
+	overflow-x: hidden;
+}
+
+.title-bar {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+@media {
+	.title-bar {
+		opacity: 0;
+		z-index: -10;
+	}
+
 }
 

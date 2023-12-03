@@ -159,6 +159,31 @@ export default async function handler(req, res) {
 				console.log('create header:', createHeader)
 				console.log('create header:', createHeader.data.replies[0].createHeader.headerId)
 				headerId = createHeader.data.replies[0].createHeader.headerId
+
+				await docs.documents.batchUpdate({
+					'documentId': googleDocsId,
+					'resource' : { 
+						'requests': [{
+							'updateTextStyle': {
+								'range': {
+									startIndex: 0,
+									endIndex: 1,
+									segmentId: headerId,
+								},
+								textStyle: {
+									weightedFontFamily: {
+										fontFamily: 'PT Mono'
+									},
+									fontSize: {
+										magnitude: 9,
+										unit: 'PT'
+									}
+								},
+								fields: 'weightedFontFamily,fontSize'
+							}
+						}]
+					}
+				})
 			}
 
 			let headerText = (capo == '0' && tuning == 'EADGBe') ? ' ' :
@@ -317,11 +342,14 @@ export default async function handler(req, res) {
 				}
 			})
 
+			console.log('googleDocUpdated', googleDocUpdated)
+
 			res.status(200).send({
-				// artist: artistName,
-				// songName: songName,
-				// googleUrl: 'https://docs.google.com/document/d/' + googleDocsId
-				googleDocsId: googleDocsId,
+		    mimeType: "application/vnd.google-apps.document",
+		    id: googleDocsId,
+		    name: `[DRAFT] ${artistName} - ${songName}`,
+		    starred: false,
+		    createdTime: new Date,
 			})
 		}
 

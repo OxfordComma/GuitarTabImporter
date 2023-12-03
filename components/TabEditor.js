@@ -1,234 +1,53 @@
 import styles from '../styles/TabEditor.module.css'
 import Link from 'next/link'
 import React from 'react'
-import {MenuBar} from 'quantifyjs'
-import menuBarStyles from '../styles/MenuBar.module.css'
-// import MenuBar from './MenuBar.js'
-
 import { useState, useEffect } from 'react'
 
+import { MenuBar } from 'quantifyjs'
+import menuBarStyles from '../styles/MenuBar.module.css'
 import { formatRawTabs } from '../lib/tabhelper.js'
 
-function TabTextArea({ tabText, setTabText, fontSize }) {
-  return (
-    <textarea 
-      className={styles['text-area']}
-      value={tabText}
-      readOnly={false}
-      onChange={setTabText}
-      style={{ fontSize: fontSize }}
-    />)
-}
-
-function StyleEditor({
-  fontSize,
-  setFontSize,
-}) {
-  return (
-    <div style={{display:'flex',}}>
-      <button onClick={() => setFontSize(fontSize+1)}>+</button>
-      <button onClick={() => setFontSize(fontSize-1)}>-</button>
-      <div>{fontSize}</div>
-    </div>
-  )
-}
-
-function TitleBar({ tab }) {
-  return (
-    <div style={{marginLeft: 'auto', marginRight: 'auto'}}>
-      {/*{tab ? `${tab?.artistName} - ${tab?.songName}` : ''}*/}
-      {tab ? `${tab?.artistName.replace(/ /g, '').toLowerCase()}_${tab.songName.replace(/ /g, '').toLowerCase()}.tab` : ''}
-    </div>
-  )
-}
-
-function DetailBar({ tab }) {
-  let tabTuning = tab?.tuning
-  let tabCapo = tab?.capo
-  let showTuning = tabTuning && tabTuning != 'EADGBe'
-  let showCapo = parseInt(tabCapo) > 0
-  
-  function tuning(tuning, showTuning) {
-    let tuningStyle = {
-      color: showTuning ? 'white' : 'gray'
-    }
-    return (<div style={tuningStyle}>
-      {tuning ? tuning : 'no tuning'}
-    </div>)
-  }
-
-  function separator(showTuning, showCapo) {
-    let sepStyle = {
-      color: showTuning ? 'white' : 'gray'
-    }
-    return (<div style={sepStyle}>
-      {', '}
-    </div>)
-  }
-
-  function capo(capo, showCapo) {
-    let capoStyle = {
-      color: showCapo ? 'white' : 'gray'
-    }
-    return (<div style={capoStyle}>
-      {capo ? `capo ${capo}` : 'no capo'}
-    </div>)
-  }
-
-  return (tab ? <div style={{display: 'flex', flexDirection: 'row'} } >
-      {tuning(tabTuning, showTuning)}
-      {separator(showTuning, showCapo)}
-      {capo(tabCapo, showCapo)}
-    </div> : <div></div>
-  )
-}
-
 export default function Editor ({ 
-  tabId, 
-  userId,
   tabs, 
   setTabs,
+  saveTab,
+  tabId, 
+  userId,
+  mode='edit',
+  showSidebar,
+  setShowSidebar,
+  importTab,
 }) {
-  // const [tabText, setTabText] = useState('')
   const [fontSize, setFontSize] = useState(12)
   const [tab, setTab] = useState(tabs.find(t => t['id'] == tabId) ?? null)
 
   useEffect(() => {
-    // async function updateTab() {
     let newTab = tabs.find(t => t['id'] == tabId)
     setTab(newTab);
-    // let text = tab.tabText
 
-
-    // if (text != undefined) {
-    //   console.log('Loaded tab text already!')
-    //   setTabText(text)
-    //   return
-    // }
-
-    // else {
-    //   setTabText('')
-    // }
-    // }
-
-    // updateTab();
   }, [tabId, tabs])
 
-  
-  async function importTab() {
-    if (!tabId)
-      return
-
-    // let sidebarTab = tabs.find(t => t['id'] == tabId)
-    let tabText = ''
-    if (tab.googleDocsId){
-      tabText = await fetch('api/document?documentid='+tab.googleDocsId)
-      .then(r => r.json())
+  useEffect(() => {
+    if (mode=='view') return; 
     
-      console.log('google doc text:', tabText)
-    }
-
-    setTab({
-      ...tab,
-      tabText: tabText
-    })
-  }
-
-  async function saveTab() {
-    // console.log('SAVE TAB')
-    // let sidebarTab = tabs.find(t => t['id'] == tabId)
-    let sidebarTab = tab
-
-    let saveResponse = await fetch('api/tab', {
-      method: 'POST',
-      body: JSON.stringify({
-        id: sidebarTab.id,
-        userId: userId,
-        googleDocsId: sidebarTab.googleDocsId,
-        tabText: sidebarTab.tabText,
-        tabName: sidebarTab.tabName,
-        draft: sidebarTab.draft,
-        holiday: sidebarTab.holiday,
-        artistName: sidebarTab.artistName,
-        uri: sidebarTab.uri,
-        songName: sidebarTab.songName,
-        createdTime: sidebarTab.createdTime,
-        starred: sidebarTab.starred,
-        tuning: sidebarTab.tuning,
-        capo: sidebarTab.capo,
-      })
-    }).then(r => r.json())
-    console.log('saveResponse:', saveResponse)
-    if (saveResponse.ok == 1) {
-      setTabs(
-        tabs.map(t => {
-          if (t.id == sidebarTab.id) {
-            t['tabText'] = sidebarTab.tabText
-            t['_id'] = saveResponse.value?._id ?? saveResponse.lastErrorObject.upserted
-          }
-          return t
-        })
-      )
-    }
-  }
-
-  function openTabInDocs() {
-    if (tab.googleDocsId)
-      window.open(`https://docs.google.com/document/d/${tab.googleDocsId}`)
-
-  }
-
-  async function exportTab() {
-    // console.log(tabs)
-    // let sidebarTab = tabs.find(t => t['id'] == tabId)
-    let sidebarTab = tab
-    console.log('exporting:', sidebarTab)
-    let user = await fetch('api/user').then(r => r.json())
-    let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
-
-    let saveResponse = await fetch(`api/create`, {
-      method: 'POST',
-      body: JSON.stringify({
-        tab: tab,
-        account: account,
-        folder: user.folder,
-        // id: sidebarTab.id,
-        // userId: sidebarTab.userId,
-        // googleDocsId: sidebarTab.googleDocsId,
-        // tabText: tabText,
-        // tabName: sidebarTab.tabName,
-        // draft: sidebarTab.draft,
-        // holiday: sidebarTab.holiday,
-        // artistName: sidebarTab.artistName,
-        // uri: sidebarTab.uri,
-        // songName: sidebarTab.songName,
-        // createdTime: sidebarTab.createdTime,
-        // starred: sidebarTab.starred,
-      })
-    }).then(r => r.json())  
-
-    console.log(saveResponse)
-    tabs = tabs.map(t => {
-      if (t['id'] == tabId) {
-        t['googleDocsId'] = saveResponse['googleDocsId']
+    let newTabs = tabs.map(t => {
+      if (t['id'] == tabId && tab) {
+        // try {
+          t['tabText'] = tab['tabText'] ?? ''
+        // }
+        // catch(e) {
+          // console.log('error', e)
+        // }
       }
       return t
     })
-    // console.log(tabs)
-    saveTab()
 
     setTabs(tabs)
-  }
-  
-  function formatTab() {
-    setTab({
-      ...tab,
-      tabText: formatRawTabs(tab.tabText),
-    })
 
-  }
+  }, [tab?.tabText])
 
   let setTabText = (event) => {
+    event.preventDefault();
     console.log({
       ...tab,
       tabText: event.target.value
@@ -239,27 +58,103 @@ export default function Editor ({
     })
   }
 
+  function openTabInDocs() {
+    if (tab.googleDocsId)
+      window.open(`https://docs.google.com/document/d/${tab.googleDocsId}`)
+
+  }
+
+  async function exportTab() {
+    let sidebarTab = tab
+    console.log('exporting:', sidebarTab)
+    let user = await fetch('api/user').then(r => r.json())
+    let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
+
+    let exportResponse = await fetch(`api/create`, {
+      method: 'POST',
+      body: JSON.stringify({
+        tab: tab,
+        account: account,
+        folder: user.folder,
+      })
+    }).then(r => r.json())  
+
+    // console.log('exportResponse:', exportResponse)
+    tabs = tabs.map(t => {
+      if (t['id'] == tabId) {
+        t['googleDocsId'] = exportResponse['googleDocsId']
+      }
+      return t
+    })
+
+    saveTab()
+
+    setTabs(tabs)
+  }
+  
+  function formatTab() {
+    setTab({
+      ...tab,
+      tabText: formatRawTabs(tab.tabText),
+    })
+  }
+
+  
+
+  let addTabStaff = () => {
+    let staffString = '\n'+
+'e|----------------------------------------------------------------------------------|\n'+
+'B|----------------------------------------------------------------------------------|\n'+
+'G|----------------------------------------------------------------------------------|\n'+
+'D|----------------------------------------------------------------------------------|\n'+
+'A|----------------------------------------------------------------------------------|\n'+
+'E|----------------------------------------------------------------------------------|'
+    setTab({
+      ...tab,
+      tabText: tab.tabText + staffString
+    })
+
+  }
+
+  let toggleSidebar = () => {
+    setS
+  }
+
+
+
   return (
     <div className={styles['container']}>
-      
-      {/*<div style={{display: 'flex', width: '100%', height: '100%',}}>
-      </div>
-      */} 
       <div style={{display: 'flex', backgroundColor: 'black', width: '100%'}}>
         <MenuBar
           items={{
-            'file': [{ title: 'save tab', onClick: saveTab, }],
-            'import': [{ title: 'import tab from Google Docs', onClick: importTab, }],
+            'file': [{ 
+              title: 'show sidebar', 
+              onClick: (e) => {e.preventDefault(); setShowSidebar(!showSidebar)},
+              disabled: mode!='view',
+            }],
+            'import': [{ 
+              title: 'import tab from Google Docs', 
+              onClick: importTab,
+              disabled: mode=='view',
+            }],
             'export': [{ 
               title: 'export tab to Google Docs', 
               onClick: exportTab, 
-              disabled: false 
+              disabled: mode=='view', 
             },{
               title: 'open tab in Google Docs',
               onClick: openTabInDocs,
               disabled: false,
             }],
-            'format': [{ title: 'format tab text', onClick: formatTab, }],
+            'format': [{ 
+              title: 'format tab text', 
+              onClick: formatTab,
+              disabled: mode=='view',
+           },{
+            title: 'add tab staff',
+            onClick: addTabStaff,
+            disabled: mode=='view',
+           }],
           }}
           styles={menuBarStyles}
         />
@@ -274,18 +169,100 @@ export default function Editor ({
           tab={tab}
         />
       </div>
-      {/*<TabEditBar 
-        tabId={tabId}
-        tabText={tabText}
-        setTabText={setTabText}
-        userId={userId}
-        tabs={tabs}
-        setTabs={setTabs}/>*/}
       <TabTextArea 
         tabText={tab?.tabText ?? ''}
         setTabText={setTabText}
         fontSize={fontSize}
+        readOnly={mode=='view'}
       />
     </div>
+  )
+}
+
+
+function TabTextArea({ tabText, setTabText, fontSize, readOnly=false }) {
+  return (
+    <textarea 
+      className={styles['text-area']}
+      value={tabText}
+      readOnly={readOnly}
+      onChange={setTabText}
+      style={{ fontSize: fontSize }}
+    />)
+}
+
+function StyleEditor({
+  fontSize,
+  setFontSize,
+}) {
+  return (
+    <div style={{display:'flex', width: '20px', height: '20px'}}>
+      <button onClick={() => setFontSize(fontSize+1)}>+</button>
+      <button onClick={() => setFontSize(fontSize-1)}>-</button>
+      <div>{fontSize}</div>
+    </div>
+  )
+}
+
+function TitleBar({ tab }) {
+  return (
+    <div className={styles['title-bar']}>
+      {tab && tab?.artistName ? `${tab?.artistName.replace(/ /g, '').toLowerCase()}_${tab.songName.replace(/ /g, '').toLowerCase()}.tab` : ''}
+    </div>
+  )
+}
+
+function DetailBar({ tab }) {
+  let tabTuning = tab?.tuning
+  let tabCapo = tab?.capo
+  let tabBpm = tab?.bpm
+
+  let showTuning = tabTuning && tabTuning != 'EADGBe'
+  let showCapo = parseInt(tabCapo) > 0
+  let showBpm = parseInt(tabBpm) > 0
+  
+  function tuning(tuning, showTuning) {
+    let tuningStyle = {
+      color: showTuning ? 'white' : 'gray'
+    }
+    return (<div style={tuningStyle}>
+      {tuning ? tuning : 'no tuning'}
+    </div>)
+  }
+
+  function capo(capo, showCapo) {
+    let capoStyle = {
+      color: showCapo ? 'white' : 'gray'
+    }
+    return (<div style={capoStyle}>
+      {capo ? `capo ${capo}` : 'no capo'}
+    </div>)
+  }
+
+  function bpm(bpm, showBpm) {
+    let capoStyle = {
+      color: showBpm ? 'white' : 'gray'
+    }
+    return (<div style={capoStyle}>
+      {bpm ? `${bpm} BPM` : ''}
+    </div>)
+  }
+
+  function separator(left, right) {
+    let sepStyle = {
+      color: left ? 'white' : 'gray'
+    }
+    return (<div style={sepStyle}>
+      {', '}
+    </div>)
+  }
+
+  return (tab ? <div style={{display: 'flex', flexDirection: 'row'} } >
+      {bpm(tabBpm, showBpm)}
+      {showBpm ? separator(showBpm, showTuning) : ''}
+      {tuning(tabTuning, showTuning)}
+      {separator(showBpm, showTuning)}
+      {capo(tabCapo, showCapo)}
+    </div> : <div></div>
   )
 }

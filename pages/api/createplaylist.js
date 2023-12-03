@@ -110,7 +110,7 @@ export default async function handler(req, res) {
     console.log(project)
     console.log('spotifyPlaylistId' in project)
 
-    if ('spotifyPlaylistId' in project) {
+    if ('spotifyPlaylistId' in project && project['spotifyPlaylistId']) {
         playlistId = project.spotifyPlaylistId
         let playlist = await spotifyAuth.getPlaylist(playlistId).then(res => res.body).catch(e => console.log(e))
         let options = { limit: 50, offset: 0 }

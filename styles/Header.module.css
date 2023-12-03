@@ -18,6 +18,7 @@
   align-items: center;
   display: flex;
   border-radius: 1px solid black;
+  margin-right: 10px;
 }
 
 .header-item:hover {

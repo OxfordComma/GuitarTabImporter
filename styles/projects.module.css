@@ -1,16 +1,18 @@
 .container {
 	display: grid;
 	grid-template-rows: 100%;
-	grid-template-columns: 30% 70%;
+	grid-template-columns: fit-content(30%) minmax(70%, 100%);
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
 }
 
+
+
 @media print {
 	.container {
 /*		display: grid;*/
-/*	grid-template-rows: 0px 100%;*/
+		grid-template-rows: 100%;
 		grid-template-columns: 0% 100%;
 /*		width: 100%;*/
 /*		height: 100%;*/
@@ -19,6 +21,7 @@
 }
 
 .editor {
+	width: 100%;
 	height: 100%;
 }
 
@@ -32,7 +35,7 @@
  	background-color: rgba(0, 0, 0, 0.5);
 }
 
-.fullscreen-window{
+.fullscreen-window {
 	position: fixed;
 	top: calc(50% - 75px);
 	left: calc(50% - 150px);
@@ -42,5 +45,8 @@
 	background-color: #000000;
 	padding: 10px;
 	border-radius: 10px;
+
+	display: flex;
+	flex-direction: column;
 }
 
