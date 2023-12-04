@@ -41,7 +41,7 @@ app.use(helmet())
 
 
 app.use('/', indexRouter);
-app.use('/import', importRouter)
+// app.use('/import', importRouter)
 app.use('/auth', authRouter)
 
 // catch 404 and forward to error handler

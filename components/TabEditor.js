@@ -17,6 +17,7 @@ export default function Editor ({
   showSidebar,
   setShowSidebar,
   importTab,
+  exportTab,
 }) {
   const [fontSize, setFontSize] = useState(12)
   const [tab, setTab] = useState(tabs.find(t => t['id'] == tabId) ?? null)
@@ -64,33 +65,7 @@ export default function Editor ({
 
   }
 
-  async function exportTab() {
-    let sidebarTab = tab
-    console.log('exporting:', sidebarTab)
-    let user = await fetch('api/user').then(r => r.json())
-    let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
-
-    let exportResponse = await fetch(`api/create`, {
-      method: 'POST',
-      body: JSON.stringify({
-        tab: tab,
-        account: account,
-        folder: user.folder,
-      })
-    }).then(r => r.json())  
-
-    // console.log('exportResponse:', exportResponse)
-    tabs = tabs.map(t => {
-      if (t['id'] == tabId) {
-        t['googleDocsId'] = exportResponse['googleDocsId']
-      }
-      return t
-    })
-
-    saveTab()
-
-    setTabs(tabs)
-  }
+  
   
   function formatTab() {
     setTab({

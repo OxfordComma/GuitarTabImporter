@@ -51,8 +51,7 @@ export default function Edit({ }) {
           .then(newUserTabs => { 
             console.log('userTabs:', newUserTabs)
             setUserTabs(newUserTabs)
-          })
-        
+        })
       }
 
       // In user's GDrive folder
@@ -61,7 +60,7 @@ export default function Edit({ }) {
           .then(r => r.json())
           .then(newGoogleTabs => {
             setGoogleTabs(newGoogleTabs)
-          })
+        })
       }    
     }
 
@@ -70,13 +69,18 @@ export default function Edit({ }) {
 
   useEffect( () => {
     let googleTabsWithMetadata = googleTabs.map(g => formatFolderContents(g, user))
-    // console.log('googleTabsWithMetadata', googleTabsWithMetadata)
+    console.log('googleTabsWithMetadata', googleTabsWithMetadata)
 
     let userGoogleDocsIds = userTabs.map(t => t.googleDocsId).map(t => t)
     let filteredGoogleTabs = googleTabsWithMetadata.filter(g => !userGoogleDocsIds.includes(g.googleDocsId) || g==null )
     let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
 
-    // console.log('all tabs:', allTabs)
+    console.log('all tabs:', {
+      googleTabsWithMetadata,
+      userGoogleDocsIds,
+      filteredGoogleTabs,
+      allTabs,
+    })
 
     allTabs = allTabs.map((at, i) => {
       at['index'] = i
@@ -116,6 +120,7 @@ export default function Edit({ }) {
     
     setUserTabs([newTab, ...userTabs])
     setSidebarItemId(newTab.id)
+    setEditTab()
     return newTab.id
   }
 
@@ -161,6 +166,36 @@ export default function Edit({ }) {
 
   }
 
+  async function exportTab() {
+    let tab = userTabs.find(t => t['id'] == sidebarItemId)
+    // let sidebarTab = tab
+    console.log('exporting:', tab)
+    // let user = await fetch('api/user').then(r => r.json())
+    let userId = user._id
+    let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
+
+    let exportResponse = await fetch(`api/create`, {
+      method: 'POST',
+      body: JSON.stringify({
+        tab: tab,
+        account: account,
+        folder: user.folder,
+      })
+    }).then(r => r.json())  
+
+    console.log('exportResponse:', exportResponse)
+    // if (!tab['googleDocsId']) {
+      tab['googleDocsId'] = exportResponse['id']
+      userTabs = userTabs.map(t => {
+        if (t['id'] == sidebarItemId) {
+          return tab
+        }
+        return t
+      })
+
+      setTabs(tabs)
+    }
+  // }
 
   async function saveTab() {
     let userTab = userTabs.find(t => t['id'] == sidebarItemId)
@@ -228,6 +263,7 @@ export default function Edit({ }) {
       })
 
     }
+    
     setUserTabs(newUserTabs)
     setGoogleTabs(newGoogleTabs)
 
@@ -265,12 +301,14 @@ export default function Edit({ }) {
         deleteTab={deleteTab}
       />
       <EditTabWindow
-        tabs={tabs}
+        show={sidebarItemId && editTab}
+        tabs={userTabs}
         tabId={sidebarItemId}
-        setTabs={setTabs}
+        setTabs={setUserTabs}
         editTab={editTab}
         setEditTab={setEditTab}
         styles={styles}
+        saveTab={saveTab}
       />
       <div className={styles.sidebar}>
         <Sidebar
@@ -345,6 +383,7 @@ export default function Edit({ }) {
           tabId={sidebarItemId}
           userId={user?._id}
           importTab={importTab}
+          exportTab={exportTab}
         />
       </div>      
     </div>

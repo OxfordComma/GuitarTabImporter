@@ -46,12 +46,9 @@ export default function Projects() {
   } = useContext(TabsContext)
 
   let [projectTabs, setProjectTabs] = useState([])
-  // let [userGoogleTabs, setUserGoogleTabs] = useState(tabs ?? null)
 
   let [sidebarItemId, setSidebarItemId] = useState(null)
   let [sidebarSortBy, setSidebarSortBy] = useState('artist ascending')
-
-  // let [openProject, setOpenProject] = useState(null)
 
   let [pickProject, setPickProject] = useState(false)
   let [pickTab, setPickTab] = useState(false)
@@ -127,6 +124,7 @@ export default function Projects() {
       owner: user._id,
       creator: user._id,
       collaborators: [],
+      folder: '',
     }
     setOpenProjectId(newProject.id)
     setEditProject(true)
@@ -304,12 +302,14 @@ export default function Projects() {
       <div>
 
       <EditProjectWindow
+        show={editProject != null}
         projects={projects}
         projectId={openProjectId}
         setProjects={setProjects}
         editProject={editProject}
         setEditProject={setEditProject}
         styles={styles}
+        user={user}
       />
       <PickProjectWindow
         projects={projects}
@@ -394,7 +394,7 @@ return (<div style={{display: 'flex', width: '100%',}}>
         },{
           title: 'open project folder in Drive',
           onClick: () => window.open(`https://drive.google.com/drive/u/0/folders/${project.folder}`),
-          disabled: disabled,
+          disabled: disabled && project.folder,
         },{
           title: 'create Spotify playlist',
           onClick: () => createSpotifyPlaylist(),

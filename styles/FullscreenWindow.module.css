@@ -1,6 +1,9 @@
 
 .fullscreen-background {
 	position: fixed;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	left: 0;
 	top: 0;
 	width: 100%;
@@ -10,10 +13,13 @@
 
 .fullscreen-window{
 	position: fixed;
-	top: calc(50% - 75px);
-	left: calc(50% - 150px);
-	width: 300px;
-	height: 150px;
+	display: grid;
+	--window-width: 250px;
+	--window-height: 200px;
+/*	top: calc(50% - var(--window-width));*/
+/*	left: calc(50% - var(--window-height));*/
+/*	width: var(--window-width);*/
+/*	height: var(--window-height);*/
 
 	background-color: #000000;
 	padding: 10px;

@@ -8,44 +8,54 @@ export default function Profile(props) {
   const { data: session, status } = useSession()
 
   let [folder, setFolder] = useState('')
-  let [url, setUrl] = useState('')
+  let [projectsFolder, setProjectsFolder] = useState('')
   
-  
-  let [googleDocs, setGoogleDocs] = useState([])
-
 
   useEffect(() => {
-  	async function updateFolder() {
+  	async function updateFolders() {
   		let user = await fetch('/api/user').then(r => r.json())
 	  	console.log('user:', user)
 
-	  // 	let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
-	  // 	console.log(folderContents)
-			setFolder(user.folder)
-			// setGoogleDocs(folderContents)
-  	}
+	  	setFolder(user.folder ?? '')
+	  	setProjectsFolder(user.projectsFolder ?? '')
+		}
 
-  	updateFolder();
+  	updateFolders();
   	
 	}, [])
 
   
-  let onSubmit = async function(event, folder, url) {
+  let onSubmit = async function(event, folder, projectsFolder) {
   	event.preventDefault()
-  	let userUpdate = await fetch('/api/user?folder='+folder, { method: 'POST' }).then(r => r.json())
-  	console.log(userUpdate)
+  	let userUpdate = await fetch('/api/user', { 
+  		method: 'POST',
+  		body: JSON.stringify({
+  			email: session.user.email,
+  			folder: folder,
+  			projectsFolder: projectsFolder,
+  		})
+  	}).then(r => r.json())
 
-  	// let response = await fetch('/api/create?folder='+folder+'&url='+url).then(r => r.json())
-  	// console.log(response)
-  	// setGoogleDocs(googleDocs.concat([response]))
-  	// setGoogleDocsUrls(googleDocsUrls.concat(response.googleUrl))
-  	// setSongName([response.artist, response.songName].join(' - '))
+  	console.log(userUpdate)
   }
 
 
 	return (
-		<div className={styles.container}>
-				<form className={styles.column} onSubmit={e => onSubmit(e, folder, url)}>
+		<div className={styles['container']}>
+			<div className={styles['window']}>
+				<div>
+					<label htmlFor="folder">Folder:</label>
+					<input type="text" name="folder" id="folder" value={folder} onChange={e => setFolder(e.target.value)}/>
+				</div>
+				<div>
+					<label htmlFor="projects-folder">Projects Folder:</label>
+					<input type="text" name="projects-folder" id="projects-folder" value={projectsFolder} onChange={e => setProjectsFolder(e.target.value)}/>
+				</div>
+				<div>
+					<button onClick={e => onSubmit(e, folder, projectsFolder)}>save</button>
+				</div>
+			</div>
+				{/*<form className={styles.column} onSubmit={e => onSubmit(e, folder)}>
 					<span>
 						<input type="submit" hidden/>
 						<label htmlFor="url">Folder:</label>
@@ -54,7 +64,7 @@ export default function Profile(props) {
 					<span>
 						<button type='submit'>submit</button>
 					</span>
-				</form>
+				</form>*/}
 			
 		</div>)
 }

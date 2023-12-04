@@ -73,9 +73,9 @@ return <FullscreenWindow
   actionLabel='pick'
   close={close}
   content={
-    <div style={{display: 'flex', flexDirection: 'column'}}>
+    <div style={{display: 'flex', flexDirection: 'column', width: '100%', height: '100%'}}>
       <input style={{width: '100%', }} onChange={onSearch} value={searchTerm}></input>
-      <select style={{width: '100%', height: '100%'}} size='5' onChange={onSelect}>
+      <select style={{width: '100%', height: '100%'}} size='10' onChange={onSelect}>
       {filteredTabs
         .sort((a, b) => a['artistName']+a['songName'] < b['artistName']+a['songName'] ? -1 : 1)
         .map(tab => {

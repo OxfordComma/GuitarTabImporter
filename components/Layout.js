@@ -17,7 +17,7 @@ function ShowLogin() {
       <p key='email' className={styles['login-email']}>{session.user.email}</p>,
       <button className={styles['login-button']} key='button' onClick={() => signOut({callbackUrl: '/login'})}>Sign out</button>
     ] : (
-      <button className={styles['login-button']} onClick={() => signIn('google', { callbackUrl: '/import' })}>
+      <button className={styles['login-button']} onClick={() => signIn('google', { callbackUrl: '/profile' })}>
         Sign in with Google
       </button>
     )}

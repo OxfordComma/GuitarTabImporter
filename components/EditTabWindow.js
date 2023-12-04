@@ -4,26 +4,32 @@ import { MenuBar, Dropdown } from 'quantifyjs'
 import FullscreenWindow from '../components/FullscreenWindow.js'
 
 export default function EditTabWindow({ 
+  show=false,
   tabs, 
   setTabs, 
   tabId, 
   editTab,
   setEditTab, 
-  styles,
+  saveTab,
 }) {
-  const show = editTab != null
-  const [tab, setTab] = useState(tabs.find(t => t.id == tabId))
+
+  if (!tabId) return null;
 
   function fixTab(tab) {
-    if (!('capo' in tab)) {
+    if (!tab) return
+
+    if (!tab?.capo) {
       tab['capo'] = 0
     }
-    if (!('tuning' in tab)) {
+    if (!tab?.tuning) {
       tab['tuning'] = 'EADGBe'
     }
 
     return tab
   }
+
+  console.log('edit tabs', tabs)
+  const [tab, setTab] = useState( tabs.length > 0 ? fixTab(tabs.find(t => t.id == tabId) ) : null)
   
 
   useEffect(() => {
@@ -32,6 +38,19 @@ export default function EditTabWindow({
 
     setTab(fixTab(t))
   }, [tabs, tabId])
+
+  // useEffect(() => {
+  //   if (tabs.map(p => p.id).includes(tabId)) {
+  //     // console.log('replacing', )
+  //     setTabs(tabs.map(t => t.id == tabId ? tab : t))
+  //   }
+  //   else {
+  //     console.log('appending')
+
+  //     setTabs([...tabs, tab])
+  //   }
+  // }, [tab])
+
 
   function setArtistName(event) {
     event.preventDefault()
@@ -85,10 +104,6 @@ export default function EditTabWindow({
   async function save(event) {
     event.preventDefault()
 
-    // await fetch(`/api/tab`, {
-    //   method: 'POST',
-    //   body: JSON.stringify(tab)
-    // })
 
     // console.log({
     //   tabs,
@@ -97,15 +112,15 @@ export default function EditTabWindow({
     // })
 
     if (tabs.map(p => p.id).includes(tabId)) {
-      // console.log('replacing', )
+      console.log('replacing', tab)
       setTabs(tabs.map(t => t.id == tabId ? tab : t))
     }
     else {
-      console.log('appending')
+      console.log('appending', tab)
 
       setTabs([...tabs, tab])
     }
-
+    // saveTab()
     console.log('saved ', tab)
     close(event)
   }
@@ -127,7 +142,7 @@ export default function EditTabWindow({
             let key = entry[0]
             let value = entry[1]
 
-            if (['tabText'].includes(key)) {
+            if (!['artistName', 'songName', 'bpm', 'capo', 'tuning'].includes(key)) {
               return
             }
 
@@ -138,13 +153,6 @@ export default function EditTabWindow({
               capo: setCapo,
               tuning: setTuning,
             }
-
-            // <InfoRow key='id' label='id' value={tab?.id} disabled={true}/>
-            // <InfoRow key='artistName' label='artistName' value={tab?.artistName} onChange={setArtistName} disabled={false}/>
-            // <InfoRow key='songName' label='songName' value={tab?.songName} onChange={setSongName} disabled={false}/>
-            // <InfoRow key='bpm' label='bpm' value={tab?.bpm} onChange={setBpm}  disabled={false}/>
-            // <InfoRow key='capo' label='capo' value={tab?.capo} onChange={setCapo}  disabled={false}/>
-            // <InfoRow key='tuning' label='tuning' items={['EADGBe', 'DADGBe', 'D#G#C#F#A#D#']} value={tab?.tuning} onChange={setTuning} disabled={false}/>
 
             return <InfoRow 
               key={key} 
