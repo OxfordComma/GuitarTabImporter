@@ -32,6 +32,7 @@ export default function Edit({ }) {
   
   let [editTab, setEditTab] = useState(null)
   let [deleteTabId, setDeleteTabId] = useState(null)
+  let [isNewTab, setIsNewTab] = useState(false)
 
   let [sidebarSortBy, setSidebarSortBy] = useState('createdTime descending')
   let [createNewSidebarItem, setCreateNewSidebarItem] = useState(false)
@@ -121,8 +122,16 @@ export default function Edit({ }) {
     setUserTabs([newTab, ...userTabs])
     setSidebarItemId(newTab.id)
     setEditTab()
+    setIsNewTab(true)
     return newTab.id
   }
+  
+  useEffect(() => {
+    console.log('is new tab')
+    saveTab()
+    setIsNewTab(false)
+  }, [isNewTab])
+
 
   async function importTab() {
     let tabText = ''
@@ -148,6 +157,7 @@ export default function Edit({ }) {
 
 
     if(!userTabs.map(t => t['googleDocsId']).includes(tab.googleDocsId)) {
+      console.log('adding tab', tab)
       addTab(artistName, songName, tab.googleDocsId, tabText)
     }
     else {
@@ -165,6 +175,7 @@ export default function Edit({ }) {
     }
 
   }
+
 
   async function exportTab() {
     let tab = userTabs.find(t => t['id'] == sidebarItemId)
@@ -201,11 +212,13 @@ export default function Edit({ }) {
     let userTab = userTabs.find(t => t['id'] == sidebarItemId)
     // Remove _id field for saving to database
 
+    let userId = user._id
+    if (!userId) return;
+
     let newUserTab = userTab
     if (newUserTab && newUserTab._id) {
       delete newUserTab._id
     }
-    let userId = user._id
 
     console.log('userTab', newUserTab, sidebarItemId)
 
@@ -323,14 +336,27 @@ export default function Edit({ }) {
           searchFunction={d => `${d.artistName} - ${d.songName}`}
           itemIsEnabled={d => d?.tabText != ''}
           SidebarItemComponent={(datum) => {
-            return ([
-              <div key='name'>{datum.artistName} - {datum.songName}</div>,
-              <div key='tuning' title='tuning' style={{marginLeft: 'auto'}}>{datum.tuning ? datum.tuning.match(/^(D#|D|E)/m)[0] : null}</div>,
-              <div key='capo' title='capo' style={{width: '10px'}}>{datum.capo ? datum.capo.toString() : null}</div>,
-              <div key='loaded' title='metadata enhanced' style={{width: '10px'}}>{datum._id ? '✓' : null}</div>,
-              <div key='docsId' title='saved to Google Drive' style={{width: '10px', opacity: datum.googleDocsId==null ? 0 : 1, transition: 'opacity 250ms ease' }}>{'G'}</div>,
-              <div key='delete' title='delete item' style={{width: '10px'}} id={datum.id} onClick={e => {e.stopPropagation(); setDeleteTabId(e.target.id)}}>{datum._id ? '♻' : null}</div>,
-            ])
+            return (<div style={{display: 'flex', flexDirection: 'row', width: '100%', height: '100%',}}>
+              <div style={{
+                width: '75%',
+              }}>
+                {datum.artistName} - {datum.songName}
+              </div>
+              <div style={{
+                  display: 'grid', 
+                  // flexDirection: 'row', 
+                  // marginLeft: 'auto', 
+                  'grid-template-columns': '20% 20% 20% 20% 20%',
+                  'grid-template-rows': '100%',
+                  width: '25%',
+                }}>
+                <div key='capo' title='capo' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum.capo ? datum.capo.toString() : null}</div>
+                <div key='tuning' title='tuning' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum.tuning ? datum.tuning.match(/^(D#|D|E)/m)[0] : null}</div>
+                <div key='loaded' title='metadata enhanced' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum._id ? '✓' : null}</div>
+                <div key='docsId' title='saved to Google Drive' style={{justifySelf: 'center', alignSelf: 'center', opacity: datum.googleDocsId==null ? 0 : 1, transition: 'opacity 250ms ease' }}>{'G'}</div>
+                <div key='delete' title='delete item' style={{justifySelf: 'center', alignSelf: 'center'}} id={datum.id} onClick={e => {e.stopPropagation(); setDeleteTabId(e.target.id)}}>{datum._id ? '♻' : null}</div>
+              </div>
+            </div>)
           }}
           addSidebarItem={addTab}
           menuBar={

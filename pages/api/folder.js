@@ -53,6 +53,7 @@ export default async function handler(req, res) {
 	  } while (NextPageToken);
 
 		res.send(fileList)
+		return;
 	}
 
 	if (req.method == 'POST' && req.body) {
@@ -88,9 +89,11 @@ export default async function handler(req, res) {
 			})
 
 			res.status(200).send(JSON.stringify(newFolder.data))
+			return;
 		}
 	}
 	else {
 		res.send(500)
+		return;
 	}
 }
