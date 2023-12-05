@@ -93,7 +93,7 @@ export default function Projects() {
       let project = projects.find(p => p.id == openProjectId)
       console.log('found project:', project)
 
-      if (!project) 
+      if (!project || !project?.folder) 
         return;
 
 
@@ -393,8 +393,8 @@ return (<div style={{display: 'flex', width: '100%',}}>
           disabled: disabled
         },{
           title: 'open project folder in Drive',
-          onClick: () => window.open(`https://drive.google.com/drive/u/0/folders/${project.folder}`),
-          disabled: disabled && project.folder,
+          onClick: () => window.open(`https://drive.google.com/drive/u/0/folders/${project?.folder}`),
+          disabled: disabled && project?.folder,
         },{
           title: 'create Spotify playlist',
           onClick: () => createSpotifyPlaylist(),

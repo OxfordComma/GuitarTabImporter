@@ -13,7 +13,6 @@ export default function EditTabWindow({
   saveTab,
 }) {
 
-  if (!tabId) return null;
 
   function fixTab(tab) {
     if (!tab) return
@@ -38,6 +37,9 @@ export default function EditTabWindow({
 
     setTab(fixTab(t))
   }, [tabs, tabId])
+
+  if (!tabId) return null;
+  
 
   // useEffect(() => {
   //   if (tabs.map(p => p.id).includes(tabId)) {
