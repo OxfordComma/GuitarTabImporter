@@ -212,7 +212,7 @@ export default function Edit({ }) {
     let userTab = userTabs.find(t => t['id'] == sidebarItemId)
     // Remove _id field for saving to database
 
-    let userId = user._id
+    let userId = user?._id
     if (!userId) return;
 
     let newUserTab = userTab
