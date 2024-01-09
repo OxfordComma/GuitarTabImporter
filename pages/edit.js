@@ -98,7 +98,7 @@ export default function Edit({ }) {
     console.log('sidebar item id changed to:', sidebarItemId)
   }, [sidebarItemId] )
 
-  async function addTab(artistName, songName, googleDocsId=null, tabText='') {
+  async function addTab(artistName, songName, googleDocsId=null, tabText='', createdTime=new Date()) {
     // console.log('adding tab?')
 
     let newTab = {
@@ -112,7 +112,8 @@ export default function Edit({ }) {
       holiday: false,
       draft: false,
       uri: null,
-      createdTime: new Date().toString(),
+      createdTime: createdTime.toString(),
+      lastUpdatedtime: createdTime.toString(),
       starred: false,
       capo: 0,
       tuning: 'EADGBe',
@@ -155,10 +156,14 @@ export default function Edit({ }) {
       .replace(/^ +$/m, '')
       .replace(/^[\r\n]+/mg, '')
 
+    let createdTime = new Date()
+    if (googleTabs.map(t => t['id']).includes(tab['googleDocsId'])) {
+      createdTime = googleTabs.find(t => t['id'] == tab['googleDocsId']).createdTime
+    }
 
     if(!userTabs.map(t => t['googleDocsId']).includes(tab.googleDocsId)) {
       console.log('adding tab', tab)
-      addTab(artistName, songName, tab.googleDocsId, tabText)
+      addTab(artistName, songName, tab.googleDocsId, tabText, createdTime)
     }
     else {
       let newUserTab = userTabs.find(t => t['googleDocsId'] == tab['googleDocsId'])

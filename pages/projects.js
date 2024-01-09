@@ -339,8 +339,6 @@ export default function Projects() {
 
 
 
-
-
 function SidebarMenuBar({ 
   newProjectMenu,
   openProjectMenu,
@@ -367,46 +365,46 @@ return (<div style={{display: 'flex', width: '100%',}}>
     items={
       {
         file: [{
-          title: 'new project',
-          onClick: () => newProjectMenu(),
-          disabled: false,
-        },{
-          title: 'open project',
-          onClick: () => openProjectMenu(),
-          disabled: false,
-        },{
-          title: 'edit project',
-          onClick: () => editProjectMenu(),
-          disabled: disabled,
-        },{
-          title: 'share project',
-          onClick: () => {},
-          disabled: disabled,
-        },{
-          title: 'unfollow project',
-          onClick: () => {},
-          disabled: disabled,
+            title: 'new project',
+            onClick: () => newProjectMenu(),
+            disabled: false,
+          },{
+            title: 'open project',
+            onClick: () => openProjectMenu(),
+            disabled: false,
+          },{
+            title: 'edit project',
+            onClick: () => editProjectMenu(),
+            disabled: disabled,
+          },{
+            title: 'share project',
+            onClick: () => {},
+            disabled: disabled,
+          },{
+            title: 'unfollow project',
+            onClick: () => {},
+            disabled: disabled,
         }],
         project: [{
-          title: 'add tab',
-          onClick: () => addTabMenu(),
-          disabled: disabled
-        },{
-          title: 'open project folder in Drive',
-          onClick: () => window.open(`https://drive.google.com/drive/u/0/folders/${project?.folder}`),
-          disabled: disabled && project?.folder,
-        },{
-          title: 'create Spotify playlist',
-          onClick: () => createSpotifyPlaylist(),
-          disabled: disabled,
-        },{
-          title: 'sign in with Spotify',
-          onClick: () => signInWithSpotify(),
-          disabled: disabled,
-        // },{
-        //   title: 'show sidebar',
-        //   onClick: (e) => {e.preventDefault(); setShowSidebar(!showSidebar)},
-        //   disabled: false,
+            title: 'add tab',
+            onClick: () => addTabMenu(),
+            disabled: disabled
+          },{
+            title: 'open project folder in Drive',
+            onClick: () => window.open(`https://drive.google.com/drive/u/0/folders/${project?.folder}`),
+            disabled: disabled || !project?.folder,
+          },{
+            title: 'create Spotify playlist',
+            onClick: () => createSpotifyPlaylist(),
+            disabled: disabled,
+          },{
+            title: 'sign in with Spotify',
+            onClick: () => signInWithSpotify(),
+            disabled: disabled,
+          // },{
+          //   title: 'show sidebar',
+          //   onClick: (e) => {e.preventDefault(); setShowSidebar(!showSidebar)},
+          //   disabled: false,
         }],
         sort: [
           {

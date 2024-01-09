@@ -12,8 +12,6 @@ export default function EditTabWindow({
   setEditTab, 
   saveTab,
 }) {
-
-
   function fixTab(tab) {
     if (!tab) return
 
@@ -27,10 +25,8 @@ export default function EditTabWindow({
     return tab
   }
 
-  console.log('edit tabs', tabs)
   const [tab, setTab] = useState( tabs.length > 0 ? fixTab(tabs.find(t => t.id == tabId) ) : null)
   
-
   useEffect(() => {
     let t = tabs.find(t => t.id == tabId)
     if (!t) return;
@@ -39,7 +35,7 @@ export default function EditTabWindow({
   }, [tabs, tabId])
 
   if (!tabId) return null;
-  
+
 
   // useEffect(() => {
   //   if (tabs.map(p => p.id).includes(tabId)) {

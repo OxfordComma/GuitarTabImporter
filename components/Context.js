@@ -35,6 +35,10 @@ export function Context({ children }) {
 	    	aSortBy = aSortBy?.toString().toLowerCase().replace(/^the /mi, '') ?? null
 	      bSortBy = bSortBy?.toString().toLowerCase().replace(/^the /mi, '') ?? null
 	    }
+	    if (['createdTime'].includes(sortByColumn)) {
+	    	aSortBy = new Date(aSortBy)
+	    	bSortBy = new Date(bSortBy)
+	    }
 
 	    let ascendingTrue = (ascending ? 1 : -1)
 	    let ascendingFalse = ascendingTrue * -1
