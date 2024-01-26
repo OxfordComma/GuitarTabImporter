@@ -92,7 +92,7 @@ export default function Editor ({
   }
 
   let toggleSidebar = () => {
-    setS
+    setShowSidebar(!showSidebar)
   }
 
 
@@ -101,36 +101,46 @@ export default function Editor ({
     <div className={styles['container']}>
       <div style={{display: 'flex', backgroundColor: 'black', width: '100%'}}>
         <MenuBar
-          items={{
-            'file': [{ 
-              title: 'show sidebar', 
-              onClick: (e) => {e.preventDefault(); setShowSidebar(!showSidebar)},
-              disabled: mode!='view',
-            }],
-            'import': [{ 
-              title: 'import tab from Google Docs', 
-              onClick: importTab,
-              disabled: mode=='view',
-            }],
-            'export': [{ 
-              title: 'export tab to Google Docs', 
-              onClick: exportTab, 
-              disabled: mode=='view', 
-            },{
-              title: 'open tab in Google Docs',
-              onClick: openTabInDocs,
-              disabled: false,
-            }],
-            'format': [{ 
-              title: 'format tab text', 
-              onClick: formatTab,
-              disabled: mode=='view',
-           },{
-            title: 'add tab staff',
-            onClick: addTabStaff,
-            disabled: mode=='view',
-           }],
-          }}
+          items={
+            {
+              'file': [
+                { 
+                  title: 'show sidebar', 
+                  onClick: (e) => {e.preventDefault(); setShowSidebar(!showSidebar)},
+                  disabled: mode!='view',
+                }
+              ],
+              'format': [
+                { 
+                  title: 'format tab text', 
+                  onClick: formatTab,
+                  disabled: mode=='view',
+                }, {
+                  title: 'add tab staff',
+                  onClick: addTabStaff,
+                  disabled: mode=='view',
+                }
+              ],
+              'export': [
+                { 
+                  title: 'export tab to Google Docs', 
+                  onClick: exportTab, 
+                  disabled: mode=='view',
+                },{
+                  title: 'open tab in Google Docs',
+                  onClick: openTabInDocs,
+                  disabled: tab?.['googleDocsId'] == null,
+                }
+              ],
+              'import': [
+                { 
+                  title: 'import tab from Google Docs', 
+                  onClick: importTab,
+                  disabled: (mode=='view' || tab?.['googleDocsId'] == null),
+                }
+              ],
+            }
+          }
           styles={menuBarStyles}
         />
         <StyleEditor 
