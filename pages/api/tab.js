@@ -22,7 +22,9 @@ export default async function handler(req, res) {
 			var update = await tabs.findOneAndUpdate({ 
 					id: body.id
 				}, {'$set':{ 
-					...body
+					...body,
+					createdTime: new Date(body.createdTime),
+					lastUpdatedTime: body.lastUpdatedTime ? new Date(body.lastUpdatedTime) : new Date(body.createdTime)
 				}}, { 
 					upsert: true, 
 					returnNewDocument: true,

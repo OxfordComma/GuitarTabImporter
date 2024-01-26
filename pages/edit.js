@@ -112,8 +112,8 @@ export default function Edit({ }) {
       holiday: false,
       draft: false,
       uri: null,
-      createdTime: createdTime.toString(),
-      lastUpdatedtime: createdTime.toString(),
+      createdTime: createdTime,//.toString(),
+      lastUpdatedTime: createdTime,//.toString(),
       starred: false,
       capo: 0,
       tuning: 'EADGBe',
@@ -201,17 +201,17 @@ export default function Edit({ }) {
 
     console.log('exportResponse:', exportResponse)
     // if (!tab['googleDocsId']) {
-      tab['googleDocsId'] = exportResponse['id']
-      userTabs = userTabs.map(t => {
-        if (t['id'] == sidebarItemId) {
-          return tab
-        }
-        return t
-      })
+    tab['googleDocsId'] = exportResponse['id']
+    userTabs = userTabs.map(t => {
+      if (t['id'] == sidebarItemId) {
+        return tab
+      }
+      return t
+    })
+    setUserTabs(userTabs)
 
-      setTabs(tabs)
-    }
-  // }
+    // setTabs(tabs)
+  }
 
   async function saveTab() {
     let userTab = userTabs.find(t => t['id'] == sidebarItemId)
@@ -224,6 +224,9 @@ export default function Edit({ }) {
     if (newUserTab && newUserTab._id) {
       delete newUserTab._id
     }
+
+    // Last Modified Time
+    newUserTab['lastUpdatedTime'] = new Date()
 
     console.log('userTab', newUserTab, sidebarItemId)
 
@@ -255,32 +258,32 @@ export default function Edit({ }) {
     }
 
     // If it hasn't been saved to Google yet, save it
-    if (!newUserTab?.googleDocsId || newUserTab.googleDocsId == null) {
-      console.log('exporting new tab to docs:', newUserTab)
+    // if (!newUserTab?.googleDocsId || newUserTab.googleDocsId == null) {
+    //   console.log('exporting new tab to docs:', newUserTab)
 
-      let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
+    //   let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
 
-      let newGoogleTab = await fetch(`api/create`, {
-        method: 'POST',
-        body: JSON.stringify({
-          tab: newUserTab,
-          account: account,
-          folder: user.folder,
-        })
-      }).then(r => r.json())  
+    //   let newGoogleTab = await fetch(`api/create`, {
+    //     method: 'POST',
+    //     body: JSON.stringify({
+    //       tab: newUserTab,
+    //       account: account,
+    //       folder: user.folder,
+    //     })
+    //   }).then(r => r.json())  
 
-      console.log('new google tab:',  newGoogleTab)
+    //   console.log('new google tab:',  newGoogleTab)
 
-      newGoogleTabs = [newGoogleTab, ...googleTabs]
+    //   newGoogleTabs = [newGoogleTab, ...googleTabs]
 
-      newUserTabs = newUserTabs.map(t => {
-        if (t.id == newUserTab.id) {
-          t['googleDocsId'] = newGoogleTab['id']
-        }
-        return t
-      })
+    //   newUserTabs = newUserTabs.map(t => {
+    //     if (t.id == newUserTab.id) {
+    //       t['googleDocsId'] = newGoogleTab['id']
+    //     }
+    //     return t
+    //   })
 
-    }
+    // }
     
     setUserTabs(newUserTabs)
     setGoogleTabs(newGoogleTabs)
