@@ -98,7 +98,7 @@ export default function Edit({ }) {
     console.log('sidebar item id changed to:', sidebarItemId)
   }, [sidebarItemId] )
 
-  async function addTab(artistName, songName, googleDocsId=null, tabText='', createdTime=new Date()) {
+  async function addTab(artistName, songName, googleDocsId=null, tabText='', createdTime=new Date() ) {
     // console.log('adding tab?')
 
     let newTab = {
@@ -177,6 +177,8 @@ export default function Edit({ }) {
       setUserTabs(
         userTabs.map(t => t['googleDocsId'] == tab['googleDocsId'] ? newUserTab : t)
       )
+
+      saveTab(newUserTab)
     }
 
   }
@@ -210,11 +212,15 @@ export default function Edit({ }) {
     })
     setUserTabs(userTabs)
 
+    saveTab(tab)
+
     // setTabs(tabs)
   }
 
-  async function saveTab() {
-    let userTab = userTabs.find(t => t['id'] == sidebarItemId)
+  async function saveTab(userTab) {
+    if (userTab == undefined) {
+      userTab = userTabs.find(t => t['id'] == sidebarItemId)
+    }
     // Remove _id field for saving to database
 
     let userId = user?._id
