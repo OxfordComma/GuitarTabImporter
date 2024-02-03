@@ -86,7 +86,8 @@ export default async function handler(req, res) {
             .sort((a, b) => a['artistName']+a['songName'] < b['artistName']+a['songName'] ? -1 : 1)
             .map(tab => { 
             // new Promise((resolve, reject) => {
-            let searchTerm = `track:${tab.songName} artist:${tab.artistName}`
+            let searchTerm = `track:${tab.songName.replace(/'/, '')} artist:${tab.artistName}`
+            console.log('Searching for ', searchTerm)
             return spotifyAuth.searchTracks(searchTerm).then(searchResult => {
                 // console.log('searchResult:', searchResult)
 

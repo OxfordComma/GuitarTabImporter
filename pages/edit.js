@@ -77,6 +77,7 @@ export default function Edit({ }) {
     let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
 
     console.log('all tabs:', {
+      userTabs,
       googleTabsWithMetadata,
       userGoogleDocsIds,
       filteredGoogleTabs,
