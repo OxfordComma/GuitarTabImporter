@@ -71,12 +71,13 @@ export default function Projects() {
         setProjects(userProjects)
       }
 
-      // if (tabs.length == 0 ) {
-      //   let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
-      //   // folderContents = folderContents.map(fc => formatFolderContents(fc, user))
-      //   console.log('usergoogleTabs:', folderContents)
-      //   setUserGoogleTabs(folderContents)
-      // }
+      if (userGoogleTabs.length == 0 ) {
+        console.log('current userGoogleTabs:', userGoogleTabs)
+        let folderContents = await fetch('/api/folder?folder=' + user.folder).then(r => r.json())
+        // folderContents = folderContents.map(fc => formatFolderContents(fc, user))
+        console.log('usergoogleTabs:', folderContents)
+        setUserGoogleTabs(folderContents)
+      }
     }
 
     getData()
@@ -172,7 +173,7 @@ export default function Projects() {
   }
 
   async function onClickSidebarItem(id) {
-    console.log('d', id)
+    console.log('d', id, projectTabs)
     let tab = projectTabs.find(t => t.id == id)
     if (tab.googleDocsId){
       let tabText = await fetch('api/document?documentid='+tab.googleDocsId)
@@ -241,9 +242,12 @@ export default function Projects() {
 
       })
     }).then(r => r.json())
+    console.log({createTab: createTab})
 
     setProjectTabs([
-      ...projectTabs, formatFolderContents(createTab.data, user)
+      ...projectTabs, formatFolderContents({
+        ...createTab.data, id: googleTab.googleDocsId,
+      }, user)
     ])
   }
 

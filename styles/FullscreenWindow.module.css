@@ -16,6 +16,7 @@
 	display: grid;
 	--window-width: 250px;
 	--window-height: 200px;
+	min-width: 250px;
 /*	top: calc(50% - var(--window-width));*/
 /*	left: calc(50% - var(--window-height));*/
 /*	width: var(--window-width);*/
