@@ -223,9 +223,6 @@ export default async function handler(req, res) {
 							'magnitude': 0.1 * 72,
 							'unit': 'PT'
 						},
-						'defaultHeaderId': {
-
-						}
 					},
 					'fields': 'marginTop,marginLeft,marginBottom,marginRight,marginHeader'
 				}
@@ -235,6 +232,82 @@ export default async function handler(req, res) {
 					columns: 1,
 					endOfSegmentLocation: {
 						segmentId: ''
+					}
+				}
+			},{
+				'updateTableCellStyle' : {
+					'tableCellStyle': {
+						borderTop: {
+							width: {
+								'magnitude': 0,
+								'unit': 'PT',
+							},
+							dashStyle: 'SOLID',
+							color: {
+								color: {
+									rgbColor: {
+										red: 0,
+										green: 0,
+										blue: 0,
+									},
+								},
+							},
+						},
+						borderBottom: {
+							width: {
+								'magnitude': 0,
+								'unit': 'PT',
+							},
+							dashStyle: 'SOLID',
+							color: {
+								color: {
+									rgbColor: {
+										red: 0,
+										green: 0,
+										blue: 0,
+									},
+								},
+							},
+
+						},
+						borderLeft: {
+							width: {
+								'magnitude': 0,
+								'unit': 'PT',
+							},
+							dashStyle: 'SOLID',
+							color: {
+								color: {
+									rgbColor: {
+										red: 0,
+										green: 0,
+										blue: 0,
+									},
+								},
+							},
+						},
+						borderRight: {
+							width: {
+								'magnitude': 0,
+								'unit': 'PT',
+							},
+							dashStyle: 'SOLID',
+							color: {
+								color: {
+									rgbColor: {
+										red: 0,
+										green: 0,
+										blue: 0,
+									},
+								},
+							},
+
+						},
+					},
+					fields: 'borderTop,borderBottom,borderLeft,borderRight',
+					tableStartLocation: {
+						segmentId: '',
+						index: 2,
 					}
 				}
 			},{

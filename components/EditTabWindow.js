@@ -21,6 +21,9 @@ export default function EditTabWindow({
     if (!tab?.tuning) {
       tab['tuning'] = 'EADGBe'
     }
+    if (tab && !('draft' in tab )) {
+      tab['draft'] = true
+    }
 
     return tab
   }
@@ -97,6 +100,14 @@ export default function EditTabWindow({
     })
   }
 
+  function setDraft(val) {
+    // event.preventDefault()
+    setTab({
+      ...tab,
+      draft: !!val
+    })
+  }
+
 
 
   async function save(event) {
@@ -118,7 +129,7 @@ export default function EditTabWindow({
 
       setTabs([...tabs, tab])
     }
-    // saveTab()
+    saveTab()
     console.log('saved ', tab)
     close(event)
   }
@@ -140,7 +151,7 @@ export default function EditTabWindow({
             let key = entry[0]
             let value = entry[1]
 
-            if (!['artistName', 'songName', 'bpm', 'capo', 'tuning'].includes(key)) {
+            if (!['artistName', 'songName', 'bpm', 'capo', 'tuning', 'draft'].includes(key)) {
               return
             }
 
@@ -150,6 +161,7 @@ export default function EditTabWindow({
               bpm: setBpm,
               capo: setCapo,
               tuning: setTuning,
+              draft: setDraft,
             }
 
             return <InfoRow 
@@ -157,7 +169,11 @@ export default function EditTabWindow({
               label={key} 
               value={value} 
               onChange={onChangeFunctions[key]}
-              items={key=='tuning' ? ['EADGBe', 'DADGBe', 'D#G#C#F#A#D#'] : undefined}
+              items={
+                key=='tuning' ? ['EADGBe', 'DADGBe', 'D#G#C#F#A#D#'] :
+                key=='draft' ? [true, false] : 
+                undefined
+              }
             />
           }) : null
         }

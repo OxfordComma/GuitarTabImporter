@@ -141,6 +141,11 @@ export default function Projects() {
     setEditProject(true)
   }
 
+  function confirmDeleteProjectMenu() {
+    // setDeleteProjectId(openProjectId)
+    setDeleteProject(true)
+  }
+
   function addTabMenu() {
     setPickTab(true)
   }
@@ -179,6 +184,8 @@ export default function Projects() {
       let tabText = await fetch('api/document?documentid='+tab.googleDocsId)
         .then(r => r.json())
 
+      console.log('loaded tab', tabText)
+
       tab.tabText = tabText
 
       // const $ = cheerio.load(tabHtml);
@@ -194,23 +201,32 @@ export default function Projects() {
       // console.log('cheerio text:', tabTextList.join('\n'))
     
       tab.tabText = tab.tabText
+        // .replace(tuningRegex, '')
         .replace(formatTabName(tab), '')
         .replace(/-{76,77}/g, '')
         .replace(/^ +$/m, '')
         .replace(/^(\r\n|\r|\n)/mg, '')
 
-      // if (tab.tuning) {
-        // tab.tabText = tab.tabText.replace(`${tab.tuning}'\n'`, '')
-        tab.tabText = tab.tabText.replace(/([DE]ADGBe)|D#G#C#F#A#d#/g, '')
-      // }
+      var tuningRegex = new RegExp("((?:[DE]ADGBe)|D#G#C#F#A#[Dd#])", "g")
+      if (tab.tabText.match(tuningRegex)) {
+        tab.tuning = tab.tabText.match(tuningRegex)[0];
 
-      // if (tab.capo) {
-        // tab.tabText = tab.tabText.replace(`capo ${tab.tuning}'\n'`, '')
-        tab.tabText = tab.tabText.replace(/capo \d/g, '')
-      // }
+        tab.tabText = tab.tabText.replace(`${tab.tuning}`, '')
+        tab.tabText = tab.tabText
+      }
+
+      var capoRegex = new RegExp("([Cc]apo (\\d))", "g")
+      if (tab.tabText.match(capoRegex)) {
+        tab.capo = ( tab.tabText.match(capoRegex)[1] );
+        console.log('tab:', tab)
+
+        // tab.tabText = tab.tabText.replace(tab.tabText.match(capoRegex)[0], '')
+        tab.tabText = tab.tabText.replace(capoRegex, '')
+      }
       
       tab.tabText = tab.tabText.slice(2)
 
+      console.log('google doc:', tab)
       console.log('google doc text:', tab.tabText)
     }
 
@@ -230,34 +246,68 @@ export default function Projects() {
 
     console.log({googleTab, project})
     let createTab = await fetch('/api/create?shortcut', {
-      method: 'POST', 
-      body: JSON.stringify({
-        tab: {
-          artistName: googleTab.artistName,
-          songName: googleTab.songName,
-          googleDocsId: googleTab.googleDocsId,
-        },
-        folder: project.folder,
-        account: account
+        method: 'POST', 
+        body: JSON.stringify({
+          tab: {
+            artistName: googleTab.artistName,
+            songName: googleTab.songName,
+            googleDocsId: googleTab.googleDocsId,
+          },
+          folder: project.folder,
+          account: account
 
-      })
-    }).then(r => r.json())
-    console.log({createTab: createTab})
+        })
+      }).then(r => r.json())
+      console.log({createTab: createTab})
 
-    setProjectTabs([
-      ...projectTabs, formatFolderContents({
-        ...createTab.data, id: googleTab.googleDocsId,
-      }, user)
+      setProjectTabs([
+        ...projectTabs, formatFolderContents({
+          ...createTab.data, id: googleTab.googleDocsId,
+        }, user)
+      ])
+    }
+
+    
+
+  async function requestDeleteProject(projectId) {
+    // let project = projects.find(p => p.id == projectId)
+    let userId = user._id
+    let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
+    console.log('deleting project', projects, projectId)
+
+    let deleteProjectRequest = await fetch('/api/project', {
+        method: 'DELETE', 
+        body: JSON.stringify({
+          // tab: {
+          //   artistName: googleTab.artistName,
+          //   songName: googleTab.songName,
+          //   googleDocsId: googleTab.googleDocsId,
+          // },
+          // folder: project.folder,
+          // account: account
+          account: account,
+          id: projectId,
+
+        })
+      }).then(r => r.json())
+      console.log({deleteProject: deleteProjectRequest})
+
+      setProjects(
+        projects.filter(p => p.id != projectId)
+      )
+      setProjectTabs([])
+      setOpenProjectId(null)
+
+    }
+  // }
+
+    function sidebarItem( datum ) {
+      let loaded = datum.tabText != ''
+      return ([
+        <div key='name' style={{opacity: loaded? 1 : 0.6, width: '100%'}}>{datum.songName}</div>,
+        // <div key='loaded' style={{opacity: loaded? 1 : 0.6, marginLeft: 'auto'}}>{loaded? '✓' : null}</div>,
+        // <div key='docsId' style={{width: '10px'}}>{datum.googleDocsId ? 'G' : null}</div>,
     ])
-  }
-
-  function sidebarItem( datum ) {
-    let loaded = datum.tabText != ''
-    return ([
-      <div key='name' style={{opacity: loaded? 1 : 0.6, width: '100%'}}>{datum.songName}</div>,
-      // <div key='loaded' style={{opacity: loaded? 1 : 0.6, marginLeft: 'auto'}}>{loaded? '✓' : null}</div>,
-      // <div key='docsId' style={{width: '10px'}}>{datum.googleDocsId ? 'G' : null}</div>,
-  ])
   }
 
  
@@ -284,6 +334,7 @@ export default function Projects() {
               newProjectMenu={newProjectMenu}
               openProjectMenu={openProjectMenu}
               editProjectMenu={editProjectMenu}
+              confirmDeleteProjectMenu={confirmDeleteProjectMenu}
               addTabMenu={addTabMenu}
               setEditProject={setEditProject}
               createSpotifyPlaylist={createSpotifyPlaylist}
@@ -336,6 +387,19 @@ export default function Projects() {
         show={pickTab}
         user={user}
       />
+      <ConfirmDelete 
+        show={deleteProject === true}  
+        deleteFrom={projects}
+        deletedItemId={openProjectId}
+        setDeleteFrom={setProjects}
+        close={()=>setDeleteProject(null)}
+        deleteItem={(e) => { 
+          e.preventDefault();
+          // console.log('delete item:', e.target.value) 
+          requestDeleteProject(openProjectId); 
+          setDeleteProject(null) 
+        }}
+      />
       </div>  
     </div>
   )
@@ -348,6 +412,7 @@ function SidebarMenuBar({
   openProjectMenu,
   editProjectMenu, 
   addTabMenu,
+  confirmDeleteProjectMenu,
   setEditProject, 
   projects,
   setProjects,
@@ -384,9 +449,13 @@ return (<div style={{display: 'flex', width: '100%',}}>
             title: 'share project',
             onClick: () => {},
             disabled: disabled,
+          // },{
+          //   title: 'unfollow project',
+          //   onClick: () => {},
+          //   disabled: disabled,
           },{
-            title: 'unfollow project',
-            onClick: () => {},
+            title: 'delete project',
+            onClick: () => confirmDeleteProjectMenu(),
             disabled: disabled,
         }],
         project: [{

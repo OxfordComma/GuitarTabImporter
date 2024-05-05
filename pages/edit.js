@@ -321,10 +321,10 @@ export default function Edit({ }) {
     <div className={styles.container}>
       <ConfirmDelete 
         show={deleteTabId != null} 
-        tabs={tabs} 
-        tabId={deleteTabId}
-        setTabs={setTabs}
-        setDeleteTabId={setDeleteTabId}
+        deleteFrom={tabs} 
+        deletedItemId={deleteTabId}
+        setDeleteFrom={setTabs}
+        // setDeleteTabId={setDeleteTabId}
         close={()=>setDeleteTabId(null)}
         deleteTab={deleteTab}
       />
@@ -365,7 +365,7 @@ export default function Edit({ }) {
                   'grid-template-rows': '100%',
                   width: '25%',
                 }}>
-                <div key='capo' title='capo' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum.capo ? datum.capo.toString() : null}</div>
+                <div key='capo' title='capo' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum.capo && datum.capo !== 0 ? datum.capo.toString() : null}</div>
                 <div key='tuning' title='tuning' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum.tuning ? datum.tuning.match(/^(D#|D|E)/m)[0] : null}</div>
                 <div key='loaded' title='metadata enhanced' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum._id ? '✓' : null}</div>
                 <div key='docsId' title='saved to Google Drive' style={{justifySelf: 'center', alignSelf: 'center', opacity: datum.googleDocsId==null ? 0 : 1, transition: 'opacity 250ms ease' }}>{'G'}</div>

@@ -12,7 +12,7 @@ export default function FullscreenWindow({
       
       {content}
       
-      <div style={{display: 'flex', justifyContent: 'right'}}>
+      <div style={{display: 'flex', justifyContent: 'right', height: '25px', 'marginTop': 'auto'}}>
         <label for='action'></label>
         <button name='action' onClick={action}>{actionLabel}</button>
 
