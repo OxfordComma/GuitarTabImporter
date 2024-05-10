@@ -18,3 +18,19 @@
 /*	padding: 50px;*/
 /*	gap: 15px;*/
 }
+
+.instrument-select {
+	display: flex;
+	flex-direction: row;
+	cursor: pointer;
+}
+
+.instrument-select-item {
+	background-color: red;
+	border-radius: 15px;
+}
+
+.instrument-select-item-selected {
+	background-color: green;
+	border-radius: 15px;
+}

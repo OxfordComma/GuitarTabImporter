@@ -429,7 +429,7 @@ let disabled = openProjectId==null
 
 let project = projects.find(p => p.id==openProjectId)
 
-return (<div style={{display: 'flex', width: '100%',}}>
+return (<div style={{display: 'flex', width: '100%',alignItems: 'center'}}>
   <MenuBar
     items={
       {

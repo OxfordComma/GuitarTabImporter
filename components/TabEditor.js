@@ -20,6 +20,8 @@ export default function Editor ({
   exportTab,
 }) {
   const [fontSize, setFontSize] = useState(12)
+  const [columns, setColumns] = useState(1)
+
   const [tab, setTab] = useState(tabs.find(t => t['id'] == tabId) ?? null)
 
   useEffect(() => {
@@ -95,15 +97,19 @@ export default function Editor ({
     setShowSidebar(!showSidebar)
   }
 
+  let toggleTwoColumns = () => {
+    setColumns(columns === 2 ? 1 : 2)
+  }
+
 
 
   return (
     <div className={styles['container']}>
-      <div style={{display: 'flex', backgroundColor: 'black', width: '100%'}}>
+      <div style={{display: 'flex', backgroundColor: 'black', width: '100%',alignItems: 'center'}}>
         <MenuBar
           items={
             {
-              'file': [
+              'sidebar': [
                 { 
                   title: 'show sidebar', 
                   onClick: (e) => {e.preventDefault(); setShowSidebar(!showSidebar)},
@@ -119,6 +125,9 @@ export default function Editor ({
                   title: 'add tab staff',
                   onClick: addTabStaff,
                   disabled: mode=='view',
+                }, {
+                  title: 'two column mode',
+                  onClick: toggleTwoColumns,
                 }
               ],
               'export': [
@@ -126,6 +135,7 @@ export default function Editor ({
                   title: 'export tab to Google Docs', 
                   onClick: exportTab, 
                   disabled: mode=='view',
+                  visible: mode=='view',
                 },{
                   title: 'open tab in Google Docs',
                   onClick: openTabInDocs,
@@ -143,12 +153,13 @@ export default function Editor ({
           }
           styles={menuBarStyles}
         />
-        <StyleEditor 
-          fontSize={fontSize} 
-          setFontSize={setFontSize}
-        />
         <TitleBar
           tab={tab}
+        />
+        <StyleEditor 
+          tab={tab}
+          fontSize={fontSize} 
+          setFontSize={setFontSize}
         />
         <DetailBar
           tab={tab}
@@ -177,15 +188,18 @@ function TabTextArea({ tabText, setTabText, fontSize, readOnly=false }) {
 }
 
 function StyleEditor({
+  tab,
   fontSize,
   setFontSize,
 }) {
-  return (
-    <div style={{display:'flex', width: '20px', height: '20px'}}>
-      <button onClick={() => setFontSize(fontSize+1)}>+</button>
-      <button onClick={() => setFontSize(fontSize-1)}>-</button>
-      <div>{fontSize}</div>
-    </div>
+  let buttonStyle = {display: 'flex', width: '15px',height: '15px', alignItems: 'center', justifyContent: 'center'}
+  return ( tab ? 
+    <div style={{display:'flex', alignItems: 'center', justifyContent: 'center', marginRight: '10px'}}>
+      {/*<div>font size:</div>*/}
+      <button style={buttonStyle} onClick={() => setFontSize(fontSize+1)}>+</button>
+      <button style={buttonStyle} onClick={() => setFontSize(fontSize-1)}>-</button>
+      <div style={buttonStyle}>{fontSize}</div>
+    </div> : <div></div>
   )
 }
 

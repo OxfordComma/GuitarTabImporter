@@ -134,7 +134,7 @@ export default function EditProjectWindow({
               value={value} 
               errorMessage={errorMessage}
               onChange={onChangeFunctions[key]}
-              // items={key=='tuning' ? ['EADGBe', 'DADGBe', 'D#G#C#F#A#D#'] : undefined}
+              // items={key=='tuning' ? ['EADGBe', 'DADGBe', 'D#G#C#F#A#d#'] : undefined}
             />
 
           }) : null

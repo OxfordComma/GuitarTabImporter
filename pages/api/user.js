@@ -32,7 +32,8 @@ export default async function handler(req, res) {
 				email: body.email
 			}, {'$set':{ 
 				folder: body.folder,
-				projectsFolder: body.projectsFolder
+				projectsFolder: body.projectsFolder,
+				instruments: body.instruments,
 			}
 		})
 

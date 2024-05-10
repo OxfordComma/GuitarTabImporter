@@ -9,7 +9,12 @@ export default function Profile(props) {
 
   let [folder, setFolder] = useState('')
   let [projectsFolder, setProjectsFolder] = useState('')
-  
+  let [instruments, setInstruments] = useState({
+  	vocals: false,
+  	guitar: false,
+  	bass: false,
+  	drums: false,
+  })
 
   useEffect(() => {
   	async function updateFolders() {
@@ -33,10 +38,28 @@ export default function Profile(props) {
   			email: session.user.email,
   			folder: folder,
   			projectsFolder: projectsFolder,
+  			instruments: instruments,
   		})
   	}).then(r => r.json())
 
   	console.log(userUpdate)
+  }
+
+  let InstrumentSelect = ({ instruments, setInstruments }) => {
+  	return (<div id="instrument-select" className={styles['instrument-select']}>
+  			{Object.keys(instruments).map(i => {
+  				let inst = instruments[i]
+
+  				return (
+  					<div 
+  						className={inst ? styles['instrument-select-item-selected'] : styles['instrument-select-item']}
+  						onClick={() => setInstruments({...instruments, [i]: !inst})}
+						>
+	  					({i[0]})
+	  				</div>
+  				) 
+  			})}
+  		</div>)
   }
 
 
@@ -50,6 +73,13 @@ export default function Profile(props) {
 				<div>
 					<label htmlFor="projects-folder">Projects Folder:</label>
 					<input type="text" name="projects-folder" id="projects-folder" value={projectsFolder} onChange={e => setProjectsFolder(e.target.value)}/>
+				</div>
+				<div>
+					<label htmlFor="instrument-select">Default Instruments</label>
+					<InstrumentSelect
+						instruments={instruments}
+						setInstruments={setInstruments}
+					/>
 				</div>
 				<div>
 					<button onClick={e => onSubmit(e, folder, projectsFolder)}>save</button>
