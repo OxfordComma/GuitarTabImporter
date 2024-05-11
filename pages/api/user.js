@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 	if (req.method == 'POST' && req.body) {
   	let body = JSON.parse(req.body)
   	console.log('body', body)
-		if (!(body.folder && body.projectsFolder && body.email)) {
+		if (!(body.email) && !(body.folder || body.projectsFolder || body.instruments || body.lastOpenedProject)) {
 			res.send(500)
 		}
 
@@ -28,13 +28,15 @@ export default async function handler(req, res) {
 		var users = await db.collection('users')
 		var user = await users.findOne({ email: body.email })
 
+		let newObj = {}
+		if (body.folder) newObj = { ...newObj, folder: body.folder }
+		if (body.projectsFolder) newObj = { ...newObj, projectsFolder: body.projectsFolder }
+		if (body.instruments) newObj = { ...newObj, instruments: body.instruments }
+		if (body.lastOpenedProject) newObj = { ...newObj, lastOpenedProject: body.lastOpenedProject }
+
 		var update = await users.updateOne({ 
 				email: body.email
-			}, {'$set':{ 
-				folder: body.folder,
-				projectsFolder: body.projectsFolder,
-				instruments: body.instruments,
-			}
+			}, {'$set': newObj
 		})
 
 		res.send(update)

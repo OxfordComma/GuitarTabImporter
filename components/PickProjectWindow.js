@@ -39,7 +39,10 @@ return <FullscreenWindow
   action={open}
   actionLabel='open'
   close={close}
-  content={<select size='5' onChange={e => { e.preventDefault(); console.log(e.target.value); setSelectedProjectId(e.target.value)}}>
+  content={<select 
+    size={25} 
+    onChange={e => { e.preventDefault(); console.log(e.target.value); setSelectedProjectId(e.target.value)}}
+  >
     {projects.map(project => {
       return (
         <option 

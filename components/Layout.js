@@ -49,14 +49,15 @@ export default function Layout({ children }) {
     )
   }
 
-  // useEffect(() => {
-    // if (status == 'unauthenticated') {
-    //   router.push('/login')
-    // }
+  useEffect(() => {
+    console.log('auth status:', status)
+    if (status == 'unauthenticated') {
+      router.push('/login')
+    }
     // if (status == 'authenticated') {
     //   router.push('/profile')
     // }
-  // }, [status])
+  }, [status])
 
   return (
     <div className={styles['html']}>
@@ -72,7 +73,7 @@ export default function Layout({ children }) {
               <Header 
                 headings={
                   { 
-                    'Tabs': '/edit', 
+                    'Library': '/edit', 
                     'Projects': '/projects',
                     'Profile': '/profile' 
                   }

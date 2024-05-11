@@ -21,8 +21,9 @@ export default function Profile(props) {
   		let user = await fetch('/api/user').then(r => r.json())
 	  	console.log('user:', user)
 
-	  	setFolder(user.folder ?? '')
-	  	setProjectsFolder(user.projectsFolder ?? '')
+	  	setFolder(user.folder ?? folder)
+	  	setProjectsFolder(user.projectsFolder ?? projectsFolder)
+	  	setInstruments(user.instruments ?? instruments)
 		}
 
   	updateFolders();
@@ -66,15 +67,15 @@ export default function Profile(props) {
 	return (
 		<div className={styles['container']}>
 			<div className={styles['window']}>
-				<div>
+				<div className={styles['profile-row']}>
 					<label htmlFor="folder">Folder:</label>
 					<input type="text" name="folder" id="folder" value={folder} onChange={e => setFolder(e.target.value)}/>
 				</div>
-				<div>
+				<div className={styles['profile-row']}>
 					<label htmlFor="projects-folder">Projects Folder:</label>
 					<input type="text" name="projects-folder" id="projects-folder" value={projectsFolder} onChange={e => setProjectsFolder(e.target.value)}/>
 				</div>
-				<div>
+				<div className={styles['profile-row']}>
 					<label htmlFor="instrument-select">Default Instruments</label>
 					<InstrumentSelect
 						instruments={instruments}

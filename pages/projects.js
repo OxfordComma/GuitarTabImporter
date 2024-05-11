@@ -78,6 +78,10 @@ export default function Projects() {
         console.log('usergoogleTabs:', folderContents)
         setUserGoogleTabs(folderContents)
       }
+
+      if (user.lastOpenedProject) {
+        setOpenProjectId(user.lastOpenedProject)
+      }
     }
 
     getData()
@@ -113,9 +117,32 @@ export default function Projects() {
 
       console.log('allTabs:', allTabs)
       setProjectTabs(allTabs)
+
     }
     getData()
   }, [editProject, openProjectId])
+
+  useEffect(() => {
+    if (user && !user?.lastOpenedProject) {
+      setUser({
+        ...user,
+        lastOpenedProject: openProjectId,
+      })
+      console.log('last opened project', openProjectId, user)
+      fetch('/api/user', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: session.user.email,
+          // folder: session.user.folder,
+          // projectsFolder: session.user.projectsFolder,
+          // instruments: session.user.instruments,
+          lastOpenedProject: openProjectId,
+        })
+
+      })
+      // let projectTabs = await fetch('/api/folder?folder=' + project.folder).then(r => r.json())
+    }
+  }, [openProjectId])
 
 
   function newProjectMenu() {
