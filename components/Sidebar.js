@@ -58,7 +58,6 @@ export default function Sidebar ({
 
     setFilteredSidebarItems(newSidebarItems)
     
-
     console.log('pinned items', pinnedItems)
   }, [sidebarItems, searchTerm, pinnedItems])
 
@@ -146,7 +145,7 @@ function SidebarItem ({
   }) {
   return (
     <div
-      style={style}
+      // style={style}
       className={styles['sidebar-item']} 
       onClick={(e) => {
         console.log('setSidebarItemId', datum, sidebarItemId)
@@ -157,6 +156,7 @@ function SidebarItem ({
         'opacity': enabled ? 1 : 0.6,
         'border': (sidebarItemId == null) ? '1px solid green' : 
           (datum['id'] == sidebarItemId) ? '1px solid pink' : null,
+        ...style
       }}>
         {content(datum)}
     </div>

@@ -53,6 +53,7 @@ export default function Profile(props) {
 
   				return (
   					<div 
+  						key={i}
   						className={inst ? styles['instrument-select-item-selected'] : styles['instrument-select-item']}
   						onClick={() => setInstruments({...instruments, [i]: !inst})}
 						>
