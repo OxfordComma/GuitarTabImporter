@@ -70,3 +70,8 @@
 	margin-left: auto;
 }
 
+.pinned-sidebar-items {
+	border: 1px solid gray;
+	background-color: #222222;
+}
+

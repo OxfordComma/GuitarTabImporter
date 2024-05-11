@@ -46,6 +46,7 @@ export default function Projects() {
   } = useContext(TabsContext)
 
   let [projectTabs, setProjectTabs] = useState([])
+  let [pinnedTabs, setPinnedTabs] = useState([])
 
   let [sidebarItemId, setSidebarItemId] = useState(null)
   let [sidebarSortBy, setSidebarSortBy] = useState('artist ascending')
@@ -117,12 +118,15 @@ export default function Projects() {
 
       console.log('allTabs:', allTabs)
       setProjectTabs(allTabs)
+      console.log('pinnedTabs:', project.pinnedTabs)
+      setPinnedTabs(project.pinnedTabs ?? [])
 
     }
     getData()
   }, [editProject, openProjectId])
 
   useEffect(() => {
+    setSidebarItemId(null)
     if (user && !user?.lastOpenedProject) {
       setUser({
         ...user,
@@ -175,6 +179,28 @@ export default function Projects() {
 
   function addTabMenu() {
     setPickTab(true)
+  }
+
+  function pinTab(googleDocsId) {
+    let newPinnedTabs = pinnedTabs
+    if (pinnedTabs.includes(googleDocsId)) {
+      newPinnedTabs = pinnedTabs.filter(d => d != googleDocsId)
+    }
+    else {
+      newPinnedTabs = [
+        ...pinnedTabs, googleDocsId
+      ]
+    }
+
+    setPinnedTabs(newPinnedTabs)
+
+    fetch(`/api/project`, {
+      method: 'POST',
+      body: JSON.stringify({
+        id: openProjectId,
+        pinnedTabs: newPinnedTabs,
+      })
+    })
   }
 
   function signInWithSpotify() {
@@ -352,12 +378,19 @@ export default function Projects() {
           SidebarItemComponent={sidebarItem}
           itemIsEnabled={d => d.tabText != ''}
           onClickSidebarItem={onClickSidebarItem}
+          pinnedItems={pinnedTabs}
+          setPinnedItems={setPinnedTabs}
+          pinnedItemFunction={d => d['googleDocsId']}
+          search={true}
+          searchFunction={formatTabName}
           menuBar = {
             <SidebarMenuBar
               sidebarSortBy={sidebarSortBy}
               setSidebarSortBy={setSidebarSortBy}
               projects={projects}
               openProjectId={openProjectId}
+              sidebarItems={projectTabs}
+              sidebarItemId={sidebarItemId}
               newProjectMenu={newProjectMenu}
               openProjectMenu={openProjectMenu}
               editProjectMenu={editProjectMenu}
@@ -366,6 +399,7 @@ export default function Projects() {
               setEditProject={setEditProject}
               createSpotifyPlaylist={createSpotifyPlaylist}
               signInWithSpotify={signInWithSpotify}
+              pinTab={pinTab}
             />
           }
         /> : <div></div>}
@@ -441,6 +475,8 @@ function SidebarMenuBar({
   addTabMenu,
   confirmDeleteProjectMenu,
   setEditProject, 
+  sidebarItems,
+  sidebarItemId,
   projects,
   setProjects,
   sidebarSortBy,
@@ -450,6 +486,7 @@ function SidebarMenuBar({
   signInWithSpotify,
   showSidebar,
   setShowSidebar,
+  pinTab,
 }) { 
 
 let disabled = openProjectId==null
@@ -501,10 +538,10 @@ return (<div style={{display: 'flex', width: '100%',alignItems: 'center'}}>
             title: 'sign in with Spotify',
             onClick: () => signInWithSpotify(),
             disabled: disabled,
-          // },{
-          //   title: 'show sidebar',
-          //   onClick: (e) => {e.preventDefault(); setShowSidebar(!showSidebar)},
-          //   disabled: false,
+          },{
+            title: 'pin tab',
+            onClick: (e) => {e.preventDefault(); pinTab(sidebarItems.find(s => s.id == sidebarItemId).googleDocsId)},
+            disabled: sidebarItemId === null,
         }],
         sort: [
           {

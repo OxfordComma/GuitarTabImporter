@@ -20,24 +20,28 @@ export default async function handler(req, res) {
 
 	if (req.method == 'POST') {
 		let body = JSON.parse(req.body)
-		if (!(body.id && body.name && body.folder && body.creator && body.owner && body.collaborators))
+		console.log('project body', body)
+		console.log('project pinnedTabs', (body.pinnedTabs || body.pinnedTabs.length > 0))
+
+		if (!(body.id) && !(body.name || body.folder || body.creator || body.owner || body.collaborators || (body.pinnedTabs || body.pinnedTabs.length > 0)))
 			res.status(404)
 
 		var db = await mongoClient.db('tabr')
 		var collection = await db.collection('projects')
 
+		let newObj = {}
+		if (body.name) newObj = {...newObj, name: body.name }
+		if (body.folder) newObj = {...newObj, folder: body.folder }
+		if (body.creator) newObj = {...newObj, creator: ObjectID(body.creator) }
+		if (body.owner) newObj = {...newObj, owner: ObjectID(body.owner) }
+		if (body.collaborators) newObj = {...newObj, collaborators: body.collaborators }
+		if (body.spotifyPlaylistId) newObj = {...newObj, spotifyPlaylistId: body.spotifyPlaylistId }
+		if (body.pinnedTabs) newObj = {...newObj, pinnedTabs: body.pinnedTabs }
+
 		var update = await collection.updateOne({ 
 				id: body.id
 			}, {
-				'$set':{ 
-					id: body.id,
-					name: body.name,
-					folder: body.folder,
-					creator: ObjectID(body.creator),
-					owner: ObjectID(body.owner),
-					collaborators: body.collaborators,
-					spotifyPlaylistId: body.spotifyPlaylistId,
-				}
+				'$set': newObj
 			}, {
 				upsert: true,
 			}

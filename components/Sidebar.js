@@ -26,22 +26,41 @@ export default function Sidebar ({
     menuBar,
     onClickSidebarItem = () => {},
     addSidebarItem,
+    pinnedItems,
+    setPinnedItems,
+    pinnedItemFunction= d => d.id,
   }) {
   let [filteredSidebarItems, setFilteredSidebarItems] = useState(sidebarItems)
+  let [pinnedSidebarItems, setPinnedSidebarItems] = useState(pinnedItems?.map(p => sidebarItems.find(s => s.id == p)) ?? [])
   let [sortBy, setSortBy] = useState(sidebarSortBy)
   let [showSearchBar, setShowSearchBar] = useState(search)
   let [searchTerm, setSearchTerm] = useState('')
   
   useEffect(() => setSidebarSortBy(sortBy), [sortBy])
   
-  useEffect(() => {
-    setFilteredSidebarItems(sidebarItems)
-  }, [sidebarItems])
+  // useEffect(() => {
+  //   setFilteredSidebarItems(sidebarItems)
+  // }, [sidebarItems])
 
   useEffect(() => {
-    let newSidebarItems = sidebarItems.filter(item => searchFunction(item).toLowerCase().includes(searchTerm.toLowerCase()))
+    let newSidebarItems = sidebarItems
+      .filter(item => searchFunction(item).toLowerCase().includes(searchTerm.toLowerCase()))
+
+    if (pinnedItems) {
+      newSidebarItems = newSidebarItems
+        .filter(item => !pinnedItems.includes(pinnedItemFunction(item)))
+
+      let newPinnedSidebarItems = sidebarItems
+        .filter(item => searchFunction(item).toLowerCase().includes(searchTerm.toLowerCase()))
+        .filter(item => pinnedItems.includes(pinnedItemFunction(item)))
+      setPinnedSidebarItems(newPinnedSidebarItems)
+    }    
+
     setFilteredSidebarItems(newSidebarItems)
-  }, [sidebarItems, searchTerm])
+    
+
+    console.log('pinned items', pinnedItems)
+  }, [sidebarItems, searchTerm, pinnedItems])
 
   let onSearchBarChange = function(e) { 
     e.preventDefault(); 
@@ -82,13 +101,25 @@ export default function Sidebar ({
               addSidebarItem={addSidebarItem}
             /> : 
             null}
+          <div className={styles['pinned-sidebar-items']}>
+            {pinnedSidebarItems.map(d => (
+              <SidebarItem
+                key={d.id} 
+                datum={d} 
+                sidebarItemId={sidebarItemId}
+                setSidebarItemId={setSidebarItemId}
+                content={SidebarItemComponent ?? sidebarItemContent}
+                enabled={itemIsEnabled(d)}
+                onClickSidebarItem={onClickSidebarItem}
+              />)
+            )}
+          </div>
           {filteredSidebarItems.map(d => (
             <SidebarItem
               key={d.id} 
               datum={d} 
               sidebarItemId={sidebarItemId}
               setSidebarItemId={setSidebarItemId}
-              // setDeleteItem={setDeleteItem}
               content={SidebarItemComponent ?? sidebarItemContent}
               enabled={itemIsEnabled(d)}
               onClickSidebarItem={onClickSidebarItem}
@@ -111,9 +142,11 @@ function SidebarItem ({
     setSidebarItemId, 
     // setDeleteItem,
     onClickSidebarItem,
+    style={}
   }) {
   return (
     <div
+      style={style}
       className={styles['sidebar-item']} 
       onClick={(e) => {
         console.log('setSidebarItemId', datum, sidebarItemId)
