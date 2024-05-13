@@ -5,31 +5,20 @@ const {google} = require('googleapis');
 
 export default async function handler(req, res) {
 	const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_ID, process.env.GOOGLE_SECRET);
-	
-	// let session = await getSession({ req })
 
-	// let mongoClient = await clientPromise
-	// var db = await mongoClient.db('guitartabimporter')
-	// var users = await db.collection('users')
-	// var user = await users.findOne({ email: session.user.email })
-
-	// var id = user._id
-	// var accounts = await db.collection('accounts')
-	// var account = await accounts.findOne({ userId: id })
-
-	// let url = req.query.url
-	// let folder = req.query.folder
-	console.log(req.body)
-	// console.log(JSON.parse(req.body))
 	let body = JSON.parse(req.body)
+	console.log('create body:', body)
 
+	
 
-	// let response = await fetch(process.env.NEXTAUTH_URL + '/api/tab?url='+url).then(r => r.json())
-	console.log(body.tab)
-	let tab = body.tab
-	let artist = tab.artist
-	let songName = tab.songName
-	let rawTabs = tab.tabs
+	let tab = body.tab.tabText
+	let artistName = body.tab.artistName
+	let songName = body.tab.songName
+	let googleDocsId = body.tab.googleDocsId
+	let folder = body.folder
+	let capo = body.tab.capo ?? '0'
+	let tuning = body.tab.tuning ?? 'EADGBe'
+
 
 	let account = body.account
 
@@ -41,26 +30,177 @@ export default async function handler(req, res) {
 	const docs = google.docs({version: 'v1', auth: oauth2Client });
 	const drive = google.drive({version: 'v3', auth: oauth2Client });
 
-
-
-	console.log('Importing: ' + songName + ' by ' + artist);
-
-	try {
+	if ('shortcut' in req.query) {
+		console.log({
+			artistName,
+			songName,
+			googleDocsId,
+			folder
+		})
 		var googleDoc = await drive.files.create({
 			resource: { 
-				name: '[DRAFT] ' + artist + ' - ' + songName, //+ ' {' + uri + '}',
-				mimeType: 'application/vnd.google-apps.document',
-				parents: [req.query.folder]
+				name: artistName + ' - ' + songName,
+				mimeType: 'application/vnd.google-apps.shortcut',
+				shortcutDetails: {
+					targetId: googleDocsId,
+				},
+				parents: [folder]
 			}
 		})
 
-		const requests = [
-			// {
-			// 	'createHeader': {
-			// 		type: 'DEFAULT',
-			// 	},
-			// },
+		res.status(200).send(JSON.stringify(googleDoc))
+	}
+	else {
+
+		let requests = []
+
+		if (googleDocsId) {
+			var googleDoc = await docs.documents.get({
+				documentId: googleDocsId
+			})
+			console.log('document:', googleDoc)
+			console.log('document:', googleDoc.data)
+			console.log('document:', googleDoc.data.body)
+			console.log('document:', googleDoc.data.body.content)
+			console.log('document:', googleDoc.data.body.content)
+
+			var content = googleDoc.data.body.content
+			var maxIndex = content.reduce((acc, curr) => curr.endIndex > acc ? curr.endIndex : acc, 0)
+
+			console.log({
+				content, 
+				maxIndex
+			})
+			// Remove contents before we start if the doc exists
+			requests = [
 			{
+				'deleteContentRange': {
+					'range': {
+						'startIndex': 1,
+						'endIndex': maxIndex-1,
+					}
+				}
+			}]
+		}
+		// Otherwise we're good to make a new one
+		else {
+			var googleDoc = await drive.files.create({
+				resource: { 
+					name: '[DRAFT] ' + artistName + ' - ' + songName,
+					mimeType: 'application/vnd.google-apps.document',
+					parents: [folder]
+				}
+			})
+
+			googleDocsId = googleDoc.data.id
+		}
+
+
+
+
+
+		try {
+			let headerId, headerContent, maxHeaderIndex
+			if (googleDoc.data?.headers != undefined) {
+				headerId = Object.keys(googleDoc.data.headers)[0]
+				headerContent = googleDoc.data.headers[headerId].content
+				maxHeaderIndex = headerContent.reduce((acc, curr) => curr.endIndex > acc ? curr.endIndex : acc, 0)
+
+
+				if (maxHeaderIndex > 2) {
+					requests = requests.concat([
+					
+					{
+						'deleteContentRange': {
+							'range': {
+								'startIndex': 0,
+								'endIndex': maxHeaderIndex-1,
+								segmentId: headerId,
+							}
+						},
+					},
+					{
+						'updateTextStyle': {
+							'range': {
+								startIndex: 0,
+								endIndex: 1,
+								segmentId: headerId,
+							},
+							textStyle: {
+								weightedFontFamily: {
+									fontFamily: 'PT Mono'
+								},
+								fontSize: {
+									magnitude: 9,
+									unit: 'PT'
+								}
+							},
+							fields: 'weightedFontFamily,fontSize'
+						}
+					},
+					])
+				}
+			}
+			else {
+				let createHeader = await docs.documents.batchUpdate({
+					'documentId': googleDocsId,
+					'resource' : { 
+						'requests': [{
+							"createHeader": {
+				        "sectionBreakLocation": {
+				          "index": 0
+				        },
+				        "type": "DEFAULT"
+				      }
+						}]
+					}
+				})
+
+				console.log('create header:', createHeader)
+				console.log('create header:', createHeader.data.replies[0].createHeader.headerId)
+				headerId = createHeader.data.replies[0].createHeader.headerId
+
+				await docs.documents.batchUpdate({
+					'documentId': googleDocsId,
+					'resource' : { 
+						'requests': [{
+							'updateTextStyle': {
+								'range': {
+									startIndex: 0,
+									endIndex: 1,
+									segmentId: headerId,
+								},
+								textStyle: {
+									weightedFontFamily: {
+										fontFamily: 'PT Mono'
+									},
+									fontSize: {
+										magnitude: 9,
+										unit: 'PT'
+									}
+								},
+								fields: 'weightedFontFamily,fontSize'
+							}
+						}]
+					}
+				})
+			}
+
+			let headerText = (capo == '0' && tuning == 'EADGBe') ? ' ' :
+						(capo != '0' && tuning != 'EADGBe') ? `${tuning}, capo ${capo}` : 
+						(capo != '0') ? `capo ${capo}` : 
+						(tuning != 'EADGBe') ? tuning : ' '
+
+			console.log({
+				capo,
+				tuning,
+				headerText,
+				headerContent,
+				maxHeaderIndex
+			})
+
+			requests = requests.concat(
+			[{
 				'updateDocumentStyle': {
 					'documentStyle': {
 						'marginTop': {
@@ -79,11 +219,12 @@ export default async function handler(req, res) {
 							'magnitude': 20,
 							'unit': 'PT'
 						},
-						'defaultHeaderId': {
-
-						}
+						marginHeader: {
+							'magnitude': 0.1 * 72,
+							'unit': 'PT'
+						},
 					},
-					'fields': 'marginTop,marginLeft,marginBottom,marginRight'
+					'fields': 'marginTop,marginLeft,marginBottom,marginRight,marginHeader'
 				}
 			},{
 				'insertTable': {
@@ -93,6 +234,90 @@ export default async function handler(req, res) {
 						segmentId: ''
 					}
 				}
+			},{
+				'updateTableCellStyle' : {
+					'tableCellStyle': {
+						borderTop: {
+							width: {
+								'magnitude': 0,
+								'unit': 'PT',
+							},
+							dashStyle: 'SOLID',
+							color: {
+								color: {
+									rgbColor: {
+										red: 0,
+										green: 0,
+										blue: 0,
+									},
+								},
+							},
+						},
+						borderBottom: {
+							width: {
+								'magnitude': 0,
+								'unit': 'PT',
+							},
+							dashStyle: 'SOLID',
+							color: {
+								color: {
+									rgbColor: {
+										red: 0,
+										green: 0,
+										blue: 0,
+									},
+								},
+							},
+
+						},
+						borderLeft: {
+							width: {
+								'magnitude': 0,
+								'unit': 'PT',
+							},
+							dashStyle: 'SOLID',
+							color: {
+								color: {
+									rgbColor: {
+										red: 0,
+										green: 0,
+										blue: 0,
+									},
+								},
+							},
+						},
+						borderRight: {
+							width: {
+								'magnitude': 0,
+								'unit': 'PT',
+							},
+							dashStyle: 'SOLID',
+							color: {
+								color: {
+									rgbColor: {
+										red: 0,
+										green: 0,
+										blue: 0,
+									},
+								},
+							},
+
+						},
+					},
+					fields: 'borderTop,borderBottom,borderLeft,borderRight',
+					tableStartLocation: {
+						segmentId: '',
+						index: 2,
+					}
+				}
+			},{
+				'insertText': {
+					'text': headerText,
+					location: {
+						segmentId: headerId,
+						index: 0,
+					}
+				},
 			},{
 				'insertText': {
 					'text': '_Content_',
@@ -136,8 +361,20 @@ export default async function handler(req, res) {
 					fields: 'alignment'
 				}
 			},{
+				'updateParagraphStyle': {
+					paragraphStyle: {
+						alignment: 'END'
+					},
+					'range': {
+						startIndex: 1,
+						endIndex: 2,
+						segmentId: headerId,
+					},
+					fields: 'alignment'
+				}
+			},{
 					'replaceAllText': { 
-						'replaceText' : artist,
+						'replaceText' : artistName,
 						'containsText': {
 							'text' : '_Artist_',
 							'matchCase' : true
@@ -151,9 +388,9 @@ export default async function handler(req, res) {
 							'matchCase' : true
 						}
 					} 
-			},{                   
+			},{             
 				'replaceAllText': { 
-					'replaceText' : rawTabs,
+					'replaceText' : tab,
 					'containsText': {
 						'text' : '_Content_',
 						'matchCase' : true
@@ -167,45 +404,50 @@ export default async function handler(req, res) {
 			// 			'text' : '_spotifyUri_',
 			// 			'matchCase' : true
 			// 		}
-			// 	}
-		}]
+				}
+			])
 
-		console.log('updating doc')
-		var googleDocUpdated = await docs.documents.batchUpdate({
-			'documentId': googleDoc.data.id,
-			'resource' : { 
-				'requests': requests 
-			}
-		})
-		// res.redirect('https://docs.google.com/document/d/' + googleDoc.data.id)
-		res.send({
-			artist: artist,
-			songName: songName,
-			googleUrl: 'https://docs.google.com/document/d/' + googleDoc.data.id
-		})
+			// console.log('updating doc')
+			var googleDocUpdated = await docs.documents.batchUpdate({
+				'documentId': googleDocsId,
+				'resource' : { 
+					'requests': requests 
+				}
+			})
 
-	}
-	catch(err) {
-		console.log(err)
-		if (err.code == 401 || err.code == 400) {
-			console.log('Refresh?')
-			let extraParams = { 
-				client_id: process.env.GOOGLE_ID, 
-				client_secret: process.env.GOOGLE_SECRET, 
-				refresh_token: account.refresh_token,
-				grant_type: 'refresh_token',
-			}
+			console.log('googleDocUpdated', googleDocUpdated)
 
-			// Request refresh token
-			let response = await fetch('https://www.googleapis.com/oauth2/v4/token', { 
-					method: 'POST',
-					body: JSON.stringify(extraParams)
-			 }).then(r => r.json())
-			console.log(response)
+			res.status(200).send({
+		    mimeType: "application/vnd.google-apps.document",
+		    id: googleDocsId,
+		    name: `[DRAFT] ${artistName} - ${songName}`,
+		    starred: false,
+		    createdTime: new Date,
+			})
+		}
 
-			// set new access token in DB
-			
-    }
+		catch(err) {
+			console.log(err)
+			if (err.code == 401 || err.code == 400) {
+				console.log('Refresh?')
+				let extraParams = { 
+					client_id: process.env.GOOGLE_ID, 
+					client_secret: process.env.GOOGLE_SECRET, 
+					refresh_token: account.refresh_token,
+					grant_type: 'refresh_token',
+				}
+
+				// Request refresh token
+				let response = await fetch('https://www.googleapis.com/oauth2/v4/token', { 
+						method: 'POST',
+						body: JSON.stringify(extraParams)
+				 }).then(r => r.json())
+				console.log(response)
+
+				// set new access token in DB
+				// ???
+	    }
+		}
 	}
 
 }

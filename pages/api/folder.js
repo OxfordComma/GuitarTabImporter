@@ -4,80 +4,96 @@ const {google} = require('googleapis');
 
 export default async function handler(req, res) {
 	const oauth2Client = new google.auth.OAuth2(process.env.GOOGLE_ID, process.env.GOOGLE_SECRET);
-
 	let session = await getSession({ req })
-
 	let mongoClient = await clientPromise
-	var db = await mongoClient.db('guitartabimporter')
-	var users = await db.collection('users')
-	var user = await users.findOne({ email: session.user.email })
+	console.log('folder session:', session)
 
-	var id = user._id
-	var accounts = await db.collection('accounts')
-	var account = await accounts.findOne({ userId: id })
+	if (req.method == 'GET') {
 
-	// let url = req.query.url
-	let folder = req.query.folder
+		var db = await mongoClient.db('tabr')
+		var users = await db.collection('users')
+		var user = await users.findOne({ email: session.user.email })
 
-	// let response = await fetch(process.env.NEXTAUTH_URL + '/api/tab?url='+url).then(r => r.json())
-	// console.log(response)
-	// let artist = response.artist
-	// let songName = response.songName
-	// let rawTabs = response.tabs
+		var id = user._id
+		var accounts = await db.collection('accounts')
+		var account = await accounts.findOne({ userId: id })
 
-	oauth2Client.setCredentials({
-		'access_token': account.access_token,
-		'refresh_token': account.refresh_token
-	});
+		let folder = req.query.folder
+		let starred = req.query?.starred=='true'
 
+		oauth2Client.setCredentials({
+			'access_token': account.access_token,
+			'refresh_token': account.refresh_token
+		});
 
+		const drive = google.drive({ 
+			version: 'v3', 
+			auth: oauth2Client,
+		});
+	  const fileList = [];
 
-	// const docs = google.docs({version: 'v1', auth: oauth2Client });
-	const drive = google.drive({ 
-		version: 'v3', 
-		auth: oauth2Client,
-		// auth: new google.auth.GoogleAuth({
-		// 	keyFile: '/Users/nick/Projects/knowledge-finder/spotifyplaylistupdater-e6562b298e60.json',
-		// 	scopes: ['https://www.googleapis.com/auth/drive'],
-		// })
-	});
-  const fileList = [];
-  // console.log(`'${folder}' in parents`)
-	let NextPageToken = "";
-  do {
-    const params = {
-      q: `'${folder}' in parents`,
-      // orderBy: "name",
-      pageToken: NextPageToken || "",
-      pageSize: 1000,
-      fields: "nextPageToken, files(id, name)",
-      corpora: 'allDrives',
-      supportsAllDrives: true,
-      includeItemsFromAllDrives: true,
-      
-    };
-    const res = await drive.files.list(params);
-    // const get1 = await drive.files.get({
-    // 	fileId: '16R43BPlzRXM3jigwQn08j1kngj6sKVygn0XHr-MbwVY'
-    // })
-    // console.log(get1)
-    // const get2 = await drive.files.get({
-    // 	fileId: '1vW_SOXuq7jMZ6jd63x3jY6CSOLkJGXzUA8eivPataf8'
-    // })
+		let NextPageToken = "";
+	  do {
+	    const params = {
+	      q: `'${folder}' in parents and trashed=false`,
+	      pageToken: NextPageToken || "",
+	      pageSize: 1000,
+	      fields: "nextPageToken, files(id, name, starred, createdTime, mimeType, shortcutDetails)",
+	      corpora: 'allDrives',
+	      supportsAllDrives: true,
+	      includeItemsFromAllDrives: true,
+	      
+	    };
+	    const res = await drive.files.list(params);
+	    
+	    Array.prototype.push.apply(fileList, res.data.files);
+	    NextPageToken = res.data.nextPageToken;
 
-    Array.prototype.push.apply(fileList, res.data.files);
-    NextPageToken = res.data.nextPageToken;
-    console.log(NextPageToken)
-    console.log(res.data.files.length)
-  } while (NextPageToken);
+	    // console.log(res.data.files.length)
+	  } while (NextPageToken);
 
-	// var googleDoc = await drive.files.list({
-	// 	// q: '\'' + folder.toString() + '\' in parents',
-	// 	pageSize: 250,
-	// }).then(response => {
-	// 	console.log('response:', response)
-	// 	return response.data.files
-	// })
-	// console.log(fileList)
-	res.send(fileList)
+		res.send(fileList)
+		return;
+	}
+
+	if (req.method == 'POST' && req.body) {
+		let body = JSON.parse(req.body)
+		
+		if (body.name && body.folder && body.user) {
+			var db = await mongoClient.db('tabr')
+			var users = await db.collection('users')
+			var user = await users.findOne({ email: body.user.email })
+
+			var id = user._id
+			var accounts = await db.collection('accounts')
+			var account = await accounts.findOne({ userId: id })
+
+			let folder = body.folder
+
+			oauth2Client.setCredentials({
+				'access_token': account.access_token,
+				'refresh_token': account.refresh_token
+			});
+
+			const drive = google.drive({ 
+				version: 'v3', 
+				auth: oauth2Client,
+			});
+		// Create
+			var newFolder = await drive.files.create({
+				resource: { 
+					name: body.name,
+					mimeType: 'application/vnd.google-apps.folder',
+					parents: [folder]
+				}
+			})
+
+			res.status(200).send(JSON.stringify(newFolder.data))
+			return;
+		}
+	}
+	else {
+		res.send(500)
+		return;
+	}
 }
