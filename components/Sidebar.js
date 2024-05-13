@@ -156,7 +156,7 @@ function SidebarItem ({
         'opacity': enabled ? 1 : 0.6,
         'border': (sidebarItemId == null) ? '1px solid green' : 
           (datum['id'] == sidebarItemId) ? '1px solid pink' : null,
-        ...style
+        ...style,
       }}>
         {content(datum)}
     </div>

@@ -356,8 +356,10 @@ export default function Projects() {
 
     function sidebarItem( datum ) {
       let loaded = datum.tabText != ''
+      // let pinned = datum.pinnedTabs && datum.pinnedTabs.length > 0
       return ([
-        <div key='name' style={{opacity: loaded? 1 : 0.6, width: '100%'}}>{datum.songName}</div>,
+        <div key='name' style={{ opacity: loaded ? 1 : 0.6, width: '100%' }}>{datum.songName}</div>,
+        // <div key='pinned' style={{ opacity: pinned ? 1 : 0 , width: '25px'}}>{'📌'}</div>,
         // <div key='loaded' style={{opacity: loaded? 1 : 0.6, marginLeft: 'auto'}}>{loaded? '✓' : null}</div>,
         // <div key='docsId' style={{width: '10px'}}>{datum.googleDocsId ? 'G' : null}</div>,
     ])
