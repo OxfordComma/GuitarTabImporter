@@ -21,9 +21,9 @@ export default async function handler(req, res) {
 	if (req.method == 'POST') {
 		let body = JSON.parse(req.body)
 		console.log('project body', body)
-		console.log('project pinnedTabs', (body.pinnedTabs || body.pinnedTabs.length > 0))
+		console.log('project pinnedTabs', (body.pinnedTabs && body.pinnedTabs.length > 0))
 
-		if (!(body.id) && !(body.name || body.folder || body.creator || body.owner || body.collaborators || (body.pinnedTabs || body.pinnedTabs.length > 0)))
+		if (!(body.id) && !(body.name || body.folder || body.creator || body.owner || body.collaborators || (body.pinnedTabs && body.pinnedTabs.length > 0)))
 			res.status(404)
 
 		var db = await mongoClient.db('tabr')
