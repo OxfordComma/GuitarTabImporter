@@ -98,6 +98,7 @@ export default function Editor ({
   }
 
   let toggleTwoColumns = () => {
+    console.log('toggling columns', columns)
     setColumns(columns === 2 ? 1 : 2)
   }
 
@@ -165,12 +166,24 @@ export default function Editor ({
           tab={tab}
         />
       </div>
-      <TabTextArea 
-        tabText={tab?.tabText ?? ''}
-        setTabText={setTabText}
-        fontSize={fontSize}
-        readOnly={mode=='view'}
-      />
+      <div className={styles['text-area-container']}>
+        <TabTextArea 
+          tabText={tab?.tabText ?? ''}
+          setTabText={setTabText}
+          fontSize={fontSize}
+          readOnly={mode=='view'}
+        />
+        {
+          columns > 1 ? 
+            <TabTextArea 
+              tabText={tab?.tabText ?? ''}
+              setTabText={setTabText}
+              fontSize={fontSize}
+              readOnly={true}
+            /> :
+            null
+        }
+      </div>
     </div>
   )
 }
