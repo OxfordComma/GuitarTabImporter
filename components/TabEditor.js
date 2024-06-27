@@ -174,6 +174,7 @@ export default function Editor ({
           columns > 1 ? 
             [
               <TabTextArea 
+                key='left'
                 tabText={
                   tab?.tabText ?  
                     tab.tabText.split(lineDelim).slice(
@@ -186,6 +187,7 @@ export default function Editor ({
                 readOnly={true}
               />,
               <TabTextArea 
+                key='right'
                 tabText={
                   tab?.tabText ?  
                     tab.tabText.split(lineDelim).slice(
@@ -294,7 +296,7 @@ function DetailBar({ tab }) {
       color: left ? 'white' : 'gray'
     }
     return (<div style={sepStyle}>
-      {', '}
+      {','}
     </div>)
   }
 
