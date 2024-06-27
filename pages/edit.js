@@ -316,6 +316,11 @@ export default function Edit({ }) {
   }
 
 
+// <div key='capo' title='capo' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum.capo && datum.capo !== 0 ? datum.capo.toString() : null}</div>
+//                 <div key='tuning' title='tuning' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum.tuning ? datum.tuning.match(/^(D#|D|E)/m)[0] : null}</div>
+//                 <div key='loaded' title='metadata enhanced' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum._id ? '✓' : null}</div>
+//                 <div key='docsId' title='saved to Google Drive' style={{justifySelf: 'center', alignSelf: 'center', opacity: datum.googleDocsId==null ? 0 : 1, transition: 'opacity 250ms ease' }}>{'G'}</div>
+//                 <div key='delete' title='delete item' style={{justifySelf: 'center', alignSelf: 'center'}} id={datum.id} onClick={e => {e.stopPropagation(); setDeleteTabId(e.target.id)}}>{datum._id ? '♻' : null}</div>
 
   return (
     <div className={styles.container}>
@@ -351,27 +356,21 @@ export default function Edit({ }) {
           searchFunction={d => `${d.artistName} - ${d.songName}`}
           itemIsEnabled={d => d?.tabText != ''}
           SidebarItemComponent={(datum) => {
-            return (<div style={{display: 'flex', flexDirection: 'row', width: '100%', height: '100%',}}>
-              <div style={{
-                width: '75%',
-              }}>
-                {datum.artistName} - {datum.songName}
-              </div>
-              <div style={{
-                  display: 'grid', 
-                  // flexDirection: 'row', 
-                  // marginLeft: 'auto', 
-                  'grid-template-columns': '20% 20% 20% 20% 20%',
-                  'grid-template-rows': '100%',
-                  width: '25%',
+            return (
+              <div style={{display: 'flex', flexDirection: 'column', width: '100%', height: '100%',}}>
+                <div style={{
+                  width: '100%',
                 }}>
-                <div key='capo' title='capo' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum.capo && datum.capo !== 0 ? datum.capo.toString() : null}</div>
-                <div key='tuning' title='tuning' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum.tuning ? datum.tuning.match(/^(D#|D|E)/m)[0] : null}</div>
-                <div key='loaded' title='metadata enhanced' style={{justifySelf: 'center', alignSelf: 'center'}}>{datum._id ? '✓' : null}</div>
-                <div key='docsId' title='saved to Google Drive' style={{justifySelf: 'center', alignSelf: 'center', opacity: datum.googleDocsId==null ? 0 : 1, transition: 'opacity 250ms ease' }}>{'G'}</div>
-                <div key='delete' title='delete item' style={{justifySelf: 'center', alignSelf: 'center'}} id={datum.id} onClick={e => {e.stopPropagation(); setDeleteTabId(e.target.id)}}>{datum._id ? '♻' : null}</div>
+                  {datum.songName}
+                </div>
+                <div style={{
+                  width: '100%',
+                  fontSize: '0.8em'
+                }}>
+                  {datum.artistName}
+                </div>
               </div>
-            </div>)
+            )
           }}
           addSidebarItem={addTab}
           menuBar={

@@ -194,7 +194,8 @@ function NewSidebarItem ({
 }
 
 function SearchBar({ onChange, searchTerm }) {
-  return (<div>
+  return (<div className={styles['search-bar']}>
+    <div style={{paddingRight: '10px'}}>🔎</div>
     <input style={{width: '100%'}} value={searchTerm} onChange={onChange}></input>
   </div>)
 }

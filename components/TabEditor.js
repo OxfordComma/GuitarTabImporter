@@ -103,6 +103,9 @@ export default function Editor ({
   }
 
 
+  let lineDelim = /\r|\r\n|\n/
+  let numLines = tab?.tabText.split(lineDelim).length;
+
 
   return (
     <div className={styles['container']}>
@@ -167,21 +170,40 @@ export default function Editor ({
         />
       </div>
       <div className={styles['text-area-container']}>
-        <TabTextArea 
-          tabText={tab?.tabText ?? ''}
-          setTabText={setTabText}
-          fontSize={fontSize}
-          readOnly={mode=='view'}
-        />
         {
           columns > 1 ? 
+            [
+              <TabTextArea 
+                tabText={
+                  tab?.tabText ?  
+                    tab.tabText.split(lineDelim).slice(
+                      0, parseInt(numLines/2)
+                    ).join('\n') :
+                    ''
+                }  
+                setTabText={setTabText}
+                fontSize={fontSize}
+                readOnly={true}
+              />,
+              <TabTextArea 
+                tabText={
+                  tab?.tabText ?  
+                    tab.tabText.split(lineDelim).slice(
+                      parseInt(numLines/2)
+                    ).join('\n') :
+                    ''
+                }  
+                setTabText={setTabText}
+                fontSize={fontSize}
+                readOnly={true}
+              />
+            ] :
             <TabTextArea 
               tabText={tab?.tabText ?? ''}
               setTabText={setTabText}
               fontSize={fontSize}
-              readOnly={true}
-            /> :
-            null
+              readOnly={mode=='view'}
+            />
         }
       </div>
     </div>
@@ -205,12 +227,19 @@ function StyleEditor({
   fontSize,
   setFontSize,
 }) {
-  let buttonStyle = {display: 'flex', width: '15px',height: '15px', alignItems: 'center', justifyContent: 'center'}
+  let buttonStyle = {
+    display: 'flex', 
+    width: '15px',
+    height: '15px', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    marginBottom: '2.5px',
+  }
   return ( tab ? 
     <div style={{display:'flex', alignItems: 'center', justifyContent: 'center', marginRight: '10px'}}>
       {/*<div>font size:</div>*/}
       <button style={buttonStyle} onClick={() => setFontSize(fontSize+1)}>+</button>
-      <button style={buttonStyle} onClick={() => setFontSize(fontSize-1)}>-</button>
+      <button style={buttonStyle} onClick={() => setFontSize(fontSize-1)}>−</button>
       <div style={buttonStyle}>{fontSize}</div>
     </div> : <div></div>
   )
@@ -269,12 +298,13 @@ function DetailBar({ tab }) {
     </div>)
   }
 
-  return (tab ? <div style={{display: 'flex', flexDirection: 'row'} } >
+  return (tab ? <span style={{display: 'flex', flexDirection: 'row', whiteSpace: 'pre-wrap', fontSize: '1.1em'} } >
       {bpm(tabBpm, showBpm)}
       {showBpm ? separator(showBpm, showTuning) : ''}
       {tuning(tabTuning, showTuning)}
       {separator(showBpm, showTuning)}
+      {' '}
       {capo(tabCapo, showCapo)}
-    </div> : <div></div>
+    </span> : <div></div>
   )
 }
