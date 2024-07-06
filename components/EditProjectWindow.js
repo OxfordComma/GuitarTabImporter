@@ -8,6 +8,7 @@ export default function EditProjectWindow({
   projects, 
   setProjects, 
   projectId, 
+  saveProject,
   editProject,
   setEditProject, 
   styles,
@@ -38,53 +39,9 @@ export default function EditProjectWindow({
 
   async function save(event) {
     event.preventDefault()
+    
+    saveProject(project)
 
-    let newFolder
-    let saveProject = project
-
-
-    if (user.projectsFolder && (!saveProject.folder || saveProject.folder == '')) {
-      newFolder = await fetch(`/api/folder`, {
-        method: 'POST',
-        body: JSON.stringify({
-          user: user,
-          name: saveProject.name,
-          folder: user.projectsFolder,
-        })
-      }).then(r => r.json())
-      console.log('newFolder:', newFolder)
-      saveProject.folder = newFolder.id
-    }
-
-    let GOOGLE_ID_LENGTH = 33
-    if (!saveProject.folder || saveProject.folder == '' || saveProject.folder.length != GOOGLE_ID_LENGTH) {
-      setErrorMessage('Folder is required.');
-      return
-    }
-
-
-    await fetch(`/api/project`, {
-      method: 'POST',
-      body: JSON.stringify(saveProject)
-    })
-
-
-    // console.log({
-    //   projects,
-    //   projectId,
-    //   p: projects.map(p => p.id).includes(projectId),
-    // })
-
-    if (projects.map(p => p.id).includes(projectId)) {
-      console.log('replacing', saveProject)
-      setProjects(projects.map(p => p.id == projectId ? saveProject : p))
-    }
-    else {
-      console.log('appending', saveProject)
-      setProjects([...projects, saveProject])
-    }
-
-    console.log('saved ', saveProject)
     close(event)
   }
 

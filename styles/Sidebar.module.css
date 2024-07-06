@@ -20,6 +20,8 @@
 }
 
 .sidebar-content {
+	display: flex;
+	flex-direction: column;
 	width: 100%;
 	height: 100%;
 }
@@ -38,8 +40,8 @@
 
 .sidebar-item {
 /*	padding: 20px;*/
-	padding-top: 20px;
-	padding-bottom: 20px;
+	padding-top: 10px;
+	padding-bottom: 10px;
 	padding-left: 10px;
 	padding-right: 5px;
 	border: 1px solid #333333;
@@ -73,5 +75,12 @@
 .pinned-sidebar-items {
 	border: 1px solid gray;
 	background-color: #222222;
+}
+
+.search-bar {
+	display: flex;
+	padding-left: 10px;
+	background-color: black;
+	width: 100%;
 }
 

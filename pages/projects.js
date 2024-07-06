@@ -127,7 +127,7 @@ export default function Projects() {
 
   useEffect(() => {
     setSidebarItemId(null)
-    if (user && !user?.lastOpenedProject) {
+    if (user?.lastOpenedProject && (user?.lastOpenedProject !== openProjectId) ) {
       setUser({
         ...user,
         lastOpenedProject: openProjectId,
@@ -147,6 +147,18 @@ export default function Projects() {
       // let projectTabs = await fetch('/api/folder?folder=' + project.folder).then(r => r.json())
     }
   }, [openProjectId])
+
+  useEffect(() => {
+    let project = projects.find(p => p.id == openProjectId)
+
+    let newProject = {
+      ...project,
+      pinnedTabs: pinnedTabs,
+    }
+    setProjects(
+      projects.map(p => p.id == openProjectId ? newProject : p)
+    )
+  }, [pinnedTabs])
 
 
   function newProjectMenu() {
@@ -182,6 +194,10 @@ export default function Projects() {
   }
 
   function pinTab(googleDocsId) {
+    console.log('projects', projects)
+    let project = projects.find(p => p.id == openProjectId)
+    console.log('pin tab for project', project)
+    let pinnedTabs = project?.pinnedTabs ?? []
     let newPinnedTabs = pinnedTabs
     if (pinnedTabs.includes(googleDocsId)) {
       newPinnedTabs = pinnedTabs.filter(d => d != googleDocsId)
@@ -194,13 +210,13 @@ export default function Projects() {
 
     setPinnedTabs(newPinnedTabs)
 
-    fetch(`/api/project`, {
-      method: 'POST',
-      body: JSON.stringify({
-        id: openProjectId,
-        pinnedTabs: newPinnedTabs,
-      })
-    })
+    // fetch(`/api/project`, {
+    //   method: 'POST',
+    //   body: JSON.stringify({
+    //     id: openProjectId,
+    //     pinnedTabs: newPinnedTabs,
+    //   })
+    // })
   }
 
   function signInWithSpotify() {
@@ -320,6 +336,59 @@ export default function Projects() {
       ])
     }
 
+  async function saveProject(project) {
+
+    let newFolder
+    let saveProject = project
+    console.log('save project', project)
+    let projectId = project.id
+
+
+    if (user.projectsFolder && (!saveProject.folder || saveProject.folder == '')) {
+      newFolder = await fetch(`/api/folder`, {
+        method: 'POST',
+        body: JSON.stringify({
+          user: user,
+          name: saveProject.name,
+          folder: user.projectsFolder,
+        })
+      }).then(r => r.json())
+      console.log('newFolder:', newFolder)
+      saveProject.folder = newFolder.id
+    }
+
+    let GOOGLE_ID_LENGTH = 33
+    if (!saveProject.folder || saveProject.folder == '' || saveProject.folder.length != GOOGLE_ID_LENGTH) {
+      setErrorMessage('Folder is required.');
+      return
+    }
+
+
+    await fetch(`/api/project`, {
+      method: 'POST',
+      body: JSON.stringify(saveProject)
+    })
+
+
+    // console.log({
+    //   projects,
+    //   projectId,
+    //   p: projects.map(p => p.id).includes(projectId),
+    // })
+
+    if (projects.map(p => p.id).includes(projectId)) {
+      console.log('replacing', saveProject)
+      setProjects(projects.map(p => p.id == projectId ? saveProject : p))
+    }
+    else {
+      console.log('appending', saveProject)
+      setProjects([...projects, saveProject])
+    }
+
+    console.log('saved ', saveProject)
+    close(event)
+  }
+
     
 
   async function requestDeleteProject(projectId) {
@@ -402,6 +471,7 @@ export default function Projects() {
               createSpotifyPlaylist={createSpotifyPlaylist}
               signInWithSpotify={signInWithSpotify}
               pinTab={pinTab}
+              saveProject={saveProject}
             />
           }
         /> : <div></div>}
@@ -424,6 +494,7 @@ export default function Projects() {
         projects={projects}
         projectId={openProjectId}
         setProjects={setProjects}
+        saveProject={saveProject}
         editProject={editProject}
         setEditProject={setEditProject}
         styles={styles}
@@ -489,6 +560,7 @@ function SidebarMenuBar({
   showSidebar,
   setShowSidebar,
   pinTab,
+  saveProject,
 }) { 
 
 let disabled = openProjectId==null
@@ -514,6 +586,10 @@ return (<div style={{display: 'flex', width: '100%',alignItems: 'center'}}>
           },{
             title: 'share project',
             onClick: () => {},
+            disabled: disabled,
+          },{
+            title: 'save project',
+            onClick: () => saveProject(project),
             disabled: disabled,
           // },{
           //   title: 'unfollow project',

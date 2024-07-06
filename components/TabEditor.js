@@ -16,6 +16,8 @@ export default function Editor ({
   mode='edit',
   showSidebar,
   setShowSidebar,
+  setCreateNewSidebarItem,
+  setEditTab,
   importTab,
   exportTab,
 }) {
@@ -98,9 +100,13 @@ export default function Editor ({
   }
 
   let toggleTwoColumns = () => {
+    console.log('toggling columns', columns)
     setColumns(columns === 2 ? 1 : 2)
   }
 
+
+  let lineDelim = /\r|\r\n|\n/
+  let numLines = tab?.tabText.split(lineDelim).length;
 
 
   return (
@@ -109,6 +115,19 @@ export default function Editor ({
         <MenuBar
           items={
             {
+              'file': [{
+                  title: 'new tab',
+                  onClick: () => setCreateNewSidebarItem(true),
+                },{
+                  title: 'edit tab',
+                  onClick: () => setEditTab(true),
+                },{
+                  title: 'save tab',
+                  onClick: () => saveTab(),
+                }, {
+                  title: 'delete tab',
+                  onClick: () => console.log('delete tab'),
+                }],
               'sidebar': [
                 { 
                   title: 'show sidebar', 
@@ -165,12 +184,45 @@ export default function Editor ({
           tab={tab}
         />
       </div>
-      <TabTextArea 
-        tabText={tab?.tabText ?? ''}
-        setTabText={setTabText}
-        fontSize={fontSize}
-        readOnly={mode=='view'}
-      />
+      <div className={styles['text-area-container']}>
+        {
+          columns > 1 ? 
+            [
+              <TabTextArea 
+                key='left'
+                tabText={
+                  tab?.tabText ?  
+                    tab.tabText.split(lineDelim).slice(
+                      0, parseInt(numLines/2)
+                    ).join('\n') :
+                    ''
+                }  
+                setTabText={setTabText}
+                fontSize={fontSize}
+                readOnly={true}
+              />,
+              <TabTextArea 
+                key='right'
+                tabText={
+                  tab?.tabText ?  
+                    tab.tabText.split(lineDelim).slice(
+                      parseInt(numLines/2)
+                    ).join('\n') :
+                    ''
+                }  
+                setTabText={setTabText}
+                fontSize={fontSize}
+                readOnly={true}
+              />
+            ] :
+            <TabTextArea 
+              tabText={tab?.tabText ?? ''}
+              setTabText={setTabText}
+              fontSize={fontSize}
+              readOnly={mode=='view'}
+            />
+        }
+      </div>
     </div>
   )
 }
@@ -192,12 +244,19 @@ function StyleEditor({
   fontSize,
   setFontSize,
 }) {
-  let buttonStyle = {display: 'flex', width: '15px',height: '15px', alignItems: 'center', justifyContent: 'center'}
+  let buttonStyle = {
+    display: 'flex', 
+    width: '15px',
+    height: '15px', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    marginBottom: '2.5px',
+  }
   return ( tab ? 
     <div style={{display:'flex', alignItems: 'center', justifyContent: 'center', marginRight: '10px'}}>
       {/*<div>font size:</div>*/}
       <button style={buttonStyle} onClick={() => setFontSize(fontSize+1)}>+</button>
-      <button style={buttonStyle} onClick={() => setFontSize(fontSize-1)}>-</button>
+      <button style={buttonStyle} onClick={() => setFontSize(fontSize-1)}>−</button>
       <div style={buttonStyle}>{fontSize}</div>
     </div> : <div></div>
   )
@@ -252,16 +311,17 @@ function DetailBar({ tab }) {
       color: left ? 'white' : 'gray'
     }
     return (<div style={sepStyle}>
-      {', '}
+      {','}
     </div>)
   }
 
-  return (tab ? <div style={{display: 'flex', flexDirection: 'row'} } >
+  return (tab ? <span style={{display: 'flex', flexDirection: 'row', whiteSpace: 'pre-wrap', fontSize: '1.1em'} } >
       {bpm(tabBpm, showBpm)}
       {showBpm ? separator(showBpm, showTuning) : ''}
       {tuning(tabTuning, showTuning)}
       {separator(showBpm, showTuning)}
+      {' '}
       {capo(tabCapo, showCapo)}
-    </div> : <div></div>
+    </span> : <div></div>
   )
 }
