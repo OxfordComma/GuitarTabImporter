@@ -16,6 +16,8 @@ export default function Editor ({
   mode='edit',
   showSidebar,
   setShowSidebar,
+  setCreateNewSidebarItem,
+  setEditTab,
   importTab,
   exportTab,
 }) {
@@ -113,6 +115,19 @@ export default function Editor ({
         <MenuBar
           items={
             {
+              'file': [{
+                  title: 'new tab',
+                  onClick: () => setCreateNewSidebarItem(true),
+                },{
+                  title: 'edit tab',
+                  onClick: () => setEditTab(true),
+                },{
+                  title: 'save tab',
+                  onClick: () => saveTab(),
+                }, {
+                  title: 'delete tab',
+                  onClick: () => console.log('delete tab'),
+                }],
               'sidebar': [
                 { 
                   title: 'show sidebar', 

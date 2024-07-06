@@ -120,7 +120,7 @@ export default function EditTabWindow({
     //   t: tbs.map(t => t.id).includes(tabId),
     // })
 
-    if (tabs.map(p => p.id).includes(tabId)) {
+    if (tabs.map(t => t.id).includes(tabId)) {
       console.log('replacing', tab)
       setTabs(tabs.map(t => t.id == tabId ? tab : t))
     }
@@ -129,7 +129,7 @@ export default function EditTabWindow({
 
       setTabs([...tabs, tab])
     }
-    saveTab()
+    saveTab(tab)
     console.log('saved ', tab)
     close(event)
   }

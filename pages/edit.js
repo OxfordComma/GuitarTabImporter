@@ -377,16 +377,6 @@ export default function Edit({ }) {
             <MenuBar
               items={
                 {
-                  file: [{
-                    title: 'new tab',
-                    onClick: () => setCreateNewSidebarItem(true),
-                  },{
-                    title: 'edit tab',
-                    onClick: () => setEditTab(true),
-                  },{
-                    title: 'save tab',
-                    onClick: () => saveTab(),
-                  }],
                   sort: [
                     {
                       title: 'sort by artist',
@@ -424,6 +414,8 @@ export default function Edit({ }) {
           userId={user?._id}
           importTab={importTab}
           exportTab={exportTab}
+          setCreateNewSidebarItem={setCreateNewSidebarItem}
+          setEditTab={setEditTab}
         />
       </div>      
     </div>
