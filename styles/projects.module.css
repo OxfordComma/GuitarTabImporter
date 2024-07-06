@@ -1,13 +1,19 @@
 .container {
-	display: grid;
-	grid-template-rows: 100%;
-	grid-template-columns: 25% 75%; 
+	display: flex;
+	flex-direction: row;
+/*	grid-template-rows: 100%;*/
+/*	grid-template-columns: 25% 75%; */
 /*	fit-content(30%) minmax(70%, 100%);*/
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
 }
 
+
+.sidebar {
+	min-width: 20%;
+	max-width: 30%;
+}
 
 
 @media print {

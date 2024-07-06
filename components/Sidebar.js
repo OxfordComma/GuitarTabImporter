@@ -178,11 +178,13 @@ function NewSidebarItem ({
   return (
     <div className={styles['sidebar-item']}>
       <input 
+        className={styles['new-sidebar-item-input']}
         placeholder='artist name'
         value={artistName}
         onChange={e => setArtistName(e.target.value)}
       />
       <input 
+        className={styles['new-sidebar-item-input']}
         placeholder='song name'
         value={songName}
         onChange={e => setSongName(e.target.value)}

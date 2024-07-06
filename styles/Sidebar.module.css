@@ -12,6 +12,7 @@
 .sidebar-container {
 	display: grid;
 	grid-template-rows: 25px calc(100% - 25px);
+	grid-template-columns: 100%;
 /*	flex: 1;*/
 /*	flex-direction: column;*/
 	width: 100%;
@@ -35,6 +36,7 @@
 .sidebar-items {
 	grid-template-rows: 25px calc(100% - 25px);
 	overflow: scroll;
+	width: 100%;
 	height: 100%;
 }
 
@@ -55,6 +57,10 @@
 .sidebar-item:hover {
 	cursor: pointer;
 	border: 1px solid white;
+}
+
+.new-sidebar-item-input {
+	width:100%;
 }
 
 .menu-bar {
