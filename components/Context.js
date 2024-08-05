@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import { createContext, useContext, useState, useEffect } from "react";
 
@@ -16,6 +17,7 @@ export function Context({ children }) {
 	  	let sortBySplit = sortBy.split(' ')
 	  	let sortByColumn = sortBySplit[0]
 	  	let ascending = true
+	  	
 	  	// console.log({
 	  	// 	sortBySplit,
 	  	// 	sortByColumn,
@@ -54,7 +56,7 @@ export function Context({ children }) {
 
 	    return result
 	  })
-	  console.log('sorted tabs by:', sortBy, sortedTabs)
+	  // console.log('sorted tabs by:', sortBy, sortedTabs)
 	  return sortedTabs
 	}
 
@@ -104,14 +106,14 @@ export function Context({ children }) {
   	
   // }, [])
 
-  useEffect(() => {
-  	console.log('Context updated:', { 
-  		userTabs,
-  		googleTabs,
-  		projects,
-  		openProjectId,
-  	})
-  }, [userTabs, googleTabs, projects, openProjectId, ])
+  // useEffect(() => {
+  // 	console.log('Context updated:', { 
+  // 		userTabs,
+  // 		googleTabs,
+  // 		projects,
+  // 		openProjectId,
+  // 	})
+  // }, [userTabs, googleTabs, projects, openProjectId, ])
 
   return (
    	<TabsContext.Provider value={value} >

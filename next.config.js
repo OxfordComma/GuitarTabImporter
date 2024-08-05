@@ -1,11 +1,11 @@
-module.exports = {
-  // async redirects() {
-  //   return [
-  //     {
-  //       source: '/',
-  //       destination: '/login',
-  //       permanent: false,
-  //     },
-  //   ]
-  // },
-}
+// module.exports = {
+//   // async redirects() {
+//   //   return [
+//   //     {
+//   //       source: '/',
+//   //       destination: '/login',
+//   //       permanent: false,
+//   //     },
+//   //   ]
+//   // },
+// }

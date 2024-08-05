@@ -12,71 +12,82 @@ export default function Editor ({
   setTabs,
   saveTab,
   tabId, 
-  userId,
+  // userId,
   mode='edit',
   showSidebar,
   setShowSidebar,
-  setCreateNewSidebarItem,
-  setEditTab,
-  importTab,
-  exportTab,
+  // setCreateNewSidebarItem,
+  // setEditTab,
+  // importTab,
+  // exportTab,
 }) {
   const [fontSize, setFontSize] = useState(12)
   const [columns, setColumns] = useState(1)
 
-  const [tab, setTab] = useState(tabs.find(t => t['id'] == tabId) ?? null)
+  const [tab, setTab] = useState(tabs.find(t => t['_id'] == tabId))
+  const [tabText, setTabText] = useState('')
+
+  // console.log('TabEditor', {
+  //   tabs, setTabs
+  // })
 
   useEffect(() => {
-    let newTab = tabs.find(t => t['id'] == tabId)
-    setTab(newTab);
-
+    let newTab = tabs.find(t => t['_id'] === tabId)
+    // console.log('newTab', newTab, tabId, tabs)
+    setTabText(newTab?.tabText ?? '');
   }, [tabId, tabs])
 
-  useEffect(() => {
-    if (mode=='view') return; 
+  // useEffect(() => {
+  //   if (mode=='view') return; 
     
-    let newTabs = tabs.map(t => {
-      if (t['id'] == tabId && tab) {
-        // try {
-          t['tabText'] = tab['tabText'] ?? ''
-        // }
-        // catch(e) {
-          // console.log('error', e)
-        // }
-      }
-      return t
-    })
+  //   let newTabs = tabs.map(t => {
+  //     if (t['_id'] === tabId && tab) {
+  //       // try {
+  //         t['tabText'] = tab['tabText'] ?? ''
+  //       // }
+  //       // catch(e) {
+  //         // console.log('error', e)
+  //       // }
+  //     }
+  //     return t
+  //   })
 
-    setTabs(tabs)
+  //   setTabs(tabs)
 
-  }, [tab?.tabText])
+  // }, [tab.tabText])
 
-  let setTabText = (event) => {
-    event.preventDefault();
-    console.log({
-      ...tab,
-      tabText: event.target.value
-    })
-    setTab({
-      ...tab,
-      tabText: event.target.value,
-    })
-  }
+  // let setTabText = (event) => {
+  //   event.preventDefault();
+  //   // console.log({
+  //   //   ...tab,
+  //   //   tabText: event.target.value
+  //   // })
+  //   // setTab({
+  //   //   ...tab,
+  //   //   tabText: event.target.value,
+  //   // })
+  //   setTabText(event.target.value)
+  // }
 
-  function openTabInDocs() {
-    if (tab.googleDocsId)
-      window.open(`https://docs.google.com/document/d/${tab.googleDocsId}`)
+  useEffect(() => {
+    if (!tabId) return;
+    console.log('set tabs', tabs, tabId, tabText)
+    setTabs(tabs.map(t => t._id === tabId ? { ...t, tabText: tabText } : t))
+  }, [tabText])
 
-  }
+  // function openTabInDocs() {
+  //   if (tab.googleDocsId)
+  //     window.open(`https://docs.google.com/document/d/${tab.googleDocsId}`)
+  // }
 
   
   
-  function formatTab() {
-    setTab({
-      ...tab,
-      tabText: formatRawTabs(tab.tabText),
-    })
-  }
+  // function formatTab() {
+  //   setTab({
+  //     ...tab,
+  //     tabText: formatRawTabs(tab.tabText),
+  //   })
+  // }
 
   
 
@@ -112,76 +123,16 @@ export default function Editor ({
   return (
     <div className={styles['container']}>
       <div style={{display: 'flex', backgroundColor: 'black', width: '100%',alignItems: 'center'}}>
-        <MenuBar
-          items={
-            {
-              'file': [{
-                  title: 'new tab',
-                  onClick: () => setCreateNewSidebarItem(true),
-                },{
-                  title: 'edit tab',
-                  onClick: () => setEditTab(true),
-                },{
-                  title: 'save tab',
-                  onClick: () => saveTab(),
-                }, {
-                  title: 'delete tab',
-                  onClick: () => console.log('delete tab'),
-                }],
-              'sidebar': [
-                { 
-                  title: 'show sidebar', 
-                  onClick: (e) => {e.preventDefault(); setShowSidebar(!showSidebar)},
-                  disabled: mode!='view',
-                }
-              ],
-              'format': [
-                { 
-                  title: 'format tab text', 
-                  onClick: formatTab,
-                  disabled: mode=='view',
-                }, {
-                  title: 'add tab staff',
-                  onClick: addTabStaff,
-                  disabled: mode=='view',
-                }, {
-                  title: 'two column mode',
-                  onClick: toggleTwoColumns,
-                }
-              ],
-              'export': [
-                { 
-                  title: 'export tab to Google Docs', 
-                  onClick: exportTab, 
-                  disabled: mode=='view',
-                  visible: mode=='view',
-                },{
-                  title: 'open tab in Google Docs',
-                  onClick: openTabInDocs,
-                  disabled: tab?.['googleDocsId'] == null,
-                }
-              ],
-              'import': [
-                { 
-                  title: 'import tab from Google Docs', 
-                  onClick: importTab,
-                  disabled: (mode=='view' || tab?.['googleDocsId'] == null),
-                }
-              ],
-            }
-          }
-          styles={menuBarStyles}
-        />
         <TitleBar
-          tab={tab}
+          tab={tabs.find(t => t['_id'] == tabId)}
         />
         <StyleEditor 
-          tab={tab}
+          tab={tabs.find(t => t['_id'] == tabId)}
           fontSize={fontSize} 
           setFontSize={setFontSize}
         />
         <DetailBar
-          tab={tab}
+          tab={tabs.find(t => t['_id'] == tabId)}
         />
       </div>
       <div className={styles['text-area-container']}>
@@ -191,8 +142,8 @@ export default function Editor ({
               <TabTextArea 
                 key='left'
                 tabText={
-                  tab?.tabText ?  
-                    tab.tabText.split(lineDelim).slice(
+                  tabText ?  
+                    tabText.split(lineDelim).slice(
                       0, parseInt(numLines/2)
                     ).join('\n') :
                     ''
@@ -204,8 +155,8 @@ export default function Editor ({
               <TabTextArea 
                 key='right'
                 tabText={
-                  tab?.tabText ?  
-                    tab.tabText.split(lineDelim).slice(
+                  tabText ?  
+                    tabText.split(lineDelim).slice(
                       parseInt(numLines/2)
                     ).join('\n') :
                     ''
@@ -216,7 +167,7 @@ export default function Editor ({
               />
             ] :
             <TabTextArea 
-              tabText={tab?.tabText ?? ''}
+              tabText={tabText}
               setTabText={setTabText}
               fontSize={fontSize}
               readOnly={mode=='view'}
@@ -234,7 +185,7 @@ function TabTextArea({ tabText, setTabText, fontSize, readOnly=false }) {
       className={styles['text-area']}
       value={tabText}
       readOnly={readOnly}
-      onChange={setTabText}
+      onChange={e => { e.preventDefault(); setTabText(e.target.value) }}
       style={{ fontSize: fontSize }}
     />)
 }

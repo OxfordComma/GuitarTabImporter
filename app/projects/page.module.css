@@ -1,0 +1,62 @@
+.container {
+	display: grid;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+
+	grid-template-rows: 25px auto;
+	grid-template-columns: 20% 80%;
+	grid-template-areas: 
+		'menubar editor'
+		'sidebar editor';
+}
+
+@media print {
+	.container {
+/*		display: grid;*/
+/*	grid-template-rows: 0px 100%;*/
+		grid-template-columns: 0% 100%;
+/*		width: 100%;*/
+/*		height: 100%;*/
+/*		overflow: hidden;*/
+	}
+}
+
+.content {
+	display: grid;
+	width: 100%;
+	height: 100%;
+}
+
+.library-menu-bar {
+	grid-area: menubar;
+	display: flex;
+	width:100%;
+	height: 25px;
+	background-color: black;
+}
+
+.sidebar {
+	width: 100%;
+	height: 100%;
+	grid-area: sidebar;
+
+}
+
+.editor {
+	width: 100%;
+	height: 100%;
+	grid-area: editor;
+}
+
+.text-area {
+	padding: 5px;
+	caret-color: white;
+	background-color: #333333;
+	font-family: monospace;
+	color: white;
+
+	overflow-x: hidden;
+	width: 100%;
+	height: 100%;
+}

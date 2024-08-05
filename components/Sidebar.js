@@ -19,7 +19,7 @@ export default function Sidebar ({
     createNewSidebarItem=false,
     setCreateNewSidebarItem=()=>{},
     search=false,
-    searchFunction= d => d.id,
+    searchFunction= d => d._id,
     
     itemIsEnabled = d => true,
     SidebarItemComponent,
@@ -28,10 +28,10 @@ export default function Sidebar ({
     addSidebarItem,
     pinnedItems,
     setPinnedItems,
-    pinnedItemFunction= d => d.id,
+    pinnedItemFunction= d => d._id,
   }) {
   let [filteredSidebarItems, setFilteredSidebarItems] = useState(sidebarItems)
-  let [pinnedSidebarItems, setPinnedSidebarItems] = useState(pinnedItems?.map(p => sidebarItems.find(s => s.id == p)) ?? [])
+  let [pinnedSidebarItems, setPinnedSidebarItems] = useState(pinnedItems?.map(p => sidebarItems.find(s => s._id == p)) ?? [])
   let [sortBy, setSortBy] = useState(sidebarSortBy)
   let [showSearchBar, setShowSearchBar] = useState(search)
   let [searchTerm, setSearchTerm] = useState('')
@@ -58,7 +58,7 @@ export default function Sidebar ({
 
     setFilteredSidebarItems(newSidebarItems)
     
-    console.log('pinned items', pinnedItems)
+    // console.log('pinned items', pinnedItems)
   }, [sidebarItems, searchTerm, pinnedItems])
 
   let onSearchBarChange = function(e) { 
@@ -70,15 +70,15 @@ export default function Sidebar ({
   let sidebarItemContent = function( datum ) {
     console.log(datum)
     return [
-      <div key='id'>{datum.id}</div>
+      <div key='id'>{datum._id}</div>
     ]
   }
 
   return (
     <div className={styles['sidebar-container']}>
-      <div className={styles['menu-bar']}>
-        {menuBar ? menuBar : <div></div>}
-      </div>
+      {menuBar ? <div className={styles['menu-bar']}>
+        {menuBar}
+      </div> : <div></div>}
       <div className={styles['sidebar-content']}>
         {
           showSearchBar ? 
@@ -103,7 +103,7 @@ export default function Sidebar ({
           <div className={styles['pinned-sidebar-items']}>
             {pinnedSidebarItems.map(d => (
               <SidebarItem
-                key={d.id} 
+                key={d._id} 
                 datum={d} 
                 sidebarItemId={sidebarItemId}
                 setSidebarItemId={setSidebarItemId}
@@ -115,7 +115,7 @@ export default function Sidebar ({
           </div>
           {filteredSidebarItems.map(d => (
             <SidebarItem
-              key={d.id} 
+              key={d._id} 
               datum={d} 
               sidebarItemId={sidebarItemId}
               setSidebarItemId={setSidebarItemId}
@@ -149,13 +149,13 @@ function SidebarItem ({
       className={styles['sidebar-item']} 
       onClick={(e) => {
         console.log('setSidebarItemId', datum, sidebarItemId)
-        setSidebarItemId(datum.id)
-        onClickSidebarItem(datum.id)
+        setSidebarItemId(datum._id)
+        onClickSidebarItem(datum._id)
       } }
       style={{ 
         'opacity': enabled ? 1 : 0.6,
         'border': (sidebarItemId == null) ? '1px solid green' : 
-          (datum['id'] == sidebarItemId) ? '1px solid pink' : null,
+          (datum['_id'] == sidebarItemId) ? '1px solid pink' : null,
         ...style,
       }}>
         {content(datum)}
