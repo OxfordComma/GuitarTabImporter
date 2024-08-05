@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 // import { useSession } from "next-auth/react"
 
 function handleOpenPicker(account, openPicker, onPick) {
-  console.log('picker account', account)
+  // console.log('picker account', account)
   openPicker({
     clientId: account.client_id,
     developerKey: account.api_key,
@@ -24,7 +24,7 @@ function handleOpenPicker(account, openPicker, onPick) {
       if (data.action === 'cancel') {
         console.log('User clicked cancel/close button')
       }
-      console.log(data, data.docs[0])
+      // console.log(data, data.docs[0])
       let selected = data.docs[0]
       onPick(selected['id'])
     },
@@ -36,7 +36,7 @@ export default function PickerButton({ account, onPick }) {
   // const session = useSession()
   const [openPicker, authResponse] = useDrivePicker();
   const session = useSession();
-  console.log('picker session', session)
+  // console.log('picker session', session)
   let [refresh, setRefresh] = useState(false)
 
   useEffect(() => { 
@@ -46,9 +46,9 @@ export default function PickerButton({ account, onPick }) {
 
       
       let accountResponse = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
-      console.log('refresh?', accountResponse)
+      // console.log('refresh?', accountResponse)
       if (accountResponse && new Date(accountResponse.expires_at * 1000) < new Date()) {
-        console.log('refresh', accountResponse)
+        // console.log('refresh', accountResponse)
 
         let refreshResponse = await fetch(`https://www.googleapis.com/oauth2/v4/token`, {
           method: 'POST',
@@ -59,7 +59,7 @@ export default function PickerButton({ account, onPick }) {
             grant_type: 'refresh_token',
           })
         }).then(r => r.json())
-        console.log('refreshResponse', refreshResponse)
+        // console.log('refreshResponse', refreshResponse)
         let expiresAt = new Date()
         expiresAt.setSeconds(expiresAt.getSeconds() + refreshResponse.expires_in)
 

@@ -74,7 +74,7 @@ export async function GET(request, { params }) {
 // export default async function handler(req, res) {
 export async function POST(request, { params }) {
 	const session = await auth()
-	console.log('folder post session', session)
+	// console.log('folder post session', session)
 
   let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
   console.log('fetched account', account)
