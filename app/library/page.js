@@ -19,7 +19,6 @@ import { formatRawTabs } from 'lib/tabhelper.js'
 
 
 
-
 export default function Library({ }) {
   const session = useSession()
 
@@ -44,7 +43,8 @@ export default function Library({ }) {
 
   let [sidebarSortBy, setSidebarSortBy] = useState('createdTime descending')
   let [createNewSidebarItem, setCreateNewSidebarItem] = useState(false)
-  let [showSidebarSearchBar, setShowSidebarSearchBar] = useState(false)
+  let [showSidebar, setShowSidebar] = useState(true)
+  // let [showSidebarSearchBar, setShowSidebarSearchBar] = useState(false)
 
   // Fetch user data on startup
   useEffect( () => {
@@ -314,8 +314,21 @@ export default function Library({ }) {
     setDeleteTabId(null)
   }
 
+  function formatTabText() {
+    // console.log('format', userTabs, sidebarItemId)
+    setUserTabs(userTabs.map(t => {
+      if (t._id === sidebarItemId) {
+        return {
+          ...t, 
+          tabText: formatRawTabs(t.tabText)
+        }
+      }
+      return t
+    }))
+  }
 
- return (
+
+  return (
     <div className={styles.container}>
       <ConfirmDelete 
         show={deleteTabId != null} 
@@ -332,53 +345,81 @@ export default function Library({ }) {
         subset={['artistName', 'songName', 'capo', 'tuning', 'bpm']}
         save={saveTab}
       />
-      <div className={styles['library-menu-bar']}>
-        <MenuBar 
-          setEditObject={setEditObject}
-          className={styles['library-menu-bar']} 
-          styles={menuBarStyles}
-          items={{
-            'file': [{
-                title: 'new tab',
-                onClick: () => addTab(),
-              },{
-                title: 'edit tab',
-                onClick: () => setEditObject(tabs.find(t => t._id === sidebarItemId)),
-              },{
-                title: 'save tab',
-                onClick: () => saveTab(tabs.find(t => t._id === sidebarItemId)),
-              }, {
-                title: 'delete tab',
-                onClick: () => setDeleteTabId(sidebarItemId)
+      <div className={styles['content']}>
+        <div className={styles['menu-bar']}>
+          <MenuBar 
+            setEditObject={setEditObject}
+            className={styles['menu-bar']} 
+            styles={menuBarStyles}
+            items={{
+              'file': [{
+                  title: 'new tab',
+                  onClick: () => addTab(),
+                },{
+                  title: 'edit tab',
+                  onClick: () => setEditObject(tabs.find(t => t._id === sidebarItemId)),
+                },{
+                  title: 'save tab',
+                  onClick: () => saveTab(tabs.find(t => t._id === sidebarItemId)),
+                }, {
+                  title: 'delete tab',
+                  onClick: () => setDeleteTabId(sidebarItemId)
+                }
+              ],
+              format: [{
+                title: 'format tab text',
+                onClick: () => formatTabText(),
+              }],
+              sort: [
+                {
+                  title: 'sort by artist',
+                  onClick: () => sidebarSortBy == 'artist ascending' ? setSidebarSortBy('artist descending') : setSidebarSortBy('artist ascending')
+                }, {
+                  title: 'sort by song name',
+                  onClick: () => sidebarSortBy == 'songName ascending' ? setSidebarSortBy('songName descending') : setSidebarSortBy('songName ascending')
+                }, {
+                  title: 'sort by created date',
+                  onClick: () => sidebarSortBy == 'createdTime descending' ? setSidebarSortBy('createdTime ascending') : setSidebarSortBy('createdTime descending')
+                }, {
+                  title: 'sort by capo',
+                  onClick: () => sidebarSortBy == 'capo descending' ? setSidebarSortBy('capo ascending') : setSidebarSortBy('capo descending')
+                }, {
+                  title: 'sort by tuning',
+                  onClick: () => sidebarSortBy == 'tuning ascending' ? setSidebarSortBy('tuning descending') : setSidebarSortBy('tuning ascending')
+                }, {
+                  title: 'don\'t sort',
+                  onClick: () => setSidebarSortBy('index')
+                }
+              ],
+              sidebar: {
+                // title: 'show sidebar',
+                onClick: () => setShowSidebar(!!!showSidebar)
               }
-            ],
-            format: [{
-              title: 'format tab text',
-              onClick: () => {
-                console.log('format', userTabs, sidebarItemId)
-                setUserTabs(userTabs.map(t => {
-                  if (t._id === sidebarItemId) {
-                    return {
-                      ...t, 
-                      tabText: formatRawTabs(t.tabText)
-                    }
-                  }
-                  return t
-                }))
-              }
-            }],
-            'import': [
-              { 
-                title: 'import tab from Google Docs', 
-                // onClick: importTab,
-                // disabled: (mode=='view' || tab?.['googleDocsId'] == null),
-              }
-            ],
-          }}
-        />
-      </div>
+              // 'import': [
+              //   { 
+              //     title: 'import tab from Google Docs', 
+              //     // onClick: importTab,
+              //     // disabled: (mode=='view' || tab?.['googleDocsId'] == null),
+              //   }
+              // ],
+            }}
+          />
+          {showSidebar ? <div className={styles['sidebar-sort-by']} 
+            onClick={() => {
+              setSidebarSortBy(
+                sidebarSortBy.search('asc') > -1 ? 
+                  sidebarSortBy.replace('ascending', 'descending')
+                  : sidebarSortBy.replace('descending', 'ascending')
+              )}
+          }>
+            {sidebarSortBy ? 
+              sidebarSortBy.replace('ascending','▲').replace('descending','▼')
+               : null
+             }
+          </div> : null}
+        </div>
         <div className={styles['sidebar']}>
-          <Sidebar
+          {showSidebar ? <Sidebar
             sidebarItems={tabs}
             setSidebarItems={setTabs}
             sidebarItemId={sidebarItemId}
@@ -400,7 +441,7 @@ export default function Library({ }) {
                 </div>
               )
             }}
-          />
+          /> : null }
         </div>
         <div className={styles['editor']}>
           <Editor
@@ -408,8 +449,10 @@ export default function Library({ }) {
             setTabs={setTabs}
             tabId={sidebarItemId}
           />
-        </div>      
+        </div>   
+      </div>   
     </div>
+
   )
 }
 

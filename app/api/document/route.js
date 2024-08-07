@@ -3,13 +3,55 @@ import { getSession } from "next-auth/react"
 const {google} = require('googleapis');
 import { auth } from 'auth'
 
+export async function GET(request, { params }) {
+	const session = await auth()
+
+  let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+  // console.log('fetched account', account)
+  let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
+  // console.log('fetched profile', profile)
+  let searchParams = request.nextUrl.searchParams
+	console.log('searchParams', searchParams)
+  
+  if (!searchParams.get('id') ) {
+		return Response.json({ })
+	}
+  
+
+	const oauth2Client = new google.auth.OAuth2(
+		process.env.AUTH_GOOGLE_ID, 
+		process.env.AUTH_GOOGLE_SECRET
+	);
+
+	oauth2Client.setCredentials({
+		'access_token': account.access_token,
+		'refresh_token': account.refresh_token
+	});
+
+	const docs = google.docs({version: 'v1', auth: oauth2Client });
+	const drive = google.drive({version: 'v3', auth: oauth2Client });
+
+  const fileExport = await drive.files.export({
+  	fileId: searchParams.get('id'),
+  	mimeType: 'text/plain'
+	}).catch(e => { 
+		console.log('error', e.response)
+		return e.response
+	})
+
+	if (fileExport?.status === 404) { 
+		return Response.json({ text: '' }, {status: 404 })
+	}
+	return Response.json({ 
+		text: fileExport.data 
+	})
+
+}
 // export default async function handler(req, res) {
 export async function POST(request, { params }) {
-
-	
 	const session = await auth()
 	let body = await request.json()
-	console.log('create body:', body, session)
+	// console.log('create body:', body, session)
 
 	
   let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())

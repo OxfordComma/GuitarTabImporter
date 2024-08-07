@@ -31,3 +31,15 @@
     'header header'
     'content content';*/
 }
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sign-in-button, .sign-out-button {
+  height: 50%;
+  text-wrap: nowrap;
+  margin-right: 10px;
+}

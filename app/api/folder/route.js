@@ -48,7 +48,7 @@ export async function GET(request, { params }) {
       q: `'${searchParams.get('id')}' in parents and trashed=false`,
       pageToken: NextPageToken || "",
       pageSize: 1000,
-      // fields: "nextPageToken, files(id, name, starred, createdTime, mimeType, shortcutDetails)",
+      fields: "nextPageToken, files(id, name, starred, createdTime, mimeType, shortcutDetails)",
 			// mimeType: 'application/vnd.google-apps.folder',
       corpora: 'allDrives',
       supportsAllDrives: true,
@@ -61,9 +61,7 @@ export async function GET(request, { params }) {
 
     // console.log(res.data.files.length)
   } while (NextPageToken);
-
-		// res.send(fileList)
-
+  
 
 	return Response.json(fileList)
 

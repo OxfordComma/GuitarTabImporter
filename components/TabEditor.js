@@ -16,6 +16,7 @@ export default function Editor ({
   mode='edit',
   showSidebar,
   setShowSidebar,
+  keyFunction=d => d._id,
   // setCreateNewSidebarItem,
   // setEditTab,
   // importTab,
@@ -24,7 +25,7 @@ export default function Editor ({
   const [fontSize, setFontSize] = useState(12)
   const [columns, setColumns] = useState(1)
 
-  const [tab, setTab] = useState(tabs.find(t => t['_id'] == tabId))
+  const [tab, setTab] = useState(tabs.find(t => keyFunction(t) == tabId))
   const [tabText, setTabText] = useState('')
 
   // console.log('TabEditor', {
@@ -32,7 +33,7 @@ export default function Editor ({
   // })
 
   useEffect(() => {
-    let newTab = tabs.find(t => t['_id'] === tabId)
+    let newTab = tabs.find(t => keyFunction(t) === tabId)
     // console.log('newTab', newTab, tabId, tabs)
     setTabText(newTab?.tabText ?? '');
   }, [tabId, tabs])
@@ -72,7 +73,7 @@ export default function Editor ({
   useEffect(() => {
     if (!tabId) return;
     console.log('set tabs', tabs, tabId, tabText)
-    setTabs(tabs.map(t => t._id === tabId ? { ...t, tabText: tabText } : t))
+    setTabs(tabs.map(t => keyFunction(t) === tabId ? { ...t, tabText: tabText } : t))
   }, [tabText])
 
   // function openTabInDocs() {
@@ -124,15 +125,12 @@ export default function Editor ({
     <div className={styles['container']}>
       <div style={{display: 'flex', backgroundColor: 'black', width: '100%',alignItems: 'center'}}>
         <TitleBar
-          tab={tabs.find(t => t['_id'] == tabId)}
-        />
-        <StyleEditor 
-          tab={tabs.find(t => t['_id'] == tabId)}
-          fontSize={fontSize} 
-          setFontSize={setFontSize}
+          tab={tabs.find(t => keyFunction(t) == tabId)}
         />
         <DetailBar
-          tab={tabs.find(t => t['_id'] == tabId)}
+          tab={tabs.find(t => keyFunction(t) == tabId)}
+          fontSize={fontSize}
+          setFontSize={setFontSize}
         />
       </div>
       <div className={styles['text-area-container']}>
@@ -195,6 +193,13 @@ function StyleEditor({
   fontSize,
   setFontSize,
 }) {
+  let styleEditorStyles = {
+    display:'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    // marginRight: '10px'
+  }
+  
   let buttonStyle = {
     display: 'flex', 
     width: '15px',
@@ -204,7 +209,7 @@ function StyleEditor({
     marginBottom: '2.5px',
   }
   return ( tab ? 
-    <div style={{display:'flex', alignItems: 'center', justifyContent: 'center', marginRight: '10px'}}>
+    <div style={styleEditorStyles}>
       {/*<div>font size:</div>*/}
       <button style={buttonStyle} onClick={() => setFontSize(fontSize+1)}>+</button>
       <button style={buttonStyle} onClick={() => setFontSize(fontSize-1)}>−</button>
@@ -221,7 +226,7 @@ function TitleBar({ tab }) {
   )
 }
 
-function DetailBar({ tab }) {
+function DetailBar({ tab, fontSize, setFontSize }) {
   let tabTuning = tab?.tuning
   let tabCapo = tab?.capo
   let tabBpm = tab?.bpm
@@ -230,49 +235,76 @@ function DetailBar({ tab }) {
   let showCapo = parseInt(tabCapo) > 0
   let showBpm = parseInt(tabBpm) > 0
   
-  function tuning(tuning, showTuning) {
+  function Tuning({tuning, show}) {
     let tuningStyle = {
-      color: showTuning ? 'white' : 'gray'
+      color: show ? 'white' : 'gray'
     }
     return (<div style={tuningStyle}>
       {tuning ? tuning : 'no tuning'}
     </div>)
   }
 
-  function capo(capo, showCapo) {
+  function Capo({capo, show}) {
     let capoStyle = {
-      color: showCapo ? 'white' : 'gray'
+      color: show ? 'white' : 'gray'
     }
     return (<div style={capoStyle}>
       {capo ? `capo ${capo}` : 'no capo'}
     </div>)
   }
 
-  function bpm(bpm, showBpm) {
+  function Bpm({bpm, show}) {
     let capoStyle = {
-      color: showBpm ? 'white' : 'gray'
+      color: show ? 'white' : 'gray'
     }
     return (<div style={capoStyle}>
       {bpm ? `${bpm} BPM` : ''}
     </div>)
   }
 
-  function separator(left, right) {
+  function Separator({left, right}) {
     let sepStyle = {
-      color: left ? 'white' : 'gray'
+      color: left ? 'white' : 'gray',
+      marginLeft: 5,
+      marginRight: 5,
     }
     return (<div style={sepStyle}>
-      {','}
+      {''}
     </div>)
   }
 
-  return (tab ? <span style={{display: 'flex', flexDirection: 'row', whiteSpace: 'pre-wrap', fontSize: '1.1em'} } >
-      {bpm(tabBpm, showBpm)}
-      {showBpm ? separator(showBpm, showTuning) : ''}
-      {tuning(tabTuning, showTuning)}
-      {separator(showBpm, showTuning)}
-      {' '}
-      {capo(tabCapo, showCapo)}
-    </span> : <div></div>
-  )
+
+  let detailStyles = {
+    display: 'flex', 
+    flexDirection: 'row', 
+    alignItems: 'center',
+    justifyContent: 'center',
+    whiteSpace: 'pre-wrap', 
+    fontSize: '1.1em'
+  }
+
+  return (tab ? <div style={detailStyles}>
+    {<StyleEditor 
+      tab={tab}
+      fontSize={fontSize} 
+      setFontSize={setFontSize}
+    />}
+    {<Separator left={true} right={showTuning}/>}
+    {<Tuning tuning={tabTuning} show={showTuning}/>}
+    {<Separator left={showTuning} right={showCapo}/>}
+    {<Capo capo={tabCapo} show={showCapo}/>}
+    {<Separator left={showBpm} right={showBpm}/>}
+    {<Bpm bpm={tabBpm} show={showBpm}/>}
+    
+  </div> : null)
+
+  // return (tab ? <span style={ } >
+  //     {bpm(tabBpm, showBpm)}
+  //     {showBpm ? separator(showBpm, showTuning) : ''}
+  //     {tuning(tabTuning, showTuning)}
+  //     {separator(showBpm, showTuning)}
+  //     {' '}
+  //     {capo(tabCapo, showCapo)}
+  //   </span> : <div></div>
+  // )
 }

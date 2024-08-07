@@ -102,18 +102,15 @@ export function Context({ children }) {
   	sortTabs,
   }
 
-  // useEffect(() => {
-  	
-  // }, [])
 
-  // useEffect(() => {
-  // 	console.log('Context updated:', { 
-  // 		userTabs,
-  // 		googleTabs,
-  // 		projects,
-  // 		openProjectId,
-  // 	})
-  // }, [userTabs, googleTabs, projects, openProjectId, ])
+  useEffect(() => {
+  	console.log('Context updated:', { 
+  		userTabs,
+  		googleTabs,
+  		projects,
+  		openProjectId,
+  	})
+  }, [userTabs, googleTabs, projects, openProjectId, ])
 
   return (
    	<TabsContext.Provider value={value} >

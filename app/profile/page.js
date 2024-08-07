@@ -160,7 +160,7 @@ export default function Profile(props) {
 
 	return (
 		<div className={styles['container']}>
-			<div className={styles['window']}>
+			{profile ? <div className={styles['window']}>
 				<div className={styles['profile-row']}>
 					<label className={styles['profile-row-label']} htmlFor="folder">Folder</label>
 					{profile ? (
@@ -185,7 +185,7 @@ export default function Profile(props) {
 				<div>
 					<button onClick={onSubmit}>save</button>
 				</div>
-			</div>
+			</div> : <div>Loading...</div>}
 		</div>)
 }
 

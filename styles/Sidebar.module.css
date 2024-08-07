@@ -11,7 +11,7 @@
 
 .sidebar-container {
 	display: grid;
-	grid-template-rows: auto auto;
+	grid-template-rows: auto 100%;
 	grid-template-columns: 100%;
 	align-content: flex-start;
 
@@ -57,7 +57,12 @@
 
 .sidebar-item:hover {
 	cursor: pointer;
-	border: 1px solid white;
+/*	border: 1px solid white;*/
+/*	background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);;*/
+/*	transition: 500ms background-image;*/
+	transition: 250ms background-color ease-out;
+	color: #222222;
+	background-color: white;
 }
 
 .new-sidebar-item-input {

@@ -7,7 +7,7 @@ import ConfirmDelete from 'components/ConfirmDelete.js'
 import EditTabWindow from 'components/EditTabWindow.js'
 import EditObjectWindow from 'components/EditObjectWindow.js'
 import { TabsContext } from 'components/Context.js'
-
+import OpenObjectsWindow from 'components/OpenObjectsWindow'
 import { MenuBar } from 'quantifyjs'
 import menuBarStyles from 'styles/MenuBar.module.css'
 
@@ -29,6 +29,7 @@ export default function Library({ }) {
     userTabs, setUserTabs,
     googleTabs, setGoogleTabs,
     projects, setProjects,
+    openProjectId, setOpenProjectId,
     sortTabs,
     formatFolderContents,
   } = useContext(TabsContext)
@@ -40,17 +41,24 @@ export default function Library({ }) {
   let [deleteTabId, setDeleteTabId] = useState(null)
   let [isNewTab, setIsNewTab] = useState(false)
 
-  let [editObject, setEditObject] = useState(undefined)
 
 
   let [sidebarSortBy, setSidebarSortBy] = useState('createdTime descending')
   let [createNewSidebarItem, setCreateNewSidebarItem] = useState(false)
   let [showSidebarSearchBar, setShowSidebarSearchBar] = useState(false)
 
+
+  let [editObject, setEditObject] = useState(undefined)
+  let [openObjects, setOpenObjects] = useState(undefined)
+  let [tabTextObj, setTabTextObj] = useState({})
+
+
+  let [showSidebar, setShowSidebar] = useState(true)
+
+
   // Fetch user data on startup
   useEffect( () => {
-    async function getData() {
-      
+    async function getProjects() {
       if (projects.length == 0 ) {
         let userProjects = await fetch(`/api/projects?userid=${session.data.user_id}`).then(r => r.json())
         // console.log('userProjects:', userProjects)
@@ -58,7 +66,7 @@ export default function Library({ }) {
       }    
     }
 
-    getData()
+    getProjects()
   }, [] )
 
   useEffect( () => {
@@ -88,225 +96,134 @@ export default function Library({ }) {
 
   }, [userTabs, googleTabs, sidebarSortBy])
 
+  // useEffect(() => {
+
+  // },[])
+
   // useEffect( () => { 
   //   // console.log('sidebar item id changed to:', sidebarItemId)
   // }, [sidebarItemId] )
 
-
-
-  async function addTab(googleDocsId=null, tabText='', createdTime=new Date() ) {
-    // console.log('adding tab?')
-
-    let newTab = {
-      id: Math.random().toString(16).slice(2),
-      userId: session.data.user_id,
-      googleDocsId: googleDocsId,
-      tabText: tabText,
-      // name: artistName + ' - ' + songName,
-      artistName: '',
-      songName: '',
-      holiday: false,
-      draft: false,
-      uri: null,
-      createdTime: createdTime,//.toString(),
-      lastUpdatedTime: createdTime,//.toString(),
-      starred: false,
-      capo: 0,
-      tuning: 'EADGBe',
-      bpm: 0,
+  useEffect( () => {
+    async function getProjectTabs() {
+      let project = projects.find(p => p._id === openProjectId)
+      // console.log('getProjectTabs', project, tabs)
+      if (project) {
+        let folderResponse = await fetch(`/api/folder?id=${project.folder}`).then(r => r.json())
+        // console.log('folderResponse:', folderResponse)
+        setTabs(folderResponse)
+      }    
     }
-    
-    setUserTabs([newTab, ...userTabs])
-    setSidebarItemId(newTab._id)
-    setEditObject(newTab)
-    // setEditTab()
-    // setIsNewTab(true)
-    return newTab._id
+
+    getProjectTabs()
+  }, [openProjectId] )
+
+  useEffect( () => {
+    // console.log('sidebarItemId', sidebarItemId)
+    async function getProjectTabText() {
+      // let project = projects.find(p => p._id === openProjectId)
+      let tab = tabs.find(t => t.id === sidebarItemId)
+      // console.log('getProjectTabText', tab,)
+      if (tab && !('tabText' in tab) ) {
+        let documentResponse = await fetch(`/api/document?id=${tab.shortcutDetails.targetId}`).then(r => r.json())
+        // console.log('documentResponse:', documentResponse,)
+        setTabs(tabs.map(t => {
+          if (t.id === sidebarItemId) {
+            let newTab = t
+            let tabText = documentResponse.text
+            let artistName = t['name'].split(' - ')[0]
+            let songName = t['name'].split(' - ')[1]
+            let capo = 0
+            let tuning = 'eBGDAE'
+            
+            t.tabText = tabText
+              // .replace(tuningRegex, '')
+              .replace(`${artistName} - ${songName}`, '')
+              .replace(/-{76,77}/g, '')
+              .replace(/^[\r\n]+/mg, '')
+
+            // var tuningRegex = new RegExp("((?:[DE]ADGBe)|D#G#C#F#A#[Dd]#)", "g")
+
+            var tuningRegex = /((?:[DE]ADGBe)|D#G#C#F#A#[Dd]#)/g
+            if (t.tabText.match(tuningRegex)) {
+              console.log('t tuning:', t)
+              t.tuning = t.tabText.match(tuningRegex)[0];
+
+              t.tabText = t.tabText.replace(`${t.tuning}`, '')
+              t.tabText = t.tabText
+            }
+
+            var capoRegex = /([Cc]apo (\d))/ //new RegExp("([Cc]apo (\\d))", "")
+            if (t.tabText.match(capoRegex)) {
+              t.capo = parseInt( t.tabText.match(capoRegex)[2] );
+              console.log('t capo:', t)
+
+              // tab.tabText = tab.tabText.replace(tab.tabText.match(capoRegex)[0], '')
+              t.tabText = t.tabText.replace(capoRegex, '')
+            }
+
+            if (t.tabText.substr(0, 2).search(/\r/) !== -1 ){
+              t.tabText = t.tabText.substr(2)
+            }
+
+            // console.log({
+            //   newText
+            // })
+
+            // let newTab = {
+            //   ...t,
+            //   tabText: newText,
+            // }
+
+            return t
+          }
+
+          else {
+            return t
+          }
+          
+
+
+        }))
+        // setTabTextObj({
+        //   [tab.id]: documentResponse.text
+        // })
+      }    
+    }
+
+    getProjectTabText()
+  }, [sidebarItemId] )
+
+
+
+  function openProject() {
+    setOpenObjects(projects)
   }
+
+  function onOpenProject(projectId) {
+    console.log('onOpenProject', projectId)
+    setOpenProjectId(projectId)
+    setOpenObjects(undefined)
+  }
+
   
-
-  async function importTab() {
-    let tabText = ''
-    let tab = tabs.find(t => t['_id'] == sidebarItemId)
-
-    if (tab.googleDocsId) {
-      tabText = await fetch('api/document?documentid='+tab.googleDocsId)
-        .then(r => r.json())
-    
-      console.log('google doc text:', tabText)
-    }
-
-    let title = tabText.match(/-{10,}\r?\n?(.+)\r?\n?-{10,}/)[1]
-    console.log('doc title:', title)
-    let artistName = title.split(' - ')[0]
-    let songName = title.split(' - ')[1]
-    
-    tabText = tabText
-      .replace(title+'\r\n', '')
-      .replace(/-{76,77}\r?\n?/g, '')
-      .replace(/^ +$/m, '')
-      .replace(/^[\r\n]+/mg, '')
-
-    let createdTime = new Date()
-    if (googleTabs.map(t => t['_id']).includes(tab['googleDocsId'])) {
-      createdTime = googleTabs.find(t => t['_id'] == tab['googleDocsId']).createdTime
-    }
-
-    if(!userTabs.map(t => t['googleDocsId']).includes(tab.googleDocsId)) {
-      console.log('adding tab', tab)
-      addTab(artistName, songName, tab.googleDocsId, tabText, createdTime)
-    }
-    else {
-      let newUserTab = userTabs.find(t => t['googleDocsId'] == tab['googleDocsId'])
-      newUserTab = {
-        ...newUserTab,
-        artistName: artistName,
-        songName: songName,
-        tabText: tabText,
-      }
-      console.log('Caught one!', newUserTab)
-      setUserTabs(
-        userTabs.map(t => t['googleDocsId'] == tab['googleDocsId'] ? newUserTab : t)
-      )
-
-      saveTab(newUserTab)
-    }
-
-  }
-
-
-  async function exportTab() {
-    let tab = userTabs.find(t => t['_id'] == sidebarItemId)
-    // let sidebarTab = tab
-    console.log('exporting:', tab)
-    // let user = await fetch('api/user').then(r => r.json())
-    // let userId = user._id
-    // let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
-
-    let exportResponse = await fetch(`api/document`, {
-      method: 'POST',
-      body: JSON.stringify({
-        tab: tab,
-        // account: account,
-        // folder: user.folder,
-      })
-    }).then(r => r.json())  
-
-    console.log('exportResponse:', exportResponse)
-    // if (!tab['googleDocsId']) {
-    tab['googleDocsId'] = exportResponse['id']
-    userTabs = userTabs.map(t => {
-      if (t['_id'] == sidebarItemId) {
-        return tab
-      }
-      return t
-    })
-    setUserTabs(userTabs)
-
-    // saveTab(tab)
-
-    // setTabs(tabs)
-  }
-
-  async function saveTab(userTab) {
-    if (userTab == undefined) {
-      userTab = userTabs.find(t => t['_id'] == sidebarItemId)
-    }
-    // Remove _id field for saving to database
-
-    let userId = session?.data?.user_id
-    if (!userId) return;
-
-    let newUserTab = userTab
-    // if (newUserTab && newUserTab._id) {
-    //   delete newUserTab._id
-    // }
-    console.log('userTab', newUserTab, sidebarItemId)
-
-    // Last Modified Time
-    newUserTab['lastUpdatedTime'] = new Date()
-
-    let saveResponse = await fetch('api/tab', {
-      method: 'POST',
-      body: JSON.stringify(newUserTab)
-    }).then(r => r.json())
-    
-    console.log('saveResponse:', saveResponse)
-
-    let newUserTabs = userTabs
-    // let newGoogleTabs = googleTabs
-
-    if (saveResponse) {
-      exportTab()
-
-      // newUserTab['tabText'] = userTab.tabText
-      // newUserTab['_id'] = saveResponse?._id
-
-      newUserTabs = newUserTabs.map(t => {
-        if (t._id == newUserTab._id) {
-          return newUserTab
-        }
-        return t
-      })
-
-      setUserTabs(newUserTabs)
-      // setGoogleTabs(newGoogleTabs)
-    }
-
-    // If it hasn't been saved to Google yet, save it
-    // if (!newUserTab?.googleDocsId || newUserTab.googleDocsId == null) {
-    //   console.log('exporting new tab to docs:', newUserTab)
-
-    //   let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
-
-    //   let newGoogleTab = await fetch(`api/create`, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       tab: newUserTab,
-    //       account: account,
-    //       folder: user.folder,
-    //     })
-    //   }).then(r => r.json())  
-
-    //   console.log('new google tab:',  newGoogleTab)
-
-    //   newGoogleTabs = [newGoogleTab, ...googleTabs]
-
-    //   newUserTabs = newUserTabs.map(t => {
-    //     if (t.id == newUserTab.id) {
-    //       t['googleDocsId'] = newGoogleTab['id']
-    //     }
-    //     return t
-    //   })
-
-    // }
-  }
-
-  let deleteTab = async () => {
-    let tab = tabs.find(t => t._id == deleteTabId)
-    let deletedTab = await fetch(`/api/tab?id=${deleteTabId}`, {
-      method: 'DELETE',
-    }).then(r => r.json())
-
-    console.log('deleted:', deletedTab)
-    console.log('updating this tab:', tab)
-    
-    setUserTabs(
-      userTabs.filter(t => t._id != deleteTabId)
-    )
-
-    setDeleteTabId(null)
-  }
-
-
  return (
     <div className={styles.container}>
       <ConfirmDelete 
-        show={deleteTabId != null} 
-        item={tabs.find(t => t._id === deleteTabId)}
-        action={deleteTab}
+        // show={deleteTabId != null} 
+        // item={tabs.find(t => t._id === deleteTabId)}
+        // action={deleteTab}
         label={'delete'}
-        close={()=>setDeleteTabId(null)}
+        // close={()=>setDeleteTabId(null)}
+      />
+      <OpenObjectsWindow
+        openObjects={openObjects}
+        setOpenObjects={setOpenObjects}
+        // openObjectId={openProjectId}
+        // setOpenObjectId={setOpenProjectId}
+        // setPickObject={setEditObject}
+        onOpenObject={onOpenProject}
+        show={openObjects !== undefined}
       />
       <EditObjectWindow
         user={user}
@@ -314,85 +231,87 @@ export default function Library({ }) {
         setEditObject={setEditObject}
         show={editObject ?? false}
         subset={['artistName', 'songName', 'capo', 'tuning', 'bpm']}
-        save={saveTab}
+        // save={saveTab}
       />
-      <div className={styles['library-menu-bar']}>
-        <MenuBar 
-          setEditObject={setEditObject}
-          className={styles['library-menu-bar']} 
-          styles={menuBarStyles}
-          items={{
-            'file': [{
-                title: 'new tab',
-                onClick: () => addTab(),
-              },{
-                title: 'edit tab',
-                onClick: () => setEditObject(tabs.find(t => t._id === sidebarItemId)),
-              },{
-                title: 'save tab',
-                onClick: () => saveTab(tabs.find(t => t._id === sidebarItemId)),
-              }, {
-                title: 'delete tab',
-                onClick: () => setDeleteTabId(sidebarItemId)
+      <div className={styles['content']}>
+        <div className={styles['menu-bar-container']}>
+          <MenuBar 
+            setEditObject={setEditObject}
+            className={styles['menu-bar']} 
+            styles={menuBarStyles}
+            items={{
+              'file': [{
+                title: 'open project',
+                onClick: () => openProject(),
+              // },{
+                //   title: 'new tab',
+                //   onClick: () => addTab(),
+                // },{
+                //   title: 'edit tab',
+                //   onClick: () => setEditObject(tabs.find(t => t._id === sidebarItemId)),
+                // },{
+                //   title: 'save tab',
+                //   onClick: () => saveTab(tabs.find(t => t._id === sidebarItemId)),
+                // }, {
+                //   title: 'delete tab',
+                //   onClick: () => setDeleteTabId(sidebarItemId)
+                }
+              ],
+              sidebar: {
+                // title: 'show sidebar',
+                onClick: () => setShowSidebar(!!!showSidebar)
               }
-            ],
-            format: [{
-              title: 'format tab text',
-              onClick: () => {
-                console.log('format', userTabs, sidebarItemId)
-                setUserTabs(userTabs.map(t => {
-                  if (t._id === sidebarItemId) {
-                    return {
-                      ...t, 
-                      tabText: formatRawTabs(t.tabText)
-                    }
-                  }
-                  return t
-                }))
-              }
-            }],
-            'import': [
-              { 
-                title: 'import tab from Google Docs', 
-                // onClick: importTab,
-                // disabled: (mode=='view' || tab?.['googleDocsId'] == null),
-              }
-            ],
-          }}
-        />
-      </div>
+            }}
+          />
+          <div className={styles['project-name']}>
+            {openProjectId ? projects.find(p => p._id === openProjectId).name : 'no open project'}
+          </div>
+        </div>
         <div className={styles['sidebar']}>
-          <Sidebar
-            sidebarItems={projects}
+          {showSidebar ? <Sidebar
+            sidebarItems={tabs}
             setSidebarItems={setTabs}
             sidebarItemId={sidebarItemId}
             setSidebarItemId={setSidebarItemId}
+            searchFunction={d => d.id}
+            keyFunction={d => d.id}
             SidebarItemComponent={(datum) => {
+              if (!datum) return;
+
+              let artistName = datum['name'].split(' - ')[0]
+              let songName = datum['name'].split(' - ')[1]
               return (
-                <div style={{display: 'flex', flexDirection: 'column', width: '100%', height: '100%',}}>
+                <div style={{
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    width: '100%',
+                    height: '100%',
+                  }}>
                   <div style={{
                     width: '100%',
                   }}>
-                    {datum.name}
+                    {songName}
                   </div>
                   <div style={{
                     width: '100%',
                     fontSize: '0.8em'
                   }}>
-                    {datum.name}
+                    {artistName}
                   </div>
                 </div>
               )
             }}
-          />
+          /> : null}
         </div>
         <div className={styles['editor']}>
           <Editor
+            keyFunction={d=>d.id}
             tabs={tabs}
             setTabs={setTabs}
             tabId={sidebarItemId}
           />
-        </div>      
+        </div> 
+      </div>     
     </div>
   )
 }
