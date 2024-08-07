@@ -18,7 +18,7 @@ export default async function Login() {
   let session = await auth()
   // console.log('login session:', session)
 
-  if (session && session.status === 'authenticated') {
+  if (session && session.user) {
     redirect(`/profile`) // Navigate to the new post page
   }
 

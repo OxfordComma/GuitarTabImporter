@@ -63,27 +63,28 @@ export default function Library({ }) {
         })
       }
 
-      // In user's GDrive folder
-      if (googleTabs.length == 0 ) { 
-        setGoogleTabs([])
-        // fetch('/api/folder?folder=' + user.folder)
-        //   .then(r => r.json())
-        //   .then(newGoogleTabs => {
-        //     setGoogleTabs(newGoogleTabs)
-        // })
-      }    
+      // // In user's GDrive folder
+      // if (googleTabs.length == 0 ) { 
+      //   setGoogleTabs([])
+      //   // fetch('/api/folder?folder=' + user.folder)
+      //   //   .then(r => r.json())
+      //   //   .then(newGoogleTabs => {
+      //   //     setGoogleTabs(newGoogleTabs)
+      //   // })
+      // }    
     }
 
     getData()
   }, [] )
 
   useEffect( () => {
-    let googleTabsWithMetadata = googleTabs.map(g => formatFolderContents(g, user))
-    // console.log('googleTabsWithMetadata', googleTabsWithMetadata)
+    // let googleTabsWithMetadata = googleTabs.map(g => formatFolderContents(g, user))
+    // // console.log('googleTabsWithMetadata', googleTabsWithMetadata)
 
-    let userGoogleDocsIds = userTabs.map(t => t.googleDocsId).map(t => t)
-    let filteredGoogleTabs = googleTabsWithMetadata.filter(g => !userGoogleDocsIds.includes(g.googleDocsId) || g==null )
-    let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
+    // let userGoogleDocsIds = userTabs.map(t => t.googleDocsId).map(t => t)
+    // let filteredGoogleTabs = googleTabsWithMetadata.filter(g => !userGoogleDocsIds.includes(g.googleDocsId) || g==null )
+    // let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
+    let allTabs = userTabs
 
     // console.log('all tabs:', {
     //   userTabs,
@@ -102,7 +103,7 @@ export default function Library({ }) {
     // console.log('allTabs:', allTabs)
     setTabs(allTabs)
 
-  }, [userTabs, googleTabs, sidebarSortBy])
+  }, [userTabs, sidebarSortBy])
 
   // useEffect( () => { 
   //   // console.log('sidebar item id changed to:', sidebarItemId)

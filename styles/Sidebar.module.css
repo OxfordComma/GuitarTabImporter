@@ -53,6 +53,7 @@
 	flex-direction: row;
 	gap: 10px;
 	align-items: center;
+	border-bottom: 1px solid grey;
 }
 
 .sidebar-item:hover {
@@ -84,10 +85,10 @@
 	margin-left: auto;
 }
 
-.pinned-sidebar-items {
+.pinned-/*sidebar-items {
 	border: 1px solid gray;
 	background-color: #222222;
-}
+}*/
 
 .search-bar {
 	display: flex;

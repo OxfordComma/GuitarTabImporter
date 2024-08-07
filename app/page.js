@@ -8,6 +8,14 @@ import { redirect } from 'next/navigation'
 export default async function Home({
 
 }) {
+  let session = await auth()
+  console.log('main session:', session)
+
+  if (session && session.user) {
+    redirect(`/library`) // Navigate to the new post page
+  }
+
+
   return (
     <main className={styles['main']}>
       <div className={styles['content']}>
