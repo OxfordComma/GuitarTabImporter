@@ -191,8 +191,14 @@ export default function Library({ }) {
   }
 
 
-  async function exportTab() {
-    let tab = userTabs.find(t => t['_id'] == sidebarItemId)
+  async function exportTab(userTab) {
+    let tab
+    if (userTab) {
+      tab = userTab
+    }
+    else {
+      tab = userTabs.find(t => t['_id'] == sidebarItemId)
+    }
     // let sidebarTab = tab
     console.log('exporting:', tab)
     // let user = await fetch('api/user').then(r => r.json())
@@ -253,7 +259,7 @@ export default function Library({ }) {
     // let newGoogleTabs = googleTabs
 
     if (saveResponse) {
-      exportTab()
+      exportTab(saveResponse)
 
       // newUserTab['tabText'] = userTab.tabText
       // newUserTab['_id'] = saveResponse?._id
@@ -362,6 +368,10 @@ export default function Library({ }) {
                   title: 'save tab',
                   onClick: () => saveTab(tabs.find(t => t._id === sidebarItemId)),
                 }, {
+                  title: 'open tab',
+                  onClick: () => window.open(`https://docs.google.com/document/d/${tabs.find(t => t._id === sidebarItemId).googleDocsId}/edit` ),
+                  disabled: !( tabs.find(t => t._id === sidebarItemId)?.googleDocsId )
+                }, {
                   title: 'delete tab',
                   onClick: () => setDeleteTabId(sidebarItemId)
                 }
@@ -404,7 +414,7 @@ export default function Library({ }) {
               // ],
             }}
           />
-          {showSidebar ? <div className={styles['sidebar-sort-by']} 
+          {showSidebar ? <div className={styles['menu-bar-label']} 
             onClick={() => {
               setSidebarSortBy(
                 sidebarSortBy.search('asc') > -1 ? 

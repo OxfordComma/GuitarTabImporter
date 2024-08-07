@@ -72,7 +72,7 @@ export default function Editor ({
 
   useEffect(() => {
     if (!tabId) return;
-    console.log('set tabs', tabs, tabId, tabText)
+    // console.log('set tabs', tabs, tabId, tabText)
     setTabs(tabs.map(t => keyFunction(t) === tabId ? { ...t, tabText: tabText } : t))
   }, [tabText])
 
