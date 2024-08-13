@@ -216,15 +216,18 @@ export default function Library({ }) {
     }).then(r => r.json())  
 
     console.log('exportResponse:', exportResponse)
-    // if (!tab['googleDocsId']) {
-    tab['googleDocsId'] = exportResponse['id']
-    userTabs = userTabs.map(t => {
-      if (t['_id'] == sidebarItemId) {
-        return tab
-      }
-      return t
-    })
-    setUserTabs(userTabs)
+
+    return exportResponse
+    
+    // // if (!tab['googleDocsId']) {
+    // tab['googleDocsId'] = exportResponse['id']
+    // userTabs = userTabs.map(t => {
+    //   if (t['_id'] == sidebarItemId) {
+    //     return tab
+    //   }
+    //   return t
+    // })
+    // setUserTabs(userTabs)
 
     // saveTab(tab)
 
@@ -249,6 +252,17 @@ export default function Library({ }) {
     // Last Modified Time
     newUserTab['lastUpdatedTime'] = new Date()
 
+    let exportResponse = await exportTab(newUserTab)
+    newUserTab['googleDocsId'] = exportResponse['id']
+
+    // userTabs = userTabs.map(t => {
+    //   if (t['_id'] == sidebarItemId) {
+    //     return tab
+    //   }
+    //   return t
+    // })
+
+
     let saveResponse = await fetch('api/tab', {
       method: 'POST',
       body: JSON.stringify(newUserTab)
@@ -260,7 +274,7 @@ export default function Library({ }) {
     // let newGoogleTabs = googleTabs
 
     if (saveResponse) {
-      exportTab(saveResponse)
+      // exportTab(saveResponse)
 
       // newUserTab['tabText'] = userTab.tabText
       // newUserTab['_id'] = saveResponse?._id
@@ -322,7 +336,7 @@ export default function Library({ }) {
   }
 
   function formatTabText() {
-    // console.log('format', userTabs, sidebarItemId)
+    console.log('format', userTabs, sidebarItemId)
     setUserTabs(userTabs.map(t => {
       if (t._id === sidebarItemId) {
         return {
@@ -371,7 +385,7 @@ export default function Library({ }) {
                 }, {
                   title: 'open tab',
                   onClick: () => window.open(`https://docs.google.com/document/d/${tabs.find(t => t._id === sidebarItemId).googleDocsId}/edit` ),
-                  disabled: !( tabs.find(t => t._id === sidebarItemId)?.googleDocsId )
+                  disabled: !(tabs.find(t => t._id === sidebarItemId) && tabs.find(t => t._id === sidebarItemId).googleDocsId !== null )
                 }, {
                   title: 'delete tab',
                   onClick: () => setDeleteTabId(sidebarItemId)
@@ -456,9 +470,10 @@ export default function Library({ }) {
         </div>
         <div className={styles['editor']}>
           <Editor
-            tabs={tabs}
-            setTabs={setTabs}
+            tabs={userTabs}
+            setTabs={setUserTabs}
             tabId={sidebarItemId}
+            keyFunction={d => d._id}
           />
         </div>   
       </div>   

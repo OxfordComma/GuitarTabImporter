@@ -44,7 +44,7 @@ export default function Sidebar ({
 
   useEffect(() => {
     let newSidebarItems = sidebarItems
-      .filter(item => searchFunction(item).toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter(item => searchFunction(item)?.toLowerCase()?.includes(searchTerm.toLowerCase()))
 
     if (pinnedItems) {
       newSidebarItems = newSidebarItems
