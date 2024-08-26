@@ -22,7 +22,7 @@ import { formatRawTabs } from 'lib/tabhelper.js'
 export default function Library({ }) {
   const session = useSession()
 
-  let [tabs, setTabs] = useState([])
+  // let [tabs, setTabs] = useState([])
 
   let {
     userTabs, setUserTabs,
@@ -45,6 +45,7 @@ export default function Library({ }) {
   let [createNewSidebarItem, setCreateNewSidebarItem] = useState(false)
   let [showSidebar, setShowSidebar] = useState(true)
   // let [showSidebarSearchBar, setShowSidebarSearchBar] = useState(false)
+  const [columns, setColumns] = useState(1)
 
   // Fetch user data on startup
   useEffect( () => {
@@ -58,7 +59,14 @@ export default function Library({ }) {
         fetch('/api/tabs?userid=' + session.data.user_id)
           .then(r => r.json())
           .then(newUserTabs => { 
-            console.log('userTabs:', newUserTabs)
+            // console.log('userTabs:', newUserTabs)
+            newUserTabs = newUserTabs.map((at, i) => {
+              at['index'] = i
+              return at
+            })
+
+            newUserTabs = sortTabs(newUserTabs, sidebarSortBy)
+
             setUserTabs(newUserTabs)
         })
       }
@@ -78,32 +86,32 @@ export default function Library({ }) {
   }, [] )
 
   useEffect( () => {
-    // let googleTabsWithMetadata = googleTabs.map(g => formatFolderContents(g, user))
-    // // console.log('googleTabsWithMetadata', googleTabsWithMetadata)
+  //   // let googleTabsWithMetadata = googleTabs.map(g => formatFolderContents(g, user))
+  //   // // console.log('googleTabsWithMetadata', googleTabsWithMetadata)
 
-    // let userGoogleDocsIds = userTabs.map(t => t.googleDocsId).map(t => t)
-    // let filteredGoogleTabs = googleTabsWithMetadata.filter(g => !userGoogleDocsIds.includes(g.googleDocsId) || g==null )
-    // let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
-    let allTabs = userTabs
+  //   // let userGoogleDocsIds = userTabs.map(t => t.googleDocsId).map(t => t)
+  //   // let filteredGoogleTabs = googleTabsWithMetadata.filter(g => !userGoogleDocsIds.includes(g.googleDocsId) || g==null )
+  //   // let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
+    let newUserTabs = userTabs
 
-    // console.log('all tabs:', {
-    //   userTabs,
-    //   googleTabsWithMetadata,
-    //   userGoogleDocsIds,
-    //   filteredGoogleTabs,
-    //   allTabs,
-    // })
+  //   // console.log('all tabs:', {
+  //   //   userTabs,
+  //   //   googleTabsWithMetadata,
+  //   //   userGoogleDocsIds,
+  //   //   filteredGoogleTabs,
+  //   //   allTabs,
+  //   // })
 
-    allTabs = allTabs.map((at, i) => {
-      at['index'] = i
-      return at
-    })
+  //   // newUserTabs = newUserTabs.map((at, i) => {
+  //   //   at['index'] = i
+  //   //   return at
+  //   // })
 
-    allTabs = sortTabs(allTabs, sidebarSortBy)
-    // console.log('allTabs:', allTabs)
-    setTabs(allTabs)
+    newUserTabs = sortTabs(newUserTabs, sidebarSortBy)
+  //   // console.log('newUserTabs:', newUserTabs)
+    setUserTabs(newUserTabs)
 
-  }, [userTabs, sidebarSortBy])
+  }, [sidebarSortBy])
 
   // useEffect( () => { 
   //   // console.log('sidebar item id changed to:', sidebarItemId)
@@ -133,8 +141,8 @@ export default function Library({ }) {
       bpm: 0,
     }
     
-    setUserTabs([newTab, ...userTabs])
-    setSidebarItemId(newTab._id)
+    // setUserTabs([newTab, ...userTabs])
+    // setSidebarItemId(newTab._id)
     setEditObject(newTab)
     // setEditTab()
     // setIsNewTab(true)
@@ -267,8 +275,10 @@ export default function Library({ }) {
       method: 'POST',
       body: JSON.stringify(newUserTab)
     }).then(r => r.json())
+
+    // newUserTab = saveResponse
     
-    console.log('saveResponse:', saveResponse)
+    console.log('saveResponse:', saveResponse, userTabs)
 
     let newUserTabs = userTabs
     // let newGoogleTabs = googleTabs
@@ -278,13 +288,17 @@ export default function Library({ }) {
 
       // newUserTab['tabText'] = userTab.tabText
       // newUserTab['_id'] = saveResponse?._id
-
-      newUserTabs = newUserTabs.map(t => {
-        if (t._id == newUserTab._id) {
-          return newUserTab
-        }
-        return t
-      })
+      if (('_id' in saveResponse) && newUserTabs.map(t => t._id).includes(saveResponse._id)) {
+        newUserTabs = newUserTabs.map(t => {
+          if (t._id == saveResponse._id) {
+            return saveResponse
+          }
+          return t
+        })
+      }
+      else {
+        newUserTabs = [saveResponse, ...newUserTabs]
+      }  
 
       setUserTabs(newUserTabs)
       // setGoogleTabs(newGoogleTabs)
@@ -320,7 +334,8 @@ export default function Library({ }) {
   }
 
   let deleteTab = async () => {
-    let tab = tabs.find(t => t._id == deleteTabId)
+    console.log('deleting:', deleteTabId)
+    let tab = userTabs.find(t => t._id == deleteTabId)
     let deletedTab = await fetch(`/api/tab?id=${deleteTabId}`, {
       method: 'DELETE',
     }).then(r => r.json())
@@ -353,7 +368,7 @@ export default function Library({ }) {
     <div className={styles.container}>
       <ConfirmDelete 
         show={deleteTabId != null} 
-        item={tabs.find(t => t._id === deleteTabId)}
+        item={userTabs.find(t => t._id === deleteTabId)}
         action={deleteTab}
         label={'delete'}
         close={()=>setDeleteTabId(null)}
@@ -378,19 +393,23 @@ export default function Library({ }) {
                   onClick: () => addTab(),
                 },{
                   title: 'edit tab',
-                  onClick: () => setEditObject(tabs.find(t => t._id === sidebarItemId)),
+                  onClick: () => setEditObject(userTabs.find(t => t._id === sidebarItemId)),
                 },{
                   title: 'save tab',
-                  onClick: () => saveTab(tabs.find(t => t._id === sidebarItemId)),
+                  onClick: () => saveTab(userTabs.find(t => t._id === sidebarItemId)),
                 }, {
                   title: 'open tab',
-                  onClick: () => window.open(`https://docs.google.com/document/d/${tabs.find(t => t._id === sidebarItemId).googleDocsId}/edit` ),
-                  disabled: !(tabs.find(t => t._id === sidebarItemId) && tabs.find(t => t._id === sidebarItemId).googleDocsId !== null )
+                  onClick: () => window.open(`https://docs.google.com/document/d/${userTabs.find(t => t._id === sidebarItemId).googleDocsId}/edit` ),
+                  disabled: !(userTabs.find(t => t._id === sidebarItemId) && userTabs.find(t => t._id === sidebarItemId).googleDocsId !== null )
                 }, {
                   title: 'delete tab',
                   onClick: () => setDeleteTabId(sidebarItemId)
                 }
               ],
+              view: [{
+                title: 'two column mode',
+                onClick: () => setColumns(columns === 2 ? 1 : 2),
+              }],
               format: [{
                 title: 'format tab text',
                 onClick: () => formatTabText(),
@@ -403,7 +422,7 @@ export default function Library({ }) {
                   title: 'sort by song name',
                   onClick: () => sidebarSortBy == 'songName ascending' ? setSidebarSortBy('songName descending') : setSidebarSortBy('songName ascending')
                 }, {
-                  title: 'sort by created date',
+                  title: 'sort by created time',
                   onClick: () => sidebarSortBy == 'createdTime descending' ? setSidebarSortBy('createdTime ascending') : setSidebarSortBy('createdTime descending')
                 }, {
                   title: 'sort by capo',
@@ -445,10 +464,11 @@ export default function Library({ }) {
         </div>
         <div className={styles['sidebar']}>
           {showSidebar ? <Sidebar
-            sidebarItems={tabs}
-            setSidebarItems={setTabs}
+            sidebarItems={userTabs}
+            setSidebarItems={setUserTabs}
             sidebarItemId={sidebarItemId}
             setSidebarItemId={setSidebarItemId}
+            keyFunction={d => d._id}
             SidebarItemComponent={(datum) => {
               return (
                 <div style={{display: 'flex', flexDirection: 'column', width: '100%', height: '100%',}}>
@@ -474,6 +494,7 @@ export default function Library({ }) {
             setTabs={setUserTabs}
             tabId={sidebarItemId}
             keyFunction={d => d._id}
+            columns={columns}
           />
         </div>   
       </div>   

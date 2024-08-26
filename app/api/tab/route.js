@@ -76,9 +76,9 @@ export async function DELETE(request, { params }) {
 	// let body = await request.json()
 	const searchParams = request.nextUrl.searchParams
 
-	const id = searchParams.get('id')
+	const _id = searchParams.get('id')
 
-	if (!id) 
+	if (!_id) 
 	  return Response.json({ }, { status: 500 })
 
 	let mongoClient = await clientPromise
@@ -87,7 +87,7 @@ export async function DELETE(request, { params }) {
 	let tabs = await db.collection('tabs')
 
 	var tab = await tabs.findOneAndDelete({ 
-		id: id
+		_id: new ObjectId(_id)
 	})
 
 	return Response.json(

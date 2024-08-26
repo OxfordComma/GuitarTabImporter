@@ -21,9 +21,9 @@ export default function Editor ({
   // setEditTab,
   // importTab,
   // exportTab,
+  columns=1,
 }) {
   const [fontSize, setFontSize] = useState(12)
-  const [columns, setColumns] = useState(1)
 
   const [tab, setTab] = useState(tabs.find(t => keyFunction(t) == tabId))
   const [tabText, setTabText] = useState('')
@@ -36,6 +36,7 @@ export default function Editor ({
     let newTab = tabs.find(t => keyFunction(t) === tabId)
     // console.log('newTab', newTab, tabId, tabs)
     setTabText(newTab?.tabText ?? '');
+    setTab(newTab)
   }, [tabId, tabs])
 
   // useEffect(() => {
@@ -111,14 +112,19 @@ export default function Editor ({
     setShowSidebar(!showSidebar)
   }
 
-  let toggleTwoColumns = () => {
-    console.log('toggling columns', columns)
-    setColumns(columns === 2 ? 1 : 2)
-  }
+  // let toggleTwoColumns = () => {
+  //   console.log('toggling columns', columns)
+  //   setColumns(columns === 2 ? 1 : 2)
+  // }
 
 
   let lineDelim = /\r|\r\n|\n/
   let numLines = tab?.tabText.split(lineDelim).length;
+  let halfLines = parseInt(numLines/2);
+  
+  // console.log({
+  //   tabs, tab, numLines
+  // })
 
 
   return (
@@ -142,7 +148,7 @@ export default function Editor ({
                 tabText={
                   tabText ?  
                     tabText.split(lineDelim).slice(
-                      0, parseInt(numLines/2)
+                      0, halfLines
                     ).join('\n') :
                     ''
                 }  
@@ -155,7 +161,7 @@ export default function Editor ({
                 tabText={
                   tabText ?  
                     tabText.split(lineDelim).slice(
-                      parseInt(numLines/2)
+                      halfLines
                     ).join('\n') :
                     ''
                 }  
