@@ -18,7 +18,6 @@ import { useState, useEffect, useContext } from 'react'
 import { formatRawTabs } from 'lib/tabhelper.js'
 
 
-
 export default function Library({ }) {
   const session = useSession()
 
@@ -32,6 +31,7 @@ export default function Library({ }) {
   } = useContext(TabsContext)
 
   let [sidebarItemId, setSidebarItemId] = useState(null)
+  let [tabs, setTabs] = useState([])
   let [user, setUser] = useState(null)
   
   let [editTab, setEditTab] = useState(null)
@@ -84,18 +84,18 @@ export default function Library({ }) {
         fetch('/api/folder?id=' + profile.libraryFolder)
           .then(r => r.json())
           .then(newGoogleTabs => {
-            newGoogleTabs = sortTabs(newGoogleTabs, 'name ascending')
+            // newGoogleTabs = sortTabs(newGoogleTabs, 'name ascending')
             
-            newGoogleTabs = newGoogleTabs.map(formatFolderContents)
+            // newGoogleTabs = newGoogleTabs.map(formatFolderContents)
 
-            newGoogleTabs = newGoogleTabs.map(g => {
-              return {
-                ...g,
-                ...tempUserTabs.find(u => u.googleDocsId === g.googleDocsId),
-              }
-            })
+            // newGoogleTabs = newGoogleTabs.map(g => {
+            //   return {
+            //     ...g,
+            //     ...tempUserTabs.find(u => u.googleDocsId === g.googleDocsId),
+            //   }
+            // })
 
-            console.log('ngt', newGoogleTabs)
+            // console.log('ngt', newGoogleTabs)
 
             setGoogleTabs(newGoogleTabs)
         })
@@ -105,6 +105,34 @@ export default function Library({ }) {
     getData()
   }, [] )
 
+
+  useEffect( () => {
+    let newGoogleTabs = googleTabs.map(formatFolderContents).filter(gt => !userTabs.map(t => t.id).includes(gt.id) )
+    let newUserTabs = userTabs
+    let newTabs = sortTabs([
+      ...newUserTabs,
+      ...newGoogleTabs
+    ], sidebarSortBy)
+            
+
+    // newGoogleTabs = newGoogleTabs.map(g => {
+    //   return {
+    //     ...g,
+    //     ...tempUserTabs.find(u => u.googleDocsId === g.googleDocsId),
+    //   }
+    // })
+
+    // console.log('ngt', newGoogleTabs)
+    if (userTabs.length > 0 && googleTabs.length > 0) {
+      setTabs(
+        newTabs
+      )
+    }
+    
+
+  }, [userTabs, googleTabs, sidebarSortBy])
+  
+
   useEffect( () => {
   //   // let googleTabsWithMetadata = googleTabs.map(g => formatFolderContents(g, user))
   //   // // console.log('googleTabsWithMetadata', googleTabsWithMetadata)
@@ -112,24 +140,25 @@ export default function Library({ }) {
   //   // let userGoogleDocsIds = userTabs.map(t => t.googleDocsId).map(t => t)
   //   // let filteredGoogleTabs = googleTabsWithMetadata.filter(g => !userGoogleDocsIds.includes(g.googleDocsId) || g==null )
   //   // let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
-    let newGoogleTabs = googleTabs
+  //   let newGoogleTabs = googleTabs
 
-  //   // console.log('all tabs:', {
-  //   //   userTabs,
-  //   //   googleTabsWithMetadata,
-  //   //   userGoogleDocsIds,
-  //   //   filteredGoogleTabs,
-  //   //   allTabs,
-  //   // })
+  // //   // console.log('all tabs:', {
+  // //   //   userTabs,
+  // //   //   googleTabsWithMetadata,
+  // //   //   userGoogleDocsIds,
+  // //   //   filteredGoogleTabs,
+  // //   //   allTabs,
+  // //   // })
 
-  //   // newUserTabs = newUserTabs.map((at, i) => {
-  //   //   at['index'] = i
-  //   //   return at
-  //   // })
+  // //   // newUserTabs = newUserTabs.map((at, i) => {
+  // //   //   at['index'] = i
+  // //   //   return at
+  // //   // })
 
-    newGoogleTabs = sortTabs(newGoogleTabs, sidebarSortBy)
-  //   // console.log('newUserTabs:', newUserTabs)
-    setGoogleTabs(newGoogleTabs)
+  //   newGoogleTabs = sortTabs(newGoogleTabs, sidebarSortBy)
+  // //   // console.log('newUserTabs:', newUserTabs)
+  //   setGoogleTabs(newGoogleTabs)
+
 
   }, [sidebarSortBy])
 
@@ -137,7 +166,6 @@ export default function Library({ }) {
     console.log('sidebar item id changed to:', sidebarItemId)
 
   }, [sidebarItemId] )
-
 
 
   async function addTab(googleDocsId=null, tabText='', createdTime=new Date() ) {
@@ -371,6 +399,7 @@ export default function Library({ }) {
     setDeleteTabId(null)
   }
 
+
   function formatTabText() {
     console.log('format', userTabs, sidebarItemId)
     setUserTabs(userTabs.map(t => {
@@ -488,7 +517,7 @@ export default function Library({ }) {
         </div>
         <div className={styles['sidebar']}>
           {showSidebar ? <Sidebar
-            sidebarItems={googleTabs}
+            sidebarItems={tabs}
             setSidebarItems={() => {}}
             sidebarItemId={sidebarItemId}
             setSidebarItemId={setSidebarItemId}
@@ -516,7 +545,7 @@ export default function Library({ }) {
         </div>
         <div className={styles['editor']}>
           <Editor
-            tabs={googleTabs}
+            tabs={tabs}
             setTabs={() => {}}
             tabId={sidebarItemId}
             keyFunction={d => d.id}

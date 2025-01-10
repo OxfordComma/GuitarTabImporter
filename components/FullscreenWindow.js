@@ -13,10 +13,10 @@ export default function FullscreenWindow({
       {content}
       
       <div style={{display: 'flex', justifyContent: 'right', height: '25px', 'marginTop': 'auto'}}>
-        <label for='action'></label>
+        <label htmlFor='action'></label>
         <button name='action' onClick={action}>{actionLabel}</button>
 
-        <label for='action'></label>
+        <label htmlFor='action'></label>
         <button name='close' onClick={close}>close</button>
        </div>
     </div>
