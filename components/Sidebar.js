@@ -19,16 +19,16 @@ export default function Sidebar ({
     createNewSidebarItem=false,
     setCreateNewSidebarItem=()=>{},
     search=false,
-    searchFunction= d => d._id,
     keyFunction = d => d._id,
+    searchFunction = keyFunction,
+    pinnedItemFunction= keyFunction,
+    setPinnedItems,
     itemIsEnabled = d => true,
     SidebarItemComponent,
     menuBar,
     onClickSidebarItem = () => {},
     addSidebarItem,
     pinnedItems,
-    setPinnedItems,
-    pinnedItemFunction= d => d._id,
   }) {
   let [filteredSidebarItems, setFilteredSidebarItems] = useState(sidebarItems)
   let [pinnedSidebarItems, setPinnedSidebarItems] = useState(pinnedItems?.map(p => sidebarItems.find(s => keyFunction(s) == p)) ?? [])

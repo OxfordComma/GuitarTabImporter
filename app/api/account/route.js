@@ -15,23 +15,22 @@ export async function GET(request, { params }) {
   	if (!searchParams.get('id')) 
 		  return Response.json({ })
 
-		let mongoClient = await clientPromise
+	let mongoClient = await clientPromise
 
-		var db = await mongoClient.db('tabr')
-		// console.log('db:', db)
-		var accounts = await db.collection('accounts')
-		var account = await accounts.findOne({ 
-			userId: searchParams.get('id'),
-		})
-		// console.log(account)
-	  return Response.json({
-	  	...account,
-      client_id: process.env.AUTH_GOOGLE_ID,
-      api_key: process.env.AUTH_GOOGLE_API_KEY,
-  	})
-
-
-  return Response.json({ })
+	var db = await mongoClient.db('tabr')
+	// console.log('db:', db)
+	var accounts = await db.collection('accounts')
+	var account = await accounts.findOne({ 
+		userId: new ObjectId(searchParams.get('id')),
+		provider: 'google'
+	})
+	// console.log(account)
+	return Response.json({
+	...account,
+	client_id: process.env.AUTH_GOOGLE_ID,
+	api_key: process.env.AUTH_GOOGLE_API_KEY,
+	})
+//   return Response.json({ })
 }
 
 export async function POST(request, { params }) {
@@ -59,7 +58,8 @@ export async function POST(request, { params }) {
 
 
 	var update = await accounts.findOneAndUpdate({ 
-			userId: session.user_id,
+			userId: new ObjectId(session.user_id),
+			provider: 'google'
 		}, {'$set':{ 
 			...body,
 		}}, { 

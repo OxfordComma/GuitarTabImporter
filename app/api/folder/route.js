@@ -7,21 +7,21 @@ export async function GET(request, { params }) {
 
 	const session = await auth()
 
-  let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
-  console.log('fetched account', account)
-  let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-  console.log('fetched profile', profile)
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+	console.log('fetched account', account)
+	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
+	console.log('fetched profile', profile)
 	let searchParams = request.nextUrl.searchParams
 	console.log('searchParams', searchParams)
-  // let body = await request.json()
-  // console.log('get folder body', body)
+	// let body = await request.json()
+	// console.log('get folder body', body)
 
-  if (!searchParams.get('id')) {
+	if (!searchParams.get('id')) {
 		return Response.json({ })
 	}
   
 
-  const oauth2Client = new google.auth.OAuth2(
+	const oauth2Client = new google.auth.OAuth2(
 		process.env.AUTH_GOOGLE_ID, 
 		process.env.AUTH_GOOGLE_SECRET
 	);
