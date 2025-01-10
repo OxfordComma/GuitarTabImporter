@@ -63,15 +63,16 @@ export function Context({ children }) {
 		let draft = fc['name'].match('[DRAFT]') == null
 		let holiday = fc['name'].match('[HOLIDAY]') == null
 		let artistName = fc['name'].split(' - ')[0]
-		.replace('\[DRAFT\] ', '')
-		.replace('\[HOLIDAY\] ', '')
+			.replace('\[DRAFT\] ', '')
+			.replace('\[HOLIDAY\] ', '')
 		let uri = fc['name'].match('\{(.+)\}')
 		// To avoid repeating the regex
 		if (uri) uri = uri[1]
 		let songName = fc['name'].split(' - ')[1].replace(`\{${uri}\}`, '') 
-		let googleDocsId = fc.shortcutDetails?.targetId != undefined ? 
-		fc.shortcutDetails.targetId : 
-		fc.id
+		let googleDocsId = fc.id
+		// let googleDocsId = fc.shortcutDetails?.targetId !== undefined ? 
+		// 	fc.shortcutDetails.targetId : 
+		// 	undefined
 
 
 		return {
@@ -85,7 +86,7 @@ export function Context({ children }) {
 			artistName: artistName,
 			uri: uri,
 			songName: songName,
-			createdTime: new Date(fc['createdTime']),
+			createdTime: new Date(fc.createdTime),
 			starred: fc['starred'],
 			capo: 0,
 			tuning: 'EADGBe',
