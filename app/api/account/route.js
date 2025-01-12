@@ -8,12 +8,12 @@ export async function GET(request, { params }) {
 		// request,
 		params
 	})
-		const session = await auth()
-		console.log('get user account:', session)
-		const searchParams = request.nextUrl.searchParams
+	const session = await auth()
+	console.log('get user account:', session)
+	const searchParams = request.nextUrl.searchParams
   	
   	if (!searchParams.get('id')) 
-		  return Response.json({ })
+		return Response.json({ })
 
 	let mongoClient = await clientPromise
 
@@ -26,9 +26,9 @@ export async function GET(request, { params }) {
 	})
 	// console.log(account)
 	return Response.json({
-	...account,
-	client_id: process.env.AUTH_GOOGLE_ID,
-	api_key: process.env.AUTH_GOOGLE_API_KEY,
+		...account,
+		client_id: process.env.AUTH_GOOGLE_ID,
+		api_key: process.env.AUTH_GOOGLE_API_KEY,
 	})
 //   return Response.json({ })
 }

@@ -81,7 +81,7 @@ export default function Library({ }) {
         let profile = await fetch(`${''}/api/profile?id=${session.data.user_id}`).then(r => r.json())
 	      console.log('fetched profile', profile)
 	
-        fetch('/api/folder?id=' + profile.libraryFolder)
+        fetch('/api/folder?id=' + profile.folder)
           .then(r => r.json())
           .then(newGoogleTabs => {
             // newGoogleTabs = sortTabs(newGoogleTabs, 'name ascending')
@@ -459,10 +459,10 @@ export default function Library({ }) {
                   onClick: () => importTab(sidebarItemId),
                 },{
                   title: 'edit tab',
-                  onClick: () => setEditObject(userTabs.find(t => t._id === sidebarItemId)),
+                  onClick: () => setEditObject(userTabs.find(t => t.id === sidebarItemId)),
                 },{
                   title: 'save tab',
-                  onClick: () => saveTab(userTabs.find(t => t._id === sidebarItemId)),
+                  onClick: () => saveTab(userTabs.find(t => t.id === sidebarItemId)),
                 }, {
                   title: 'open tab',
                   onClick: () => window.open(`https://docs.google.com/document/d/${userTabs.find(t => t.id === sidebarItemId).googleDocsId}/edit` ),

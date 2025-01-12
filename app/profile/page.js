@@ -48,15 +48,15 @@ export default function Profile(props) {
   	async function updateAccount() {
   		let sessionData = session.data
   		// console.log('sessionData', sessionData)
-	  		if (sessionData.user_id) {
-		  		let accountResponse = await fetch(`/api/account?id=${sessionData.user_id}`).then(r => r.json())
-			  	// console.log('account:', accountResponse)
+		if (sessionData.user_id) {
+			let accountResponse = await fetch(`/api/account?id=${sessionData.user_id}`).then(r => r.json())
+			// console.log('account:', accountResponse)
 
-			  	if (accountResponse) {
-			  		setAccount(accountResponse)
-			  	}
-			}	
-		}
+			if (accountResponse) {
+				setAccount(accountResponse)
+			}
+		}	
+	}
 
   	updateAccount();
   	
@@ -71,52 +71,52 @@ export default function Profile(props) {
   	let existingFolders = await fetch(`/api/folder?id=${profile.folder}`).then(r => r.json())
 
   	console.log('existingFolders', existingFolders)
-  	let libraryFolder = existingFolders.find(f => f.name === 'Library' && f.mimeType === 'application/vnd.google-apps.folder')?.id
-  	let projectsFolder = existingFolders.find(f => f.name === 'Projects' && f.mimeType === 'application/vnd.google-apps.folder')?.id
+  	// let libraryFolder = existingFolders.find(f => f.name === 'Library' && f.mimeType === 'application/vnd.google-apps.folder')?.id
+  	// let projectsFolder = existingFolders.find(f => f.name === 'Projects' && f.mimeType === 'application/vnd.google-apps.folder')?.id
 
-  	// Create folders in selected folder
-  	if (libraryFolder) {
-  		// libraryFolder
-  	}
-  	else {
-	  	let createLibrary = await fetch(`/api/folder`, {
-	  		method: 'POST',
-	  		body: JSON.stringify({
-	  			name: 'Library',
-	  			parent_folder: profile.folder 
-	  		})
-	  	}).then(r => r.json())
-	  	console.log('createLibrary', createLibrary)
-	  	libraryFolder = createLibrary.data.id
-  	}
+  	// // Create folders in selected folder
+  	// if (libraryFolder) {
+  	// 	// libraryFolder
+  	// }
+  	// else {
+	//   	let createLibrary = await fetch(`/api/folder`, {
+	//   		method: 'POST',
+	//   		body: JSON.stringify({
+	//   			name: 'Library',
+	//   			parent_folder: profile.folder 
+	//   		})
+	//   	}).then(r => r.json())
+	//   	console.log('createLibrary', createLibrary)
+	//   	libraryFolder = createLibrary.data.id
+  	// }
 
-  	// Create folders in selected folder
-  	if (projectsFolder) {
+  	// // Create folders in selected folder
+  	// if (projectsFolder) {
 
-  	}
-  	else {
-	  	let createProjects = await fetch(`/api/folder`, {
-	  		method: 'POST',
-	  		body: JSON.stringify({
-	  			name: 'Projects',
-	  			parent_folder: profile.folder 
-	  		})
-	  	}).then(r => r.json())
-	  	console.log('createProjects', createProjects)
-	  	projectsFolder = createProjects.data.id
-  	}
+  	// }
+  	// else {
+	//   	let createProjects = await fetch(`/api/folder`, {
+	//   		method: 'POST',
+	//   		body: JSON.stringify({
+	//   			name: 'Projects',
+	//   			parent_folder: profile.folder 
+	//   		})
+	//   	}).then(r => r.json())
+	//   	console.log('createProjects', createProjects)
+	//   	projectsFolder = createProjects.data.id
+  	// }
 
-  	console.log({
-  		libraryFolder,
-  		projectsFolder
-  	})
+  	// console.log({
+  	// 	libraryFolder,
+  	// 	projectsFolder
+  	// })
 
   	let profileUpdate = await fetch('/api/profile', { 
   		method: 'POST',
   		body: JSON.stringify({
   			id: session.data.user_id,
-  			libraryFolder: libraryFolder,
-  			projectsFolder: projectsFolder,
+  			// libraryFo/lder: libraryFolder,
+  			// projectsFolder: projectsFolder,
   			...profile
   		})
   	}).then(r => r.json())
