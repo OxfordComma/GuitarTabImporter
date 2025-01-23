@@ -169,7 +169,7 @@ export default function Profile(props) {
 							: null
 						) : null
 					}
-					<PickerButton account={account} onPick={onPickFolder}/>
+					<PickerButton account={account} profile={profile} onPick={onPickFolder}/>
 				</div>
 				<div className={styles['profile-row']}>
 					<label className={styles['profile-row-label']} htmlFor="instrument-select">Default Instruments</label>

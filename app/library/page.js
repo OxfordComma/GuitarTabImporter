@@ -21,8 +21,6 @@ import { formatRawTabs } from 'lib/tabhelper.js'
 export default function Library({ }) {
   const session = useSession()
 
-  // let [tabs, setTabs] = useState([])
-
   let {
     userTabs, setUserTabs,
     googleTabs, setGoogleTabs,
@@ -50,6 +48,7 @@ export default function Library({ }) {
   // Fetch user data on startup
   useEffect( () => {
     async function getData() {
+
       if (!session?.data?.user_id) {
         console.log('no userId')
         return
@@ -127,7 +126,7 @@ export default function Library({ }) {
     // })
 
     console.log('new tabs', newTabs)
-    if (userTabs.length > 0 && googleTabs.length > 0) {
+    if (newTabs.length > 0) {
       setTabs(
         newTabs
       )
@@ -416,7 +415,7 @@ export default function Library({ }) {
   function formatTabText() {
     console.log('format', userTabs, sidebarItemId)
     setUserTabs(userTabs.map(t => {
-      if (t._id === sidebarItemId) {
+      if (t.id === sidebarItemId) {
         return {
           ...t, 
           tabText: formatRawTabs(t.tabText)

@@ -43,25 +43,27 @@ export async function GET(request, { params }) {
 	const fileList = [];
 
 	let NextPageToken = "";
-  do {
-    const params = {
-      q: `'${searchParams.get('id')}' in parents and trashed=false`,
-      pageToken: NextPageToken || "",
-      pageSize: 1000,
-      fields: "nextPageToken, files(id, name, starred, createdTime, mimeType, shortcutDetails)",
-			// mimeType: 'application/vnd.google-apps.folder',
-      corpora: 'allDrives',
-      supportsAllDrives: true,
-      includeItemsFromAllDrives: true,
-    };
-    const res = await drive.files.list(params);
-    
-    Array.prototype.push.apply(fileList, res.data.files);
-    NextPageToken = res.data.nextPageToken;
+	do {
+		const params = {
+			q: `parents in '${searchParams.get('id')}' and trashed=false`,
+			pageToken: NextPageToken || "",
+			pageSize: 1000,
+			// fields: "nextPageToken, incompleteSearch, files(*)",
+			fields: "nextPageToken, incompleteSearch, files(id, name, starred, createdTime, mimeType, shortcutDetails)",
+					// mimeType: 'application/vnd.google-apps.folder',
+			corpora: 'user',
+			supportsAllDrives: true,
+			includeItemsFromAllDrives: true,
+		};
+		const res = await drive.files.list(params);
+		
+		Array.prototype.push.apply(fileList, res.data.files);
+		console.log('result data',  { res })
+		NextPageToken = res.data.nextPageToken;
 
-    // console.log(res.data.files.length)
-  } while (NextPageToken);
+	} while (NextPageToken);
   
+	console.log('file list', fileList.length)
 
 	return Response.json(fileList)
 

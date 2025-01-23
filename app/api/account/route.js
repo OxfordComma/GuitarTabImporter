@@ -21,10 +21,13 @@ export async function GET(request, { params }) {
 	// console.log('db:', db)
 	var accounts = await db.collection('accounts')
 	var account = await accounts.findOne({ 
-		userId: new ObjectId(searchParams.get('id')),
+		userId: searchParams.get('id'),
 		provider: 'google'
 	})
 	// console.log(account)
+	if (!account) {
+		return Response.json({ })
+	}
 	return Response.json({
 		...account,
 		client_id: process.env.AUTH_GOOGLE_ID,
@@ -58,7 +61,7 @@ export async function POST(request, { params }) {
 
 
 	var update = await accounts.findOneAndUpdate({ 
-			userId: new ObjectId(session.user_id),
+			userId: session.user_id,
 			provider: 'google'
 		}, {'$set':{ 
 			...body,

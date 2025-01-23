@@ -1,11 +1,20 @@
+
 import { useState, useEffect } from 'react'
 import useDrivePicker from 'react-google-drive-picker'
 import { useSession } from "next-auth/react"
+// const {google} = require('googleapis');
 
 // import { useSession } from "next-auth/react"
 
-function handleOpenPicker(account, openPicker, onPick) {
+
+async function handleOpenPicker(account, openPicker, onPick) {
   // console.log('picker account', account)
+  // await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
+
+  const customViewsArray = [
+    new google.picker.DocsView(),
+    // new google.picker.FolderView()
+  ]; 
   openPicker({
     clientId: account.client_id,
     developerKey: account.api_key,
@@ -16,17 +25,25 @@ function handleOpenPicker(account, openPicker, onPick) {
     // showUploadView: true,
     // showUploadFolders: true,
     // supportDrives: true,
-    // multiselect: true,
-    // customViews: customViewsArray, // custom view
+    multiselect: true,
+    customViews: customViewsArray, // custom view
     customScopes: ['https://www.googleapis.com/auth/drive.file'],
     callbackFunction: (data) => {
+      console.log('picker data', data)
       // if (!data) return;
       if (data.action === 'cancel') {
         console.log('User clicked cancel/close button')
+        return;
       }
-      // console.log(data, data.docs[0])
-      let selected = data.docs[0]
-      onPick(selected['id'])
+      if (data.action === 'loaded') {
+        console.log('opened picker')
+        return;
+      }
+      if (data.action === 'picked') {
+        console.log(data, data.docs[0])
+        let selected = data.docs[0]
+        onPick(selected['id'])
+      }
     },
   })
 }
@@ -46,7 +63,7 @@ export default function PickerButton({ account, onPick }) {
 
       
       let accountResponse = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
-      // console.log('refresh?', accountResponse)
+      console.log('refresh?', accountResponse)
       if (accountResponse && new Date(accountResponse.expires_at * 1000) < new Date()) {
         // console.log('refresh', accountResponse)
 
@@ -59,7 +76,7 @@ export default function PickerButton({ account, onPick }) {
             grant_type: 'refresh_token',
           })
         }).then(r => r.json())
-        // console.log('refreshResponse', refreshResponse)
+        console.log('refreshResponse', refreshResponse)
         let expiresAt = new Date()
         expiresAt.setSeconds(expiresAt.getSeconds() + refreshResponse.expires_in)
 
@@ -72,7 +89,7 @@ export default function PickerButton({ account, onPick }) {
           })
         })
       }
-      handleOpenPicker(account, openPicker, onPick)
+      handleOpenPicker({...account, ...accountResponse}, openPicker, onPick)
       setRefresh(false)
 
     }
