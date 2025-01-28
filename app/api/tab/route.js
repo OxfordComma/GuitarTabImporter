@@ -15,17 +15,17 @@ export async function GET(request, { params }) {
   	if (!searchParams.get('id')) 
 		  return Response.json({ })
 
-		let mongoClient = await clientPromise
+	let mongoClient = await clientPromise
 
-		let db = await mongoClient.db('tabr')
-		let tabs = await db.collection('tabs')
+	let db = await mongoClient.db('tabr')
+	let tabs = await db.collection('tabs')
 
-		let tab = tabs.findOne({ 
-			id: searchParams.get('id') 
-		})
-		// let tabList = await tabCursor.toArray()
+	let tab = tabs.findOne({ 
+		id: new ObjectId(searchParams.get('id'))
+	})
+	// let tabList = await tabCursor.toArray()
 		
-	  return Response.json(
+	return Response.json(
 	  	tab
   	)
 
@@ -57,7 +57,8 @@ export async function POST(request, { params }) {
 			'$set':{ 
 				...setParams,
 				createdTime: new Date(body.createdTime),
-				lastUpdatedTime: body.lastUpdatedTime ? new Date(body.lastUpdatedTime) : new Date(body.createdTime)
+				lastUpdatedTime: body.lastUpdatedTime ? new Date(body.lastUpdatedTime) : new Date(body.createdTime),
+				userId: new ObjectId(setParams.userId)
 			}
 		}, { 
 			upsert: true, 

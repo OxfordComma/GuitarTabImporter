@@ -5,15 +5,18 @@ import { auth } from 'auth'
 
 export async function GET(request, { params }) {
 	console.log('GET', {
-		// request,
-		params
+		request,
+		// params
 	})
 	const session = await auth()
-	console.log('get user account:', session)
+	console.log('get user account session:', session)
 	const searchParams = request.nextUrl.searchParams
   	
-  	if (!searchParams.get('id')) 
-		return Response.json({ })
+  	if (!searchParams.get('id')) {
+		return Response.json({
+			id: 0
+		 })
+	}
 
 	let mongoClient = await clientPromise
 
@@ -21,13 +24,31 @@ export async function GET(request, { params }) {
 	// console.log('db:', db)
 	var accounts = await db.collection('accounts')
 	var account = await accounts.findOne({ 
-		userId: searchParams.get('id'),
+		userId: new ObjectId(searchParams.get('id')),
 		provider: 'google'
 	})
 	// console.log(account)
 	if (!account) {
-		return Response.json({ })
+		return Response.json({ 
+			account: 0
+		})
 	}
+
+	// Check for refresh
+	if (account.expires_at && new Date(account.expires_at * 1000) < new Date()) {
+		console.log('Token expired')
+		let refreshResponse = await fetch(process.env.NEXTAUTH_URL + '/api/refresh?id=' + searchParams.get('id'), { 
+			method: 'POST',
+			body: JSON.stringify({ session: session })
+		}).then(r => r.json())
+		console.log('refreshResponse', refreshResponse)
+
+		account = await accounts.findOne({ 
+			userId: new ObjectId(searchParams.get('id')),
+			provider: 'google'
+		})
+	}
+
 	return Response.json({
 		...account,
 		client_id: process.env.AUTH_GOOGLE_ID,
@@ -44,10 +65,11 @@ export async function POST(request, { params }) {
 
 	const session = await auth()
 	console.log('get user account:', session)
-	// const searchParams = request.nextUrl.searchParams
+	const searchParams = request.nextUrl.searchParams
 	
-	// if (!searchParams.get('id')) 
-	  // return Response.json({ })
+	if (!searchParams.get('id')) {
+	  return Response.json({ })
+	}
 
 	let body = await request.json()
 	console.log('body:', body )
@@ -61,16 +83,17 @@ export async function POST(request, { params }) {
 
 
 	var update = await accounts.findOneAndUpdate({ 
-			userId: session.user_id,
+			userId: new ObjectId(searchParams.get('id')),
 			provider: 'google'
 		}, {'$set':{ 
 			...body,
+			userId: new ObjectId(searchParams.get('id')),
 		}}, { 
 			upsert: true, 
 			returnNewDocument: true,
 		}
 	)
 
-  return Response.json({ update})
+  return Response.json({ update })
 }
 

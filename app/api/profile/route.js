@@ -8,30 +8,30 @@ export async function GET(request, { params }) {
 		// request,
 		params
 	})
-		const session = await auth()
-		console.log('get user session:', session)
-		const searchParams = request.nextUrl.searchParams
+	const session = await auth()
+	console.log('get user session:', session)
+	const searchParams = request.nextUrl.searchParams
   	// console.log(request.nextUrl.searchParams)
   	// console.log('session', session)
   	if (!searchParams.get('id')) 
-		  return Response.json({ })
+		return Response.json({ })
 
 
-		let mongoClient = await clientPromise
+	let mongoClient = await clientPromise
 
-		var db = await mongoClient.db('tabr')
-		// console.log('db:', db)
-		var profiles = await db.collection('profiles')
-		var profile = await profiles.findOne({ 
-			userId: searchParams.get('id'),
-			// email: session.data.user.email 
-		})
-		// console.log(profile)
-	  return Response.json({
-	  	...profile,
-      client_id: process.env.AUTH_GOOGLE_ID,
-      api_key: process.env.AUTH_GOOGLE_API_KEY,
-  	})
+	var db = await mongoClient.db('tabr')
+	// console.log('db:', db)
+	var profiles = await db.collection('profiles')
+	var profile = await profiles.findOne({ 
+		userId: new ObjectId(searchParams.get('id')),
+		// email: session.data.user.email 
+	})
+	// console.log(profile)
+	return Response.json({
+		...profile,
+		client_id: process.env.AUTH_GOOGLE_ID,
+		api_key: process.env.AUTH_GOOGLE_API_KEY,
+	})
 
 }
 
@@ -43,34 +43,36 @@ export async function POST(request, { params }) {
 
 	let body = await request.json()
 	console.log('body:', body )
-		if (!(body.id) || !(body.folder || body.projectsFolder || body.instruments || body.lastOpenedProject)) {
-		  return Response.json({ }, { status: 500 })
+	
+	// if (!(body.id) || !(body.folder || body.projectsFolder || body.instruments || body.lastOpenedProject)) {
+	// 	return Response.json({ }, { status: 500 })
+	// }
+	let mongoClient = await clientPromise
+
+	var db = await mongoClient.db('tabr')
+	var profiles = await db.collection('profiles')
+	// var profile = await profiles.findOne({ 
+	// 	_id: new ObjectId(body.id) 
+	// })
+
+	let newObj = {}
+	if (body.folder) newObj = { ...newObj, folder: body.folder }
+	if (body.libraryFolder) newObj = { ...newObj, libraryFolder: body.libraryFolder }
+	if (body.projectsFolder) newObj = { ...newObj, projectsFolder: body.projectsFolder }
+	if (body.instruments) newObj = { ...newObj, instruments: body.instruments }
+	if (body.lastOpenedProject) newObj = { ...newObj, lastOpenedProject: body.lastOpenedProject }
+	
+
+	var update = await profiles.updateOne({ 
+			userId: new ObjectId(body.id)
+		}, {
+			'$set': newObj
+		}, {
+			upsert: true,
 		}
-		let mongoClient = await clientPromise
+	)
 
-		var db = await mongoClient.db('tabr')
-		var profiles = await db.collection('profiles')
-		// var profile = await profiles.findOne({ 
-		// 	_id: new ObjectId(body.id) 
-		// })
-
-		let newObj = {}
-		if (body.folder) newObj = { ...newObj, folder: body.folder }
-		if (body.libraryFolder) newObj = { ...newObj, libraryFolder: body.libraryFolder }
-		if (body.projectsFolder) newObj = { ...newObj, projectsFolder: body.projectsFolder }
-		if (body.instruments) newObj = { ...newObj, instruments: body.instruments }
-		if (body.lastOpenedProject) newObj = { ...newObj, lastOpenedProject: body.lastOpenedProject }
-
-		var update = await profiles.updateOne({ 
-				userId: body.id
-			}, {
-				'$set': newObj
-			}, {
-				upsert: true,
-			}
-		)
-
-	  return Response.json({ newObj, update})
+	return Response.json({ newObj, update})
 
 	// let session = await getSession({ req })
 	// console.log('session:', session)

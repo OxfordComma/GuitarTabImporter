@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
 		let cl = await db.collection('tabs')
 
 		let cursor = cl.find({ 
-			userId: searchParams.get('userid') 
+			userId: new ObjectId(searchParams.get('userid'))
 		})
 		let cursorList = await cursor.toArray()
 		

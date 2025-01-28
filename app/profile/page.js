@@ -45,20 +45,21 @@ export default function Profile(props) {
 	}, [])
 
 	useEffect(() => {
-  	async function updateAccount() {
-  		let sessionData = session.data
-  		// console.log('sessionData', sessionData)
-		if (sessionData.user_id) {
-			let accountResponse = await fetch(`/api/account?id=${sessionData.user_id}`).then(r => r.json())
-			// console.log('account:', accountResponse)
+		async function updateAccount() {
+			let sessionData = session.data
+			console.log('sessionData', sessionData)
+			if (sessionData.user_id) {
+				let accountResponse = await fetch(`/api/account?id=${sessionData.user_id}`).then(r => r.json())
+				// console.log('account:', accountResponse)
 
-			if (accountResponse) {
-				setAccount(accountResponse)
-			}
-		}	
-	}
+				if (accountResponse) {
+					console.log('setAccount', accountResponse)
+					setAccount(accountResponse)
+				}
+			}	
+		}
 
-  	updateAccount();
+  		updateAccount();
   	
 	}, [])
 
@@ -66,11 +67,13 @@ export default function Profile(props) {
   let onSubmit = async function(event) {
   	event.preventDefault()
 
-  	if (!profile.folder) return;
+  	if (profile.folder)  {
+		let existingFolders = await fetch(`/api/folder?id=${profile.folder}`).then(r => r.json())
 
-  	let existingFolders = await fetch(`/api/folder?id=${profile.folder}`).then(r => r.json())
+  		console.log('existingFolders', existingFolders)
+	}
 
-  	console.log('existingFolders', existingFolders)
+  	
   	// let libraryFolder = existingFolders.find(f => f.name === 'Library' && f.mimeType === 'application/vnd.google-apps.folder')?.id
   	// let projectsFolder = existingFolders.find(f => f.name === 'Projects' && f.mimeType === 'application/vnd.google-apps.folder')?.id
 
@@ -169,7 +172,8 @@ export default function Profile(props) {
 							: null
 						) : null
 					}
-					<PickerButton account={account} profile={profile} onPick={onPickFolder}/>
+					<PickerButton account={account} profile={profile} onPick={onPickFolder} label={'pick folder'}/>
+					{/* <PickerButton account={account} onPick={() => {console.log('add file') } } viewId="DOCS" parent={profile?.folder ?? undefined} label='import document'/> */}
 				</div>
 				<div className={styles['profile-row']}>
 					<label className={styles['profile-row-label']} htmlFor="instrument-select">Default Instruments</label>
