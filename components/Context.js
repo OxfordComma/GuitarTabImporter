@@ -1,15 +1,18 @@
 'use client'
 import React from 'react'
 import { createContext, useContext, useState, useEffect } from "react";
+import { useSession } from "next-auth/react"
 
 export const TabsContext = createContext([]);
 
 export function Context({ children }) {
-  const [userTabs, setUserTabs] = useState([])
-  const [googleTabs, setGoogleTabs] = useState([])
+    const { data: session } = useSession()
 
-  const [projects, setProjects] = useState([])
-  const [openProjectId, setOpenProjectId] = useState(null) 
+	const [userTabs, setUserTabs] = useState([])
+	const [googleTabs, setGoogleTabs] = useState([])
+
+	const [projects, setProjects] = useState([])
+	const [openProjectId, setOpenProjectId] = useState(null) 
 
 	function sortTabs(tabs, sortBy) { 
 	  let sortedTabs = tabs.slice(0).sort((a, b) => {
@@ -93,8 +96,18 @@ export function Context({ children }) {
 		}
 	} 
 
+	function loadUserTabs() {
+		if (userTabs.length == 0) {
+			fetch('/api/tabs?userid=' + session.user_id)
+			  .then(r => r.json())
+			  .then(newUserTabs => { 
+				setUserTabs(newUserTabs)
+			})
+		  }
+	}
+
 	const value = {
-		userTabs, setUserTabs, 
+		userTabs, setUserTabs, loadUserTabs,
 		googleTabs, setGoogleTabs,
 		projects, setProjects,
 		openProjectId, setOpenProjectId,

@@ -9,7 +9,7 @@ export async function GET(request, { params }) {
 		params
 	})
 		const session = await auth()
-		console.log('get user account:', session)
+		// console.log('get user account:', session)
 		const searchParams = request.nextUrl.searchParams
   	
   	if (!searchParams.get('userid')) 

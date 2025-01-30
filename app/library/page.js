@@ -20,6 +20,7 @@ import { formatRawTabs } from 'lib/tabhelper.js'
 
 export default function Library({ }) {
   const session = useSession()
+  // console.log('library session', session)
 
   let {
     userTabs, setUserTabs,
@@ -464,8 +465,8 @@ export default function Library({ }) {
                   onClick: () => saveTab(userTabs.find(t => t.id === sidebarItemId)),
                 }, {
                   title: 'open tab',
-                  onClick: () => window.open(`https://docs.google.com/document/d/${userTabs.find(t => t.id === sidebarItemId).googleDocsId}/edit` ),
-                  disabled: !(userTabs.find(t => t.id === sidebarItemId) && userTabs.find(t => t.id === sidebarItemId).googleDocsId !== null )
+                  onClick: () => window.open(`https://docs.google.com/document/d/${tabs.find(t => t.id === sidebarItemId).googleDocsId}/edit` ),
+                  disabled: !(tabs.find(t => t.id === sidebarItemId) && tabs.find(t => t.id === sidebarItemId).googleDocsId !== null )
                 }, {
                   title: 'delete tab',
                   onClick: () => setDeleteTabId(sidebarItemId)

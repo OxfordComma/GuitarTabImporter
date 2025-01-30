@@ -2,14 +2,16 @@ import clientPromise from "lib/db.js"
 import { ObjectId } from 'mongodb'
 // import { getSession } from "next-auth/react"
 import { auth } from 'auth'
+import { headers } from "next/headers"
 
 export async function GET(request, { params }) {
-	console.log('GET', {
-		request,
-		// params
-	})
+	// console.log('GET', {
+	// 	request,
+	// 	// params
+	// })
 	const session = await auth()
-	console.log('get user account session:', session)
+	// const session = await fetch(process.env.NEXTAUTH_URL + '/api/auth/session').then(r => r.json())
+	console.log('account session:', session)
 	const searchParams = request.nextUrl.searchParams
   	
   	if (!searchParams.get('id')) {
@@ -36,10 +38,11 @@ export async function GET(request, { params }) {
 
 	// Check for refresh
 	if (account.expires_at && new Date(account.expires_at * 1000) < new Date()) {
-		console.log('Token expired')
+		console.log('Token expired', session)
 		let refreshResponse = await fetch(process.env.NEXTAUTH_URL + '/api/refresh?id=' + searchParams.get('id'), { 
 			method: 'POST',
-			body: JSON.stringify({ session: session })
+			// body: JSON.stringify({ session: session }),
+			headers: headers(),
 		}).then(r => r.json())
 		console.log('refreshResponse', refreshResponse)
 
@@ -64,7 +67,7 @@ export async function POST(request, { params }) {
 	})
 
 	const session = await auth()
-	console.log('get user account:', session)
+	// console.log('get user account:', session)
 	const searchParams = request.nextUrl.searchParams
 	
 	if (!searchParams.get('id')) {

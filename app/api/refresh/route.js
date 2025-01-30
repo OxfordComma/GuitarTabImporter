@@ -12,10 +12,10 @@ import { ObjectId } from 'mongodb'
 // }
 
 export async function POST(request, { params }) {
-	console.log('POST', {
-		request,
-		// params
-	})
+	// console.log('POST', {
+	// 	request,
+	// 	// params
+	// })
 
   const searchParams = request.nextUrl.searchParams
   	
@@ -23,10 +23,10 @@ export async function POST(request, { params }) {
 		return Response.json({ })
 	}
 	
-  let body = await request.json()
-  console.log('body:', body)
-  let session = body.session
-  // let session = await auth()
+  // let body = await request.json()
+  // console.log('body:', body)
+  // let session = body.session
+  let session = await auth()
   console.log('session:', session)
 	// let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${searchParams.get('id')}`).then(r => r.json())
 

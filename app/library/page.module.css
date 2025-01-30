@@ -71,6 +71,10 @@
 /*	flex-basis: 25%;*/
 }
 
+.sidebar-item {
+	cursor: pointer;
+}
+
 .menu-bar-label {
 	display: flex;
 	align-items: center;

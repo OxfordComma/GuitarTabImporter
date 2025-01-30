@@ -24,9 +24,10 @@ export default function Library({ }) {
   const session = useSession()
 
   let [tabs, setTabs] = useState([])
+  let [projectTabs, setProjectTabs] = useState([])
 
   let {
-    userTabs, setUserTabs,
+    userTabs, setUserTabs, loadUserTabs,
     googleTabs, setGoogleTabs,
     projects, setProjects,
     openProjectId, setOpenProjectId,
@@ -61,7 +62,7 @@ export default function Library({ }) {
     async function getProjects() {
       if (projects.length == 0 ) {
         let userProjects = await fetch(`/api/projects?userid=${session.data.user_id}`).then(r => r.json())
-        // console.log('userProjects:', userProjects)
+        console.log('userProjects:', userProjects)
         setProjects(userProjects)
       }    
     }
@@ -69,30 +70,66 @@ export default function Library({ }) {
     getProjects()
   }, [] )
 
+  useEffect( () => { 
+    if (userTabs.length === 0) {
+      loadUserTabs()
+    }
+  }, [])
+
+  // useEffect( () => {
+  //   let googleTabsWithMetadata = googleTabs.map(g => formatFolderContents(g, user))
+  //   // console.log('googleTabsWithMetadata', googleTabsWithMetadata)
+
+  //   let userGoogleDocsIds = userTabs.map(t => t.googleDocsId).map(t => t)
+  //   let filteredGoogleTabs = googleTabsWithMetadata.filter(g => !userGoogleDocsIds.includes(g.googleDocsId) || g==null )
+  //   let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
+
+  //   // console.log('all tabs:', {
+  //   //   userTabs,
+  //   //   googleTabsWithMetadata,
+  //   //   userGoogleDocsIds,
+  //   //   filteredGoogleTabs,
+  //   //   allTabs,
+  //   // })
+
+  //   allTabs = allTabs.map((at, i) => {
+  //     at['index'] = i
+  //     return at
+  //   })
+
+  //   allTabs = sortTabs(allTabs, sidebarSortBy)
+  //   // console.log('allTabs:', allTabs)
+  //   setTabs(allTabs)
+
+  // }, [userTabs, googleTabs, sidebarSortBy])
+
   useEffect( () => {
-    let googleTabsWithMetadata = googleTabs.map(g => formatFolderContents(g, user))
-    // console.log('googleTabsWithMetadata', googleTabsWithMetadata)
+    let newGoogleTabs = googleTabs.filter(gt => !userTabs.map(t => t.googleDocsId).includes(gt.googleDocsId) )
+    let newUserTabs = userTabs
+      .map((t, i) => {
+        t.index = i
+        return t
+      })
+    let newTabs = sortTabs([
+      ...newUserTabs,
+      ...newGoogleTabs
+    ], sidebarSortBy)
+            
 
-    let userGoogleDocsIds = userTabs.map(t => t.googleDocsId).map(t => t)
-    let filteredGoogleTabs = googleTabsWithMetadata.filter(g => !userGoogleDocsIds.includes(g.googleDocsId) || g==null )
-    let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
-
-    // console.log('all tabs:', {
-    //   userTabs,
-    //   googleTabsWithMetadata,
-    //   userGoogleDocsIds,
-    //   filteredGoogleTabs,
-    //   allTabs,
+    // newGoogleTabs = newGoogleTabs.map(g => {
+    //   return {
+    //     ...g,
+    //     ...tempUserTabs.find(u => u.googleDocsId === g.googleDocsId),
+    //   }
     // })
 
-    allTabs = allTabs.map((at, i) => {
-      at['index'] = i
-      return at
-    })
-
-    allTabs = sortTabs(allTabs, sidebarSortBy)
-    // console.log('allTabs:', allTabs)
-    setTabs(allTabs)
+    console.log('new tabs', newTabs)
+    if (newTabs.length > 0) {
+      setTabs(
+        newTabs
+      )
+    }
+    
 
   }, [userTabs, googleTabs, sidebarSortBy])
 
@@ -111,7 +148,7 @@ export default function Library({ }) {
       if (project) {
         let folderResponse = await fetch(`/api/folder?id=${project.folder}`).then(r => r.json())
         // console.log('folderResponse:', folderResponse)
-        setTabs(folderResponse)
+        setProjectTabs(folderResponse)
       }    
     }
 
@@ -269,7 +306,7 @@ export default function Library({ }) {
         </div>
         <div className={styles['sidebar']}>
           {showSidebar ? <Sidebar
-            sidebarItems={tabs}
+            sidebarItems={projectTabs}
             setSidebarItems={setTabs}
             sidebarItemId={sidebarItemId}
             setSidebarItemId={setSidebarItemId}

@@ -1,4 +1,5 @@
 import { getSession } from "next-auth/react"
+import { headers } from "next/headers"
 
 const {google} = require('googleapis');
 import { auth } from 'auth'
@@ -6,13 +7,17 @@ import { auth } from 'auth'
 export async function GET(request, { params }) {
 
 	const session = await auth()
+	console.log('folder session:', session)
 
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
-	console.log('fetched account', account)
+	// Pass headers to allow nested api call to access session
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, { headers: headers() }).then(r => r.json())
+	console.log('folder account', account)
+
 	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-	console.log('fetched profile', profile)
+	console.log('folder profile', profile)
+	
 	let searchParams = request.nextUrl.searchParams
-	console.log('searchParams', searchParams)
+	// console.log('searchParams', searchParams)
 	// let body = await request.json()
 	// console.log('get folder body', body)
 
@@ -58,12 +63,12 @@ export async function GET(request, { params }) {
 		const res = await drive.files.list(params);
 		
 		Array.prototype.push.apply(fileList, res.data.files);
-		console.log('result data',  { res })
+		// console.log('result data',  { res })
 		NextPageToken = res.data.nextPageToken;
 
 	} while (NextPageToken);
   
-	console.log('file list', fileList.length)
+	// console.log('file list', fileList.length)
 
 	return Response.json(fileList)
 
