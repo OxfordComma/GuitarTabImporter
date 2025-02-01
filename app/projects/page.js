@@ -17,10 +17,12 @@ import { useSession } from "next-auth/react"
 import { useState, useEffect, useContext } from 'react'
 import { formatRawTabs } from 'lib/tabhelper.js'
 
+// import { ObjectId } from 'mongodb'
 
 
 
-export default function Library({ }) {
+
+export default function Projects({ }) {
   const session = useSession()
 
   let [tabs, setTabs] = useState([])
@@ -28,7 +30,7 @@ export default function Library({ }) {
 
   let {
     userTabs, setUserTabs, loadUserTabs,
-    googleTabs, setGoogleTabs,
+    googleTabs, setGoogleTabs, loadGoogleTabs,
     projects, setProjects,
     openProjectId, setOpenProjectId,
     sortTabs,
@@ -53,9 +55,8 @@ export default function Library({ }) {
   let [openObjects, setOpenObjects] = useState(undefined)
   let [tabTextObj, setTabTextObj] = useState({})
 
-
   let [showSidebar, setShowSidebar] = useState(true)
-
+  let [action, setAction] = useState(undefined)
 
   // Fetch user data on startup
   useEffect( () => {
@@ -71,6 +72,10 @@ export default function Library({ }) {
   }, [] )
 
   useEffect( () => { 
+    if (googleTabs.length === 0) {
+      loadGoogleTabs()
+    }
+
     if (userTabs.length === 0) {
       loadUserTabs()
     }
@@ -147,7 +152,7 @@ export default function Library({ }) {
       // console.log('getProjectTabs', project, tabs)
       if (project) {
         let folderResponse = await fetch(`/api/folder?id=${project.folder}`).then(r => r.json())
-        // console.log('folderResponse:', folderResponse)
+        console.log('folderResponse:', folderResponse)
         setProjectTabs(folderResponse)
       }    
     }
@@ -232,14 +237,89 @@ export default function Library({ }) {
   }, [sidebarItemId] )
 
 
+  function newProjectMenu() {
+    // let newProject = {
+    //   _id: new ObjectId(),
+    //   // id: Math.random().toString(16).slice(2),
+    //   name: 'name',
+    //   owner: user._id,
+    //   creator: user._id,
+    //   collaborators: [],
+    //   folder: '',
+    // }
+    // setOpenProjectId(newProject._id)
+    // setEditProject(true)
+    // setProjects([...projects, newProject])
+  }
 
-  function openProject() {
+  function openProjectMenu() {
     setOpenObjects(projects)
   }
 
   function onOpenProject(projectId) {
     console.log('onOpenProject', projectId)
     setOpenProjectId(projectId)
+    setOpenObjects(undefined)
+  }
+
+  function openProjectFolder(projectId) {
+    const project = projects.find(p => p._id === projectId)
+    console.log('openProjectFolder', projectId, project)
+    if (project.folder) {
+      window.open(`https://drive.google.com/drive/u/0/folders/${project?.folder}`)
+    }
+  }
+
+  function addTabMenu() {
+    setAction('add tab')
+    setOpenObjects(
+      tabs
+        .filter(t => !(projectTabs.map(pt => pt.name).includes(`${t['artistName']} - ${t['songName']}`)))
+        .sort((a, b) => a['artistName'] > b['artistName'] ? 1 : -1)
+      )
+  }
+
+  function onAddTab(tabId) {
+    let tab = tabs.find(t => t._id === tabId)
+    let project = projects.find(p => p._id === openProjectId)
+    fetch('/api/shortcut', {
+        method: 'POST', 
+        body: JSON.stringify({
+          tab: {
+            artistName: tab.artistName,
+            songName: tab.songName,
+            googleDocsId: tab.googleDocsId,
+          },
+          folder: project.folder,
+          // account: account
+
+        })
+      })
+      .then(r => r.json())
+      .then(r => {
+        const responseData = r.data
+        console.log('add tab', responseData)
+        setProjectTabs([
+          ...projectTabs,
+          responseData
+        ])
+      })
+
+    setAction(undefined)
+    setOpenObjects(undefined)
+    
+  }
+
+  function removeTabMenu() {
+    setAction('remove tab')
+    setOpenObjects(projectTabs)
+  }
+
+  function onRemoveTab(tabId) {
+    fetch(`/api/shortcut`, { method: 'DELETE', body: JSON.stringify({ id: tabId }) }).then(r => r.json())
+    setProjectTabs(projectTabs.filter(pt => pt.id !== tabId))
+
+    setAction(undefined)
     setOpenObjects(undefined)
   }
 
@@ -259,8 +339,42 @@ export default function Library({ }) {
         // openObjectId={openProjectId}
         // setOpenObjectId={setOpenProjectId}
         // setPickObject={setEditObject}
-        onOpenObject={onOpenProject}
+        onOpenObject={
+          action === 'add tab' ? 
+            null : 
+            onOpenProject
+        }
         show={openObjects !== undefined}
+        labelFunction={
+          ['add tab'].includes(action) ? d => `${d['artistName']} - ${d['songName']}` 
+          // ['remove tab'].includes(action) ? d => `${d['artistName']} - ${d['songName']}` 
+          : d => d['name']
+        }
+      />
+      
+      <OpenObjectsWindow // Open project
+        openObjects={openObjects}
+        setOpenObjects={setOpenObjects}
+        onOpenObject={onOpenProject}
+        show={action == 'open project'}
+        keyFunction={d => d._id}
+        labelFunction={d => `${d['artistName']} - ${d['songName']}`}
+      />
+      <OpenObjectsWindow // Add Tab
+        openObjects={openObjects}
+        setOpenObjects={setOpenObjects}
+        onOpenObject={onAddTab}
+        show={action === 'add tab'}
+        keyFunction={d => d._id}
+        labelFunction={d => `${d['artistName']} - ${d['songName']}` }
+      />
+      <OpenObjectsWindow // Remove Tab
+        openObjects={openObjects}
+        setOpenObjects={setOpenObjects}
+        onOpenObject={onRemoveTab}
+        show={action === 'remove tab'}
+        keyFunction={d => d.id}
+        // labelFunction={d => `${d['artistName']} - ${d['songName']}` }
       />
       <EditObjectWindow
         user={user}
@@ -277,23 +391,59 @@ export default function Library({ }) {
             className={styles['menu-bar']} 
             styles={menuBarStyles}
             items={{
-              'file': [{
-                title: 'open project',
-                onClick: () => openProject(),
-              // },{
-                //   title: 'new tab',
-                //   onClick: () => addTab(),
+              file: [{
+                  title: 'new project',
+                  onClick: () => newProjectMenu(),
+                  disabled: true,
+                },{
+                  title: 'open project',
+                  onClick: () => openProjectMenu(),
+                },{
+                  title: 'edit project',
+                  onClick: () => editProjectMenu(),
+                  disabled: true,
+                },{
+                  title: 'share project',
+                  onClick: () => {},
+                  disabled: true,
+                },{
+                  title: 'save project',
+                  onClick: () => saveProject(project),
+                  disabled: true,
                 // },{
-                //   title: 'edit tab',
-                //   onClick: () => setEditObject(tabs.find(t => t._id === sidebarItemId)),
-                // },{
-                //   title: 'save tab',
-                //   onClick: () => saveTab(tabs.find(t => t._id === sidebarItemId)),
-                // }, {
-                //   title: 'delete tab',
-                //   onClick: () => setDeleteTabId(sidebarItemId)
-                }
-              ],
+                //   title: 'unfollow project',
+                //   onClick: () => {},
+                //   disabled: disabled,
+                },{
+                  title: 'delete project',
+                  onClick: () => {},
+                  disabled: true,
+              }],
+              project: [{
+                  title: 'add tab',
+                  onClick: () => addTabMenu(),
+                  disabled: false
+                },{
+                  title: 'remove tab',
+                  onClick: () => removeTabMenu(),
+                  disabled: false,
+                },{
+                  title: 'open project folder in Drive',
+                  onClick: () => openProjectFolder(openProjectId),
+                  disabled: false,
+                },{
+                  title: 'create Spotify playlist',
+                  onClick: () => {},
+                  disabled: true,
+                },{
+                  title: 'sign in with Spotify',
+                  onClick: () => {},
+                  disabled: true, 
+                },{
+                  title: 'pin tab',
+                  onClick: () => {},
+                  disabled: true,
+              }],
               sidebar: {
                 // title: 'show sidebar',
                 onClick: () => setShowSidebar(!!!showSidebar)
@@ -307,7 +457,7 @@ export default function Library({ }) {
         <div className={styles['sidebar']}>
           {showSidebar ? <Sidebar
             sidebarItems={projectTabs}
-            setSidebarItems={setTabs}
+            // setSidebarItems={setTabs}
             sidebarItemId={sidebarItemId}
             setSidebarItemId={setSidebarItemId}
             searchFunction={d => d.id}
@@ -342,10 +492,10 @@ export default function Library({ }) {
         </div>
         <div className={styles['editor']}>
           <Editor
-            keyFunction={d=>d.id}
+            keyFunction={d=>d.googleDocsId}
             tabs={tabs}
             setTabs={setTabs}
-            tabId={sidebarItemId}
+            tabId={projectTabs.find(pt => pt.id === sidebarItemId)?.shortcutDetails.targetId}
           />
         </div> 
       </div>     

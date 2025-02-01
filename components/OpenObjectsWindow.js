@@ -11,7 +11,8 @@ export default function OpenObjectsWindow({
   // setOpenObjectId, 
   // setPickObject,
   show,
-  keyFunction=d=>d._id,
+  keyFunction=d => d._id,
+  labelFunction = d => d.name
 }) {
   // let [selectedObject, setSelectedObject] = useState(undefined)
   // console.log('pick object', {
@@ -26,7 +27,7 @@ export default function OpenObjectsWindow({
 
 
   function open() {
-    console.log('open', selectedObjectId)
+    // console.log('open', selectedObjectId)
     // setOpenObjectId(selectedObjectId)
     // setPickObject(false)
     onOpenObject(selectedObjectId)
@@ -47,6 +48,7 @@ export default function OpenObjectsWindow({
 
   function onSelectChange(event) {
     event.preventDefault(); 
+    console.log(event.target); 
     console.log('onSelectChange', event.target.value); 
     setSelectedObjectId(event.target.value)
   }
@@ -63,12 +65,12 @@ export default function OpenObjectsWindow({
       {openObjects.map(object => {
         return (
           <option 
-            key={object._id} 
-            selected={keyFunction(object)==selectedObjectId} 
+            // key={keyFunction(object)} 
             id={keyFunction(object)} 
+            selected={keyFunction(object) === selectedObjectId} 
             value={keyFunction(object)}
             onClick={onClick}>
-            {object.name}
+            {labelFunction(object)}
           </option>)
       })}
     </select>}

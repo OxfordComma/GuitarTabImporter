@@ -92,7 +92,7 @@ export async function DELETE(request, { params }) {
 	})
 
 	return Response.json(
-  	tab
+  		tab
 	)
 
 }

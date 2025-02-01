@@ -98,7 +98,7 @@ export function Context({ children }) {
 
 	function loadUserTabs() {
 		if (userTabs.length == 0) {
-			fetch('/api/tabs?userid=' + session.user_id)
+			fetch(`/api/tabs?userid=${session.user_id}`)
 			  .then(r => r.json())
 			  .then(newUserTabs => { 
 				setUserTabs(newUserTabs)
@@ -106,9 +106,22 @@ export function Context({ children }) {
 		  }
 	}
 
+	function loadGoogleTabs() {
+		fetch(`/api/profile?id=${session.user_id}`)
+			.then(r => r.json())
+			.then(profile => {
+				fetch('/api/folder?id=' + profile.folder)
+					.then(r => r.json())
+					.then(newGoogleTabs => {            
+						newGoogleTabs = newGoogleTabs.map(formatFolderContents)
+						setGoogleTabs(newGoogleTabs)
+					})
+			}) 
+	}
+
 	const value = {
 		userTabs, setUserTabs, loadUserTabs,
-		googleTabs, setGoogleTabs,
+		googleTabs, setGoogleTabs, loadGoogleTabs,
 		projects, setProjects,
 		openProjectId, setOpenProjectId,
 		formatFolderContents,
