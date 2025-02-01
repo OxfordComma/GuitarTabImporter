@@ -27,7 +27,7 @@ export default function OpenObjectsWindow({
 
 
   function open() {
-    // console.log('open', selectedObjectId)
+    console.log('open', selectedObjectId)
     // setOpenObjectId(selectedObjectId)
     // setPickObject(false)
     onOpenObject(selectedObjectId)
@@ -65,7 +65,7 @@ export default function OpenObjectsWindow({
       {openObjects.map(object => {
         return (
           <option 
-            // key={keyFunction(object)} 
+            key={keyFunction(object)} 
             id={keyFunction(object)} 
             selected={keyFunction(object) === selectedObjectId} 
             value={keyFunction(object)}
