@@ -316,8 +316,9 @@ export default function Projects({ }) {
   }
 
   function onRemoveTab(tabId) {
-    fetch(`/api/shortcut`, { method: 'DELETE', body: JSON.stringify({ id: tabId }) }).then(r => r.json())
-    setProjectTabs(projectTabs.filter(pt => pt.id !== tabId))
+    const removeTab = projectTabs.find(pt => pt._id === tabId)
+    fetch(`/api/shortcut`, { method: 'DELETE', body: JSON.stringify({ id: removeTab.id }) }).then(r => r.json())
+    setProjectTabs(projectTabs.filter(pt => pt._id !== tabId))
 
     setAction(undefined)
     setOpenObjects(undefined)
@@ -358,7 +359,8 @@ export default function Projects({ }) {
         onOpenObject={onOpenProject}
         show={action == 'open project'}
         keyFunction={d => d._id}
-        labelFunction={d => `${d['artistName']} - ${d['songName']}`}
+        labelFunction={d => `${d['name']}`}
+        // labelFunction={d => `${d['artistName']} - ${d['songName']}`}
       />
       <OpenObjectsWindow // Add Tab
         openObjects={openObjects}
@@ -373,7 +375,7 @@ export default function Projects({ }) {
         setOpenObjects={setOpenObjects}
         onOpenObject={onRemoveTab}
         show={action === 'remove tab'}
-        keyFunction={d => d.id}
+        keyFunction={d => d._id}
         // labelFunction={d => `${d['artistName']} - ${d['songName']}` }
       />
       <EditObjectWindow
@@ -493,6 +495,7 @@ export default function Projects({ }) {
         <div className={styles['editor']}>
           <Editor
             keyFunction={d=>d.googleDocsId}
+            mode='view'
             tabs={tabs}
             setTabs={setTabs}
             tabId={projectTabs.find(pt => pt.id === sidebarItemId)?.shortcutDetails.targetId}

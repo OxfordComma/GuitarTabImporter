@@ -63,6 +63,7 @@ export function Context({ children }) {
 	}
 
 	function formatFolderContents(fc, user) {
+		let _id = fc['_id']
 		let draft = fc['name'].match('[DRAFT]') == null
 		let holiday = fc['name'].match('[HOLIDAY]') == null
 		let artistName = fc['name'].split(' - ')[0]
@@ -79,7 +80,8 @@ export function Context({ children }) {
 
 
 		return {
-			id: Math.random().toString(16).slice(2),
+			// id: Math.random().toString(16).slice(2),
+			_id: _id,
 			googleDocsId: googleDocsId,
 			userId: user?._id,
 			tabText: '',
