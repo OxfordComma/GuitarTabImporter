@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
 		let refreshResponse = await fetch(process.env.NEXTAUTH_URL + '/api/refresh?id=' + searchParams.get('id'), { 
 			method: 'POST',
 			// body: JSON.stringify({ session: session }),
-			headers: headers(),
+			headers: new Headers(headers()),
 		}).then(r => r.json())
 		console.log('refreshResponse', refreshResponse)
 
