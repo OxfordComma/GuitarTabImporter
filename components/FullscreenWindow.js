@@ -1,4 +1,5 @@
 import styles from '../styles/FullscreenWindow.module.css'
+import { useState, useEffect, useContext } from 'react'
 
 export default function FullscreenWindow({ 
     show, 
@@ -7,6 +8,24 @@ export default function FullscreenWindow({
     actionLabel='save',
     close=()=>{}
   }) {
+    useEffect(() => {
+      const keyDownHandler = (e) => {
+        console.log(`You pressed ${e.code}.`)
+        // if (e.code === "Enter") {
+        //   open()
+        // }
+  
+        if (e.code === "Escape") {
+          close(e)
+        } 
+      }
+      document.addEventListener("keydown", keyDownHandler);
+  
+      return () => {
+        document.removeEventListener("keydown", keyDownHandler);
+      };
+    }, [])
+    
   return (show ? <div className={styles['fullscreen-background']}>
     <div className={styles['fullscreen-window']}>
       

@@ -21,28 +21,6 @@ export default function OpenObjectsWindow({
   
   const [selectedObjectId, setSelectedObjectId] = useState(openObjects ? openObjects[0]?._id : undefined)
 
-  useEffect(() => {
-    const keyDownHandler = (e) => {
-      console.log(`You pressed ${e.code}.`, selectedObjectId, e.code === "Enter")
-      // if (e.code === "Enter") {
-      //   open()
-      // }
-
-      if (e.code === "Escape") {
-        close()
-      }
-
-      
-    }
-    document.addEventListener("keydown", keyDownHandler);
-
-    // clean up
-    return () => {
-      document.removeEventListener("keydown", keyDownHandler);
-    };
-
-  }, [])
-
   if (openObjects === undefined) {
     return null
   }
