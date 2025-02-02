@@ -59,7 +59,7 @@ export async function POST(request, { params }) {
   let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
   // console.log('fetched profile', profile)
 
-  if (!body.tab || !profile.libraryFolder) {
+  if (!body.tab || !profile.folder) {
 		Response.json({ })
 	}
   
@@ -126,7 +126,7 @@ export async function POST(request, { params }) {
 			resource: { 
 				name: '[DRAFT] ' + artistName + ' - ' + songName,
 				mimeType: 'application/vnd.google-apps.document',
-				parents: [profile.libraryFolder]
+				parents: [profile.folder]
 			}
 		})
 
