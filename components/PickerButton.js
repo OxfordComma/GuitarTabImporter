@@ -11,10 +11,10 @@ async function handleOpenPicker(account, openPicker, onPick, viewId="FOLDERS", p
   console.log('picker account', account)
   // await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
 
-  const customViewsArray = [
-    new google.picker.DocsView(),
-    // new google.picker.FolderView()
-  ]; 
+  // const customViewsArray = [
+  //   new google.picker.DocsView(),
+  //   // new google.picker.FolderView()
+  // ]; 
   openPicker({
     clientId: account.client_id,
     developerKey: account.api_key,
@@ -26,7 +26,7 @@ async function handleOpenPicker(account, openPicker, onPick, viewId="FOLDERS", p
     // showUploadFolders: true,
     // supportDrives: true,
     multiselect: true,
-    customViews: customViewsArray, // custom view
+    // customViews: customViewsArray, // custom view
     customScopes: ['https://www.googleapis.com/auth/drive.file'],
     callbackFunction: (data) => {
       console.log('picker data', data)
@@ -59,7 +59,7 @@ export default function PickerButton({ account, onPick, label='pick', viewId="FO
   useEffect(() => { 
     async function refreshToken() {
 
-      // if (!refresh) return;
+      if (!refresh) return;
 
       
       // let accountResponse = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
