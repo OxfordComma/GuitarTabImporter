@@ -305,20 +305,23 @@ export default function Library({ }) {
     if (userTab == undefined) {
       userTab = userTabs.find(t => t['id'] == sidebarItemId)
     }
-    // Remove _id field for saving to database
 
     let userId = session?.data?.user_id
     if (!userId) return;
 
     let newUserTab = userTab
-    // if (newUserTab && newUserTab._id) {
-    //   delete newUserTab._id
-    // }
-    console.log('userTab', newUserTab, sidebarItemId)
+    // console.log('userTab', newUserTab, sidebarItemId)
 
     // Last Updated Time
     if (!newUserTab?.lastUpdatedTime) {
       newUserTab.lastUpdatedTime = new Date()
+    }
+    if (!('capo' in newUserTab)) {
+      newUserTab['capo'] = 0
+    }
+
+    if (!('tuning' in newUserTab)) {
+      newUserTab['tuning'] = 'EADGBe'
     }
 
     let exportResponse = await exportTab(newUserTab)
@@ -457,19 +460,23 @@ export default function Library({ }) {
                 },{
                   title: 'import tab',
                   onClick: () => importTab(sidebarItemId),
+                  disabled: (!sidebarItemId),
                 },{
                   title: 'edit tab',
                   onClick: () => setEditObject(userTabs.find(t => t.id === sidebarItemId)),
+                  disabled: (!sidebarItemId),
                 },{
                   title: 'save tab',
                   onClick: () => saveTab(userTabs.find(t => t.id === sidebarItemId)),
+                  disabled: (!sidebarItemId),
                 }, {
                   title: 'open tab',
                   onClick: () => window.open(`https://docs.google.com/document/d/${tabs.find(t => t.id === sidebarItemId).googleDocsId}/edit` ),
                   disabled: !(tabs.find(t => t.id === sidebarItemId) && tabs.find(t => t.id === sidebarItemId).googleDocsId !== null )
                 }, {
                   title: 'delete tab',
-                  onClick: () => setDeleteTabId(sidebarItemId)
+                  onClick: () => setDeleteTabId(sidebarItemId),
+                  disabled: (!sidebarItemId),
                 }
               ],
               view: [{

@@ -47,7 +47,7 @@ export default function Profile(props) {
 	useEffect(() => {
 		async function updateAccount() {
 			let sessionData = session.data
-			console.log('sessionData', sessionData)
+			// console.log('sessionData', sessionData)
 			if (sessionData.user_id) {
 				let accountResponse = await fetch(`/api/account?id=${sessionData.user_id}`).then(r => r.json())
 				// console.log('account:', accountResponse)
