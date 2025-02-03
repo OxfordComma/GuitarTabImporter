@@ -11,13 +11,18 @@ export async function GET(request, { params }) {
 	// })
 	const session = await auth()
 	// const session = await fetch(process.env.NEXTAUTH_URL + '/api/auth/session').then(r => r.json())
-	console.log('account session:', session)
 	const searchParams = request.nextUrl.searchParams
+	// console.log('account session:', session, searchParams.get('spotify'))
+	let provider = 'google'
   	
   	if (!searchParams.get('id')) {
 		return Response.json({
 			id: 0
 		 })
+	}
+
+	if (searchParams.get('provider') !== null) {
+		provider = searchParams.get('provider')
 	}
 
 	let mongoClient = await clientPromise
@@ -27,31 +32,36 @@ export async function GET(request, { params }) {
 	var accounts = await db.collection('accounts')
 	var account = await accounts.findOne({ 
 		userId: new ObjectId(searchParams.get('id')),
-		provider: 'google'
+		provider: provider
 	})
 	// console.log(account)
 	if (!account) {
 		return Response.json({ 
-			account: 0
+			// account: 0
 		})
 	}
 
 	// Check for refresh
-	if (account.expires_at && new Date(account.expires_at * 1000) < new Date()) {
-		console.log('Token expired', session)
-		let refreshResponse = await fetch(process.env.NEXTAUTH_URL + '/api/refresh?id=' + searchParams.get('id'), { 
-			method: 'POST',
-			// body: JSON.stringify({ session: session }),
-			headers: new Headers(headers()),
-		}).then(r => r.json())
-		console.log('refreshResponse', refreshResponse)
+	if (provider === 'google') {
+		if (account.expires_at && new Date(account.expires_at * 1000) < new Date()) {
+			console.log('Token expired', session)
+			let refreshResponse = await fetch(process.env.NEXTAUTH_URL + '/api/refresh?id=' + searchParams.get('id'), { 
+				method: 'POST',
+				// body: JSON.stringify({ session: session }),
+				headers: new Headers(headers()),
+			}).then(r => r.json())
+			console.log('refreshResponse', refreshResponse)
 
-		account = await accounts.findOne({ 
-			userId: new ObjectId(searchParams.get('id')),
-			provider: 'google'
-		})
+			account = await accounts.findOne({ 
+				userId: new ObjectId(searchParams.get('id')),
+				provider: 'google'
+			})
+		}
 	}
-
+	if (provider === 'spotify') {
+		// pass
+	}
+	
 	return Response.json({
 		...account,
 		client_id: process.env.AUTH_GOOGLE_ID,
@@ -85,7 +95,8 @@ export async function POST(request, { params }) {
 	var accounts = await db.collection('accounts')
 
 
-	var update = await accounts.findOneAndUpdate({ 
+	var update = await accounts.findOneAndUpdate(
+		{ 
 			userId: new ObjectId(searchParams.get('id')),
 			provider: 'google'
 		}, {'$set':{ 
