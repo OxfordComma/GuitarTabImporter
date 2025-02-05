@@ -91,8 +91,8 @@ export default function Profile(props) {
   	let onSubmit = async function(event) {
 		event.preventDefault()
 
-		if (profile.folder)  {
-			let existingFolders = await fetch(`/api/folder?id=${profile.folder}`).then(r => r.json())
+		if (profile.libraryFolder)  {
+			let existingFolders = await fetch(`/api/folder?id=${profile.libraryFolder}`).then(r => r.json())
 
 			console.log('existingFolders', existingFolders)
 		}
@@ -154,9 +154,16 @@ export default function Profile(props) {
   let onPickFolder = async function (folder) {
 		setProfile({
 			...profile, 
-			folder: folder
+			libraryFolder: folder
 		})
   }
+
+  let onPickProjectsFolder = async function (folder) {
+	setProfile({
+		...profile, 
+		projectsFolder: folder
+	})
+}
   
 
   let InstrumentSelect = ({ profile, setProfile }) => {
@@ -191,14 +198,25 @@ export default function Profile(props) {
 		<div className={styles['container']}>
 			{profile ? <div className={styles['window']}>
 				<div className={styles['profile-row']}>
-					<label className={styles['profile-row-label']} htmlFor="folder">Folder</label>
+					<label className={styles['profile-row-label']} htmlFor="library-folder">Library Folder</label>
 					{profile ? (
-						profile.folder ? 
-							<input disabled type="text" name="folder" id="folder" value={profile.folder}/>
+						profile.libraryFolder ? 
+							<input disabled type="text" name="library-folder" id="library-folder" value={profile.libraryFolder}/>
 							: null
 						) : null
 					}
 					<PickerButton account={account} profile={profile} onPick={onPickFolder} label={'pick folder'}/>
+					{/* <PickerButton account={account} onPick={() => {console.log('add file') } } viewId="DOCS" parent={profile?.folder ?? undefined} label='import document'/> */}
+				</div>
+				<div className={styles['profile-row']}>
+					<label className={styles['profile-row-label']} htmlFor="projects-folder">Projects Folder</label>
+					{profile ? (
+						profile.projectsFolder ? 
+							<input disabled type="text" name="projects-folder" id="projects-folder" value={profile.projectsFolder}/>
+							: null
+						) : null
+					}
+					<PickerButton account={account} profile={profile} onPick={onPickProjectsFolder} label={'pick folder'}/>
 					{/* <PickerButton account={account} onPick={() => {console.log('add file') } } viewId="DOCS" parent={profile?.folder ?? undefined} label='import document'/> */}
 				</div>
 				<div className={styles['profile-row']}>

@@ -23,8 +23,8 @@ export default function Library({ }) {
   // console.log('library session', session)
 
   let {
-    userTabs, setUserTabs,
-    googleTabs, setGoogleTabs,
+    userTabs, setUserTabs, loadUserTabs,
+    googleTabs, setGoogleTabs, loadGoogleTabs,
     sortTabs,
     formatFolderContents,
   } = useContext(TabsContext)
@@ -47,63 +47,72 @@ export default function Library({ }) {
   const [columns, setColumns] = useState(1)
 
   // Fetch user data on startup
-  useEffect( () => {
-    async function getData() {
-
-      if (!session?.data?.user_id) {
-        console.log('no userId')
-        return
-      }
-
-      // let tempUserTabs
-
-      // Get tabs saved to database
-      if (userTabs.length == 0) {
-        fetch('/api/tabs?userid=' + session.data.user_id)
-          .then(r => r.json())
-          .then(newUserTabs => { 
-            // console.log('userTabs:', newUserTabs)
-            // newUserTabs = newUserTabs.map((at, i) => {
-            //   at['index'] = i
-            //   return at
-            // })
-
-            // newUserTabs = sortTabs(newUserTabs, sidebarSortBy)
-            // tempUserTabs = newUserTabs
-
-            setUserTabs(newUserTabs)
-        })
-      }
-
-      // In user's GDrive folder
-      if (googleTabs.length == 0 ) { 
-        // setGoogleTabs([])
-        let profile = await fetch(`${''}/api/profile?id=${session.data.user_id}`).then(r => r.json())
-	      console.log('fetched profile', profile)
-	
-        fetch('/api/folder?id=' + profile.folder)
-          .then(r => r.json())
-          .then(newGoogleTabs => {
-            // newGoogleTabs = sortTabs(newGoogleTabs, 'name ascending')
-            
-            newGoogleTabs = newGoogleTabs.map(formatFolderContents)
-
-            // newGoogleTabs = newGoogleTabs.map(g => {
-            //   return {
-            //     ...g,
-            //     ...tempUserTabs.find(u => u.googleDocsId === g.googleDocsId),
-            //   }
-            // })
-
-            // console.log('ngt', newGoogleTabs)
-
-            setGoogleTabs(newGoogleTabs)
-        })
-      }    
+  useEffect( () => { 
+    if (googleTabs.length === 0) {
+      loadGoogleTabs()
     }
 
-    getData()
-  }, [] )
+    if (userTabs.length === 0) {
+      loadUserTabs()
+    }
+  }, [])
+  // useEffect( () => {
+  //   async function getData() {
+
+  //     if (!session?.data?.user_id) {
+  //       console.log('no userId')
+  //       return
+  //     }
+
+  //     // let tempUserTabs
+
+  //     // Get tabs saved to database
+  //     if (userTabs.length == 0) {
+  //       fetch('/api/tabs?userid=' + session.data.user_id)
+  //         .then(r => r.json())
+  //         .then(newUserTabs => { 
+  //           // console.log('userTabs:', newUserTabs)
+  //           // newUserTabs = newUserTabs.map((at, i) => {
+  //           //   at['index'] = i
+  //           //   return at
+  //           // })
+
+  //           // newUserTabs = sortTabs(newUserTabs, sidebarSortBy)
+  //           // tempUserTabs = newUserTabs
+
+  //           setUserTabs(newUserTabs)
+  //       })
+  //     }
+
+  //     // In user's GDrive folder
+  //     if (googleTabs.length == 0 ) { 
+  //       // setGoogleTabs([])
+  //       let profile = await fetch(`${''}/api/profile?id=${session.data.user_id}`).then(r => r.json())
+	//       console.log('fetched profile', profile)
+	
+  //       fetch('/api/folder?id=' + profile.libraryFolder)
+  //         .then(r => r.json())
+  //         .then(newGoogleTabs => {
+  //           // newGoogleTabs = sortTabs(newGoogleTabs, 'name ascending')
+            
+  //           newGoogleTabs = newGoogleTabs.map(formatFolderContents)
+
+  //           // newGoogleTabs = newGoogleTabs.map(g => {
+  //           //   return {
+  //           //     ...g,
+  //           //     ...tempUserTabs.find(u => u.googleDocsId === g.googleDocsId),
+  //           //   }
+  //           // })
+
+  //           // console.log('ngt', newGoogleTabs)
+
+  //           setGoogleTabs(newGoogleTabs)
+  //       })
+  //     }    
+  //   }
+
+  //   getData()
+  // }, [] )
 
 
   useEffect( () => {

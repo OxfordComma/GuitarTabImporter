@@ -4,25 +4,17 @@ import { MenuBar, Dropdown } from 'quantifyjs'
 import FullscreenWindow from '../components/FullscreenWindow.js'
 
 export default function EditObjectWindow({ 
-  // tabs, 
-  // setTabs, 
-  // tabId, 
-  // editTab,
-  // setEditTab, 
-  // saveTab,
-  editObject = {},
-  setEditObject = () => {},
+  editObject,
+  setEditObject,
+  onOpenObject,
   subset,
   show=false,
   save = (obj) => console.log('default save obj', obj)
 }) {
-  // function save(event) {
-  //   event.preventDefault()
-  //   // setTab({
-  //   //   ...tab,
-  //   //   songName: event.target.value
-  //   // })
-  // }
+
+  if (editObject === undefined) {
+    return null
+  }
 
   function close(event) {
     event.preventDefault()
@@ -36,10 +28,10 @@ export default function EditObjectWindow({
     action={() => {
       // console.log(editObject) 
       save(editObject)
+      onOpenObject()
       close(event)
     } }
     close={close}
-    // actionLabel='save'
     content={
       <div>{
         (subset ? subset : Object.keys(editObject)).map(key => {
@@ -54,11 +46,6 @@ export default function EditObjectWindow({
                 ...editObject,
                 [e.target.id]: e.target.value
               })}
-              // items={
-              //   key=='tuning' ? ['EADGBe', 'DADGBe', 'D#G#C#F#A#D#'] :
-              //   key=='draft' ? [true, false] : 
-              //   undefined
-              // }
               />)
          })
       }

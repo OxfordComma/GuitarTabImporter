@@ -7,7 +7,7 @@ import { auth } from 'auth'
 export async function POST(request, { params }) {	
 	const session = await auth()
 	let body = await request.json()
-	// console.log('create body:', body, session)
+	console.log('create body:', body, session)
 
 	
 	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
@@ -15,10 +15,9 @@ export async function POST(request, { params }) {
 	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
 	// console.log('fetched profile', profile)
 
-	if (!body.tab || !body.folder || !profile.folder) {
+	if (!body.tab || !body.folder) {
 		Response.json({ })
 	}
-
 
 	const oauth2Client = new google.auth.OAuth2(
 		process.env.AUTH_GOOGLE_ID, 

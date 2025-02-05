@@ -6,6 +6,7 @@ export default function ConfirmDelete ({
     action,
     label,
     close= () => {},
+    keyFunction = d => d.id,
 }) {
   return (item ? <FullscreenWindow
     show={show}
@@ -14,7 +15,7 @@ export default function ConfirmDelete ({
     actionLabel={label}
     content={
       <div>
-        <div style={{opacity: 1}}>Are you sure you want to delete {item.name} ({item.id})?</div>
+        <div style={{opacity: 1}}>Are you sure you want to delete {item.name} ({keyFunction(item)})?</div>
       </div>
     }/> : null)
 }

@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb'
 // import { getSession } from "next-auth/react"
 import { auth } from 'auth'
 import { headers } from "next/headers"
+var SpotifyWebApi = require('spotify-web-api-node');
 
 export async function GET(request, { params }) {
 	// console.log('GET', {
@@ -59,7 +60,41 @@ export async function GET(request, { params }) {
 		}
 	}
 	if (provider === 'spotify') {
-		// pass
+		var spotifyAuth = new SpotifyWebApi({
+			clientId: process.env.SPOTIFY_CLIENT_ID,
+			clientSecret: process.env.SPOTIFY_CLIENT_SECRET
+		})    
+	
+		spotifyAuth.setAccessToken(account.access_token)
+		spotifyAuth.setRefreshToken(account.refresh_token)
+
+		// TODO: Check to see if this works
+		// if (new Date() > new Date(account['expires_at'])) {
+			console.log('(Playlist) Refreshing access token...', account)
+			let refresh = await spotifyAuth.refreshAccessToken()
+				.then(async r => {
+					console.log('Access token refreshed:', r)
+					spotifyAuth.setAccessToken(r.body['access_token'])
+					let mongoClient = await clientPromise
+					var db = await mongoClient.db('tabr')
+					var cl = await db.collection('accounts')
+					let newObj = { 
+						'access_token': r.body['access_token'],
+						'expires_at': new Date(new Date().setHours(new Date().getHours() + 1))
+					}
+					var userResponse = await cl.updateOne({ 
+						_id: ObjectId(userId) 
+					}, {
+						'$set': newObj
+					}
+				)
+				account = {
+					...account,
+					...newObj
+				}
+				console.log('spotify account refreshed:', account)
+			}).catch(err => console.log('auth error:' , err))
+		// }
 	}
 	
 	return Response.json({
@@ -93,12 +128,13 @@ export async function POST(request, { params }) {
 
 	var db = await mongoClient.db('tabr')
 	var accounts = await db.collection('accounts')
+	let provider = 'google'
 
 
 	var update = await accounts.findOneAndUpdate(
 		{ 
 			userId: new ObjectId(searchParams.get('id')),
-			provider: 'google'
+			provider: provider,
 		}, {'$set':{ 
 			...body,
 			userId: new ObjectId(searchParams.get('id')),

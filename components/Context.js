@@ -112,7 +112,7 @@ export function Context({ children }) {
 		fetch(`/api/profile?id=${session.user_id}`)
 			.then(r => r.json())
 			.then(profile => {
-				fetch('/api/folder?id=' + profile.folder)
+				fetch('/api/folder?id=' + profile.libraryFolder)
 					.then(r => r.json())
 					.then(newGoogleTabs => {            
 						newGoogleTabs = newGoogleTabs.map(formatFolderContents)

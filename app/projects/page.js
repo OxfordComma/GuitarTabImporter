@@ -20,8 +20,6 @@ import { formatRawTabs } from 'lib/tabhelper.js'
 // import { ObjectId } from 'mongodb'
 
 
-
-
 export default function Projects({ }) {
   const session = useSession()
 
@@ -42,6 +40,7 @@ export default function Projects({ }) {
   
   let [editTab, setEditTab] = useState(null)
   let [deleteTabId, setDeleteTabId] = useState(null)
+  let [deleteProjectId, setDeleteProjectId] = useState(null)
   let [isNewTab, setIsNewTab] = useState(false)
 
 
@@ -81,33 +80,6 @@ export default function Projects({ }) {
     }
   }, [])
 
-  // useEffect( () => {
-  //   let googleTabsWithMetadata = googleTabs.map(g => formatFolderContents(g, user))
-  //   // console.log('googleTabsWithMetadata', googleTabsWithMetadata)
-
-  //   let userGoogleDocsIds = userTabs.map(t => t.googleDocsId).map(t => t)
-  //   let filteredGoogleTabs = googleTabsWithMetadata.filter(g => !userGoogleDocsIds.includes(g.googleDocsId) || g==null )
-  //   let allTabs = [...userTabs.reverse(), ...filteredGoogleTabs]
-
-  //   // console.log('all tabs:', {
-  //   //   userTabs,
-  //   //   googleTabsWithMetadata,
-  //   //   userGoogleDocsIds,
-  //   //   filteredGoogleTabs,
-  //   //   allTabs,
-  //   // })
-
-  //   allTabs = allTabs.map((at, i) => {
-  //     at['index'] = i
-  //     return at
-  //   })
-
-  //   allTabs = sortTabs(allTabs, sidebarSortBy)
-  //   // console.log('allTabs:', allTabs)
-  //   setTabs(allTabs)
-
-  // }, [userTabs, googleTabs, sidebarSortBy])
-
   useEffect( () => {
     let newGoogleTabs = googleTabs.filter(gt => !userTabs.map(t => t.googleDocsId).includes(gt.googleDocsId) )
     let newUserTabs = userTabs
@@ -119,14 +91,6 @@ export default function Projects({ }) {
       ...newUserTabs,
       ...newGoogleTabs
     ], sidebarSortBy)
-            
-
-    // newGoogleTabs = newGoogleTabs.map(g => {
-    //   return {
-    //     ...g,
-    //     ...tempUserTabs.find(u => u.googleDocsId === g.googleDocsId),
-    //   }
-    // })
 
     console.log('new tabs', newTabs)
     if (newTabs.length > 0) {
@@ -134,23 +98,15 @@ export default function Projects({ }) {
         newTabs
       )
     }
-    
 
   }, [userTabs, googleTabs, sidebarSortBy])
 
-  // useEffect(() => {
-
-  // },[])
-
-  // useEffect( () => { 
-  //   // console.log('sidebar item id changed to:', sidebarItemId)
-  // }, [sidebarItemId] )
 
   useEffect( () => {
     async function getProjectTabs() {
       let project = projects.find(p => p._id === openProjectId)
       // console.log('getProjectTabs', project, tabs)
-      if (project) {
+      if (project && project.folder) {
         let folderResponse = await fetch(`/api/folder?id=${project.folder}`).then(r => r.json())
         console.log('folderResponse:', folderResponse)
         setProjectTabs(folderResponse)
@@ -237,22 +193,64 @@ export default function Projects({ }) {
   }, [sidebarItemId] )
 
 
-  function newProjectMenu() {
-    // let newProject = {
-    //   _id: new ObjectId(),
-    //   // id: Math.random().toString(16).slice(2),
-    //   name: 'name',
-    //   owner: user._id,
-    //   creator: user._id,
-    //   collaborators: [],
-    //   folder: '',
-    // }
-    // setOpenProjectId(newProject._id)
-    // setEditProject(true)
-    // setProjects([...projects, newProject])
+  // Projects
+  function addProjectMenu() {
+    console.log('new project session', session)
+    setAction('new project')
+    fetch(`/api/project?userid=${session.data.user_id}`, { method: 'GET' })
+      .then(r => r.json())
+      .then(newProject => {
+        // console.log('new project', newProject)
+        setEditObject(newProject)
+        // setProjects([...projects, newProject])
+      }) 
+  }
+
+  async function onAddProject() {
+    // Create new folder in projects folder
+    let newProject = editObject
+
+    let profile = await fetch(`/api/profile?id=${session.data.user_id}`)
+      .then(r => r.json())
+      // .then(profile => {
+    console.log('add project profile', profile, newProject)
+    if (!('projectsFolder' in profile) ) {
+      console.log('no projects folder')
+      return;
+    } 
+
+    let newFolder = await fetch(`/api/folder`, { 
+      method: 'POST',
+      body: JSON.stringify({
+        name: newProject.name,
+        parent_folder: profile.projectsFolder,
+      })
+    }).then(r => r.json())
+      // .then(newFolder => {
+
+      // })
+
+    newProject.folder = newFolder.data.id
+    console.log('newFolder', newFolder, newProject)
+
+    fetch(`/api/project?id=${newProject._id}`, { 
+      method: 'POST',
+      body: JSON.stringify(newProject)
+    })
+      // })
+
+    // Add new project to projects state
+    setProjects([
+      ...projects,
+      newProject,
+    ])
+    
+    onOpenProject(newProject._id)
+    setAction(undefined)
   }
 
   function openProjectMenu() {
+    setAction('open project')
     setOpenObjects(projects)
   }
 
@@ -270,6 +268,28 @@ export default function Projects({ }) {
     }
   }
 
+  function deleteProjectMenu() {
+    setAction('delete project')
+    setOpenObjects(projects)
+  }
+
+
+  function onDeleteProject(projectId) {
+    setDeleteProjectId(projectId)
+    setAction('confirm delete project')
+  }
+
+  function onConfirmDeleteProject() {
+    let project = projects.find(p => p._id === deleteProjectId)
+    fetch(`/api/project`, { method: 'DELETE', body: JSON.stringify({ _id: deleteProjectId }) })//.then(r => r.json()
+    fetch(`/api/folder`, { method: 'DELETE', body: JSON.stringify({ _id: project.folder})})//.then(r => r.json()
+    setProjects(
+      projects.filter(p => p._id !== deleteProjectId)
+    )
+    setOpenProjectId(undefined)
+  }
+  
+  // Tabs
   function addTabMenu() {
     setAction('add tab')
     setOpenObjects(
@@ -282,6 +302,7 @@ export default function Projects({ }) {
   function onAddTab(tabId) {
     let tab = tabs.find(t => t._id === tabId)
     let project = projects.find(p => p._id === openProjectId)
+    console.log('onAddTab', tabId, tab, project)
     fetch('/api/shortcut', {
         method: 'POST', 
         body: JSON.stringify({
@@ -300,41 +321,73 @@ export default function Projects({ }) {
         const responseData = r.data
         console.log('add tab', responseData)
         setProjectTabs([
+          responseData,
           ...projectTabs,
-          responseData
         ])
       })
 
     setAction(undefined)
     setOpenObjects(undefined)
-    
   }
 
-  function removeTabMenu() {
-    setAction('remove tab')
+  function deleteTabMenu() {
+    setAction('delete tab')
     setOpenObjects(projectTabs)
   }
 
-  function onRemoveTab(tabId) {
-    const removeTab = projectTabs.find(pt => pt._id === tabId)
-    fetch(`/api/shortcut`, { method: 'DELETE', body: JSON.stringify({ id: removeTab.id }) }).then(r => r.json())
+  function onDeleteTab(tabId) {
+    const deleteTab = projectTabs.find(pt => pt._id === tabId)
+    fetch(`/api/shortcut`, { method: 'DELETE', body: JSON.stringify({ id: deleteTab.id }) }).then(r => r.json())
     setProjectTabs(projectTabs.filter(pt => pt._id !== tabId))
 
     setAction(undefined)
     setOpenObjects(undefined)
   }
 
+  async function createSpotifyPlaylist() {
+    console.log('create spotify playlist', projectTabs)
+    let spotifyPlaylist = await fetch(`/api/playlist`, {
+      method: 'POST',
+      body: JSON.stringify({
+        userId: session.data.user_id,
+        projectId: openProjectId,
+        tabs: tabs.filter(t => projectTabs.map(pt => pt.shortcutDetails.targetId).includes( t.googleDocsId ) )
+      })
+    }).then(r => r.json())
+
+    console.log('create spotify playlist:', spotifyPlaylist)
+
+    let project = projects.find(p => p._id == openProjectId)
+    let newProject = {
+      ...project,
+      spotifyPlaylistId: spotifyPlaylist.id
+    }
+
+    console.log('newProject', newProject)
+
+    fetch(`api/project`, { method: 'POST', body: JSON.stringify(newProject)})
+    setProjects(
+      projects.map(p => p._id == openProjectId ? newProject : p)
+    )
+  }
+
+  function openSpotifyPlaylist() {
+    window.open(`https://open.spotify.com/playlist/${projects.find(p => p._id == openProjectId).spotifyPlaylistId}` )
+  }
+
   
  return (
     <div className={styles.container}>
-      <ConfirmDelete 
-        // show={deleteTabId != null} 
-        // item={tabs.find(t => t._id === deleteTabId)}
-        // action={deleteTab}
+      
+      <ConfirmDelete // Confirm Delete Tab
+        item={tabs.find(t => t._id === deleteTabId)}
+        action={onDeleteTab}
         label={'delete'}
+        show={action === 'confirm delete tab'} 
         // close={()=>setDeleteTabId(null)}
       />
-      <OpenObjectsWindow
+      
+      {/* <OpenObjectsWindow
         openObjects={openObjects}
         setOpenObjects={setOpenObjects}
         // openObjectId={openProjectId}
@@ -345,15 +398,15 @@ export default function Projects({ }) {
             null : 
             onOpenProject
         }
-        show={openObjects !== undefined}
+        show={action === 'new project'}
         labelFunction={
           ['add tab'].includes(action) ? d => `${d['artistName']} - ${d['songName']}` 
-          // ['remove tab'].includes(action) ? d => `${d['artistName']} - ${d['songName']}` 
+          // ['delete tab'].includes(action) ? d => `${d['artistName']} - ${d['songName']}` 
           : d => d['name']
         }
-      />
+      /> */}
       
-      <OpenObjectsWindow // Open project
+      <OpenObjectsWindow // Open Project
         openObjects={openObjects}
         setOpenObjects={setOpenObjects}
         onOpenObject={onOpenProject}
@@ -362,6 +415,30 @@ export default function Projects({ }) {
         labelFunction={d => `${d['name']}`}
         // labelFunction={d => `${d['artistName']} - ${d['songName']}`}
       />
+      <EditObjectWindow // Add Project
+        editObject={editObject}
+        setEditObject={setEditObject}
+        onOpenObject={onAddProject}
+        show={action === 'new project'}
+        subset={['name']}
+      />
+      <OpenObjectsWindow // Delete Project
+        openObjects={openObjects}
+        setOpenObjects={setOpenObjects}
+        onOpenObject={onDeleteProject}
+        show={action === 'delete project'}
+        keyFunction={d => d._id}
+        // labelFunction={d => `${d['artistName']} - ${d['songName']}` }
+      />
+      <ConfirmDelete // Confirm Delete Project
+        item={projects.find(t => t._id === deleteProjectId)}
+        action={onConfirmDeleteProject}
+        label={'delete'}
+        show={action === 'confirm delete project'} 
+        keyFunction={d => d._id}
+        // close={()=>setDeleteTabId(null)}
+      />
+
       <OpenObjectsWindow // Add Tab
         openObjects={openObjects}
         setOpenObjects={setOpenObjects}
@@ -370,22 +447,15 @@ export default function Projects({ }) {
         keyFunction={d => d._id}
         labelFunction={d => `${d['artistName']} - ${d['songName']}` }
       />
-      <OpenObjectsWindow // Remove Tab
+      <OpenObjectsWindow // Delete Tab
         openObjects={openObjects}
         setOpenObjects={setOpenObjects}
-        onOpenObject={onRemoveTab}
-        show={action === 'remove tab'}
+        onOpenObject={onDeleteTab}
+        show={action === 'delete tab'}
         keyFunction={d => d._id}
         // labelFunction={d => `${d['artistName']} - ${d['songName']}` }
       />
-      <EditObjectWindow
-        user={user}
-        editObject={editObject}
-        setEditObject={setEditObject}
-        show={editObject ?? false}
-        subset={['artistName', 'songName', 'capo', 'tuning', 'bpm']}
-        // save={saveTab}
-      />
+
       <div className={styles['content']}>
         <div className={styles['menu-bar-container']}>
           <MenuBar 
@@ -395,56 +465,57 @@ export default function Projects({ }) {
             items={{
               file: [{
                   title: 'new project',
-                  onClick: () => newProjectMenu(),
-                  disabled: true,
+                  onClick: () => addProjectMenu(),
+                  disabled: false,
                 },{
                   title: 'open project',
                   onClick: () => openProjectMenu(),
+                  disabled: false,
                 },{
                   title: 'edit project',
                   onClick: () => editProjectMenu(),
                   disabled: true,
-                },{
-                  title: 'share project',
-                  onClick: () => {},
-                  disabled: true,
-                },{
-                  title: 'save project',
-                  onClick: () => saveProject(project),
-                  disabled: true,
+                // },{
+                //   title: 'share project',
+                //   onClick: () => {},
+                //   disabled: true,
+                // },{
+                  // title: 'save project',
+                  // onClick: () => saveProject(project),
+                  // disabled: true,
                 // },{
                 //   title: 'unfollow project',
                 //   onClick: () => {},
                 //   disabled: disabled,
                 },{
                   title: 'delete project',
-                  onClick: () => {},
-                  disabled: true,
+                  onClick: () => deleteProjectMenu(),
+                  disabled: false,
               }],
               project: [{
                   title: 'add tab',
                   onClick: () => addTabMenu(),
-                  disabled: false
+                  disabled: (!!!openProjectId)
                 },{
-                  title: 'remove tab',
-                  onClick: () => removeTabMenu(),
-                  disabled: false,
+                  title: 'delete tab',
+                  onClick: () => deleteTabMenu(),
+                  disabled: (!!!openProjectId),
                 },{
                   title: 'open project folder in Drive',
                   onClick: () => openProjectFolder(openProjectId),
-                  disabled: false,
+                  disabled: (!!!openProjectId),
                 },{
                   title: 'create Spotify playlist',
-                  onClick: () => {},
-                  disabled: true,
+                  onClick: () => createSpotifyPlaylist(),
+                  disabled: (!!!openProjectId),
                 },{
-                  title: 'sign in with Spotify',
-                  onClick: () => {},
-                  disabled: true, 
+                  title: 'cpen Spotify playlist',
+                  onClick: () => openSpotifyPlaylist(),
+                  disabled: (!!!openProjectId),
                 },{
                   title: 'pin tab',
                   onClick: () => {},
-                  disabled: true,
+                  disabled: (!!!openProjectId),
               }],
               sidebar: {
                 // title: 'show sidebar',

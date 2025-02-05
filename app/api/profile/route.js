@@ -48,7 +48,6 @@ export async function POST(request, { params }) {
 	// 	return Response.json({ }, { status: 500 })
 	// }
 	let mongoClient = await clientPromise
-
 	var db = await mongoClient.db('tabr')
 	var profiles = await db.collection('profiles')
 	// var profile = await profiles.findOne({ 

@@ -72,7 +72,7 @@ export async function GET(request, { params }) {
 
 	} while (NextPageToken);
   
-	console.log('file list', fileList)
+	console.log('file list', fileList.length)
 
 	// Add ObjectIds
 	fileList = fileList.map(f => {
@@ -86,43 +86,73 @@ export async function GET(request, { params }) {
 }
 
 // // export default async function handler(req, res) {
-// export async function POST(request, { params }) {
-// 	const session = await auth()
-// 	// console.log('folder post session', session)
+export async function POST(request, { params }) {
+	const session = await auth()
+	// console.log('folder post session', session)
 
-//   let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
 //   console.log('fetched account', account)
-//   let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
+	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
 //   console.log('fetched profile', profile)
 
-//   let body = await request.json()
-//   console.log('create folder body', body)
+	let body = await request.json()
+	console.log('create folder body', body)
 
-//   if (!body.name && !body.parent_folder) {
-// 		return Response.json({ })
-// 	}
+  	if (!body.name && !body.parent_folder) {
+		return Response.json({ })
+	}
   
+  	const oauth2Client = new google.auth.OAuth2(
+		process.env.AUTH_GOOGLE_ID, 
+		process.env.AUTH_GOOGLE_SECRET
+	);
 
-//   const oauth2Client = new google.auth.OAuth2(
-// 		process.env.AUTH_GOOGLE_ID, 
-// 		process.env.AUTH_GOOGLE_SECRET
-// 	);
+	oauth2Client.setCredentials({
+		'access_token': account.access_token,
+		'refresh_token': account.refresh_token
+	});
 
-// 	oauth2Client.setCredentials({
-// 		'access_token': account.access_token,
-// 		'refresh_token': account.refresh_token
-// 	});
+	const drive = google.drive({version: 'v3', auth: oauth2Client });
+	var newFolder = await drive.files.create({
+		resource: { 
+			name: body.name,
+			mimeType: 'application/vnd.google-apps.folder',
+			parents: [body.parent_folder],
+		}
+	})
 
-// 	const drive = google.drive({version: 'v3', auth: oauth2Client });
-// 	var newFolder = await drive.files.create({
-// 		resource: { 
-// 			name: body.name,
-// 			mimeType: 'application/vnd.google-apps.folder',
-// 			parents: [body.parent_folder],
-// 		}
-// 	})
+	return Response.json(newFolder)
+}
 
-// 	// res.status(200).send(JSON.stringify(googleDoc))
-// 	return Response.json(newFolder)
+export async function DELETE(request, { params }) {	
+	// console.log('folder delete')
+	const session = await auth()
+	let body = await request.json()
 
-// }
+	if (!body._id) {
+		Response.json({ })
+	}
+
+	const _id = body._id
+	console.log('folder delete body:', body, session)	
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+	console.log('folder delete account', account)
+
+	const oauth2Client = new google.auth.OAuth2(
+		process.env.AUTH_GOOGLE_ID, 
+		process.env.AUTH_GOOGLE_SECRET
+	);
+
+	oauth2Client.setCredentials({
+		'access_token': account.access_token,
+		'refresh_token': account.refresh_token
+	});
+
+	const drive = google.drive({version: 'v3', auth: oauth2Client });
+
+	var googleDoc = await drive.files.delete({
+		fileId: _id,
+	})
+
+	return Response.json(googleDoc)
+}
