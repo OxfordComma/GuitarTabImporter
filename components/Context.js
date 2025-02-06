@@ -15,6 +15,7 @@ export function Context({ children }) {
 	const [openProjectId, setOpenProjectId] = useState(null) 
 
 	const [googleAccount, setGoogleAccount] = useState(undefined)
+	const [profile, setProfile] = useState(undefined)
 
 	function sortTabs(tabs, sortBy) { 
 	  let sortedTabs = tabs.slice(0).sort((a, b) => {
@@ -125,6 +126,7 @@ export function Context({ children }) {
 		formatFolderContents,
 		sortTabs,
 		googleAccount,
+		// profile
 	}
 
 
@@ -148,7 +150,18 @@ export function Context({ children }) {
 			}	
 		}
 
+		// async function updateProfile() {
+		// 	if (session.data?.user_id) {
+		// 		let profileResponse = await fetch(`/api/profile?id=${session.data.user_id}`).then(r => r.json())
+		// 		if (profileResponse) {
+		// 			setProfile(profileResponse)
+		// 		}
+		// 	}	
+		// }
+
   		updateAccount();
+		// updateProfile();
+
 	}, [session])
 
 	return (

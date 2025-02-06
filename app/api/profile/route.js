@@ -60,6 +60,7 @@ export async function POST(request, { params }) {
 	if (body.projectsFolder) newObj = { ...newObj, projectsFolder: body.projectsFolder }
 	if (body.instruments) newObj = { ...newObj, instruments: body.instruments }
 	if (body.lastOpenedProject) newObj = { ...newObj, lastOpenedProject: body.lastOpenedProject }
+	if (body.spotifyPlaylistId) newObj = { ...newObj, spotifyPlaylistId: body.spotifyPlaylistId }
 	
 
 	var update = await profiles.updateOne({ 

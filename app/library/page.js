@@ -32,6 +32,7 @@ export default function Library({ }) {
     sortTabs,
     formatFolderContents,
     googleAccount,
+    profile,
   } = useContext(TabsContext)
 
   let [sidebarItemId, setSidebarItemId] = useState(null)
@@ -377,7 +378,42 @@ export default function Library({ }) {
     )
     setDeleteTabId(null)
     setAction(undefined)
-}
+  }
+
+  async function createSpotifyPlaylist() {
+    console.log('create spotify playlist')
+    let profile = await fetch(`api/profile?id=${session.data.user_id}`)
+      .then(r => r.json())
+
+    let spotifyPlaylist = await fetch(`/api/playlist`, {
+      method: 'POST',
+      body: JSON.stringify({
+        userId: session.data.user_id,
+        name: 'TABR Library',
+        description: '',
+        playlistId: profile?.spotifyPlaylistId,
+        tabs: tabs,
+      })
+    }).then(r => r.json())
+
+    console.log('create spotify playlist:', spotifyPlaylist)
+
+    let newProfile = {
+      ...profile,
+      spotifyPlaylistId: spotifyPlaylist.id
+    }
+
+    console.log('new profile', newProfile)
+
+    fetch(`api/profile`, { method: 'POST', body: JSON.stringify(newProfile)})
+    // setProjects(
+    //   projects.map(p => p._id == openProjectId ? newProject : p)
+    // )
+  }
+
+  function openSpotifyPlaylist() {
+    window.open(`https://open.spotify.com/playlist/${profile.spotifyPlaylistId}` )
+  }
 
 
   function formatTabText() {
@@ -443,6 +479,11 @@ export default function Library({ }) {
                   title: 'save tab',
                   onClick: () => onSaveTab(userTabs.find(t => t.id === sidebarItemId)),
                   disabled: (!sidebarItemId),
+                },{
+                  title: 'update playlist',
+                  onClick: () => createSpotifyPlaylist(),
+                  // onClick: () => onSaveTab(userTabs.find(t => t.id === sidebarItemId)),
+                  // disabled: (!sidebarItemId),
                 }, {
                   title: 'open tab',
                   onClick: () => window.open(`https://docs.google.com/document/d/${tabs.find(t => t.id === sidebarItemId).googleDocsId}/edit` ),

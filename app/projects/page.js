@@ -343,18 +343,21 @@ export default function Projects({ }) {
 
   async function createSpotifyPlaylist() {
     console.log('create spotify playlist', projectTabs)
+    let project = projects.find(p => p._id == openProjectId)
+
     let spotifyPlaylist = await fetch(`/api/playlist`, {
       method: 'POST',
       body: JSON.stringify({
         userId: session.data.user_id,
-        projectId: openProjectId,
+        name: project.name,
+        description: '',
+        playlistId: project?.spotifyPlaylistId,
         tabs: tabs.filter(t => projectTabs.map(pt => pt.shortcutDetails.targetId).includes( t.googleDocsId ) )
       })
     }).then(r => r.json())
 
     console.log('create spotify playlist:', spotifyPlaylist)
 
-    let project = projects.find(p => p._id == openProjectId)
     let newProject = {
       ...project,
       spotifyPlaylistId: spotifyPlaylist.id
@@ -506,7 +509,7 @@ export default function Projects({ }) {
                   onClick: () => createSpotifyPlaylist(),
                   disabled: (!!!openProjectId),
                 },{
-                  title: 'cpen Spotify playlist',
+                  title: 'open Spotify playlist',
                   onClick: () => openSpotifyPlaylist(),
                   disabled: (!!!openProjectId),
                 },{
