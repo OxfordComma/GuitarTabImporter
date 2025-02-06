@@ -10,7 +10,7 @@ export default function FullscreenWindow({
   }) {
     useEffect(() => {
       const keyDownHandler = (e) => {
-        console.log(`You pressed ${e.code}.`)
+        // console.log(`You pressed ${e.code}.`)
         // if (e.code === "Enter") {
         //   open()
         // }

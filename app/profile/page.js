@@ -1,5 +1,5 @@
 'use client'
-import PickerButton from 'components/PickerButton.js'
+import { PickerButton } from 'components/PickerButton.js'
 
 import styles from './page.module.css'
 import { useState, useEffect } from 'react'
@@ -38,7 +38,6 @@ export default function Profile(props) {
 						drums: false,
 						}
 					})
-
 	  			}
 			}
 		}

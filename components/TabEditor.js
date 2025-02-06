@@ -23,10 +23,11 @@ export default function Editor ({
   // exportTab,
   columns=1,
 }) {
-  const [fontSize, setFontSize] = useState(12)
+  const [fontSize, setFontSize] = useState(9)
 
   const [tab, setTab] = useState(tabs.find(t => keyFunction(t) == tabId))
   const [tabText, setTabText] = useState('')
+  const fontScale = 1.5 // So size works better w/ google docs
 
   // console.log('TabEditor', {
   //   tabs, setTabs
@@ -153,7 +154,7 @@ export default function Editor ({
                     ''
                 }  
                 setTabText={setTabText}
-                fontSize={fontSize}
+                fontSize={fontSize * fontScale}
                 readOnly={true}
               />,
               <TabTextArea 
@@ -166,14 +167,14 @@ export default function Editor ({
                     ''
                 }  
                 setTabText={setTabText}
-                fontSize={fontSize}
+                fontSize={fontSize * fontScale}
                 readOnly={true}
               />
             ] :
             <TabTextArea 
               tabText={tabText}
               setTabText={setTabText}
-              fontSize={fontSize}
+              fontSize={fontSize * fontScale}
               readOnly={mode=='view'}
             />
         }

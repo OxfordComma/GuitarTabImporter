@@ -101,6 +101,7 @@ export async function GET(request, { params }) {
 		...account,
 		client_id: process.env.AUTH_GOOGLE_ID,
 		api_key: process.env.AUTH_GOOGLE_API_KEY,
+		app_id: process.env.GOOGLE_APP_ID
 	})
 //   return Response.json({ })
 }

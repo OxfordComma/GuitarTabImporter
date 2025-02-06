@@ -8,7 +8,7 @@ export async function GET(request, { params }) {
 
   let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
   // console.log('fetched account', account)
-  let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
+//   let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
   // console.log('fetched profile', profile)
   let searchParams = request.nextUrl.searchParams
 	console.log('searchParams', searchParams)
@@ -17,7 +17,6 @@ export async function GET(request, { params }) {
 		return Response.json({ })
 	}
   
-
 	const oauth2Client = new google.auth.OAuth2(
 		process.env.AUTH_GOOGLE_ID, 
 		process.env.AUTH_GOOGLE_SECRET

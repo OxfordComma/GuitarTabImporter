@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react"
 export const TabsContext = createContext([]);
 
 export function Context({ children }) {
-    const { data: session } = useSession()
+    const session = useSession()
 
 	const [userTabs, setUserTabs] = useState([])
 	const [googleTabs, setGoogleTabs] = useState([])
@@ -14,17 +14,13 @@ export function Context({ children }) {
 	const [projects, setProjects] = useState([])
 	const [openProjectId, setOpenProjectId] = useState(null) 
 
+	const [googleAccount, setGoogleAccount] = useState(undefined)
+
 	function sortTabs(tabs, sortBy) { 
 	  let sortedTabs = tabs.slice(0).sort((a, b) => {
 	  	let sortBySplit = sortBy.split(' ')
 	  	let sortByColumn = sortBySplit[0]
 	  	let ascending = true
-	  	
-	  	// console.log({
-	  	// 	sortBySplit,
-	  	// 	sortByColumn,
-	  	// 	ascending
-	  	// })
 
 	  	if (sortBy.includes('descending')) {
 	  		ascending = false
@@ -100,7 +96,7 @@ export function Context({ children }) {
 
 	function loadUserTabs() {
 		if (userTabs.length == 0) {
-			fetch(`/api/tabs?userid=${session.user_id}`)
+			fetch(`/api/tabs?userid=${session.data.user_id}`)
 			  .then(r => r.json())
 			  .then(newUserTabs => { 
 				setUserTabs(newUserTabs)
@@ -109,7 +105,7 @@ export function Context({ children }) {
 	}
 
 	function loadGoogleTabs() {
-		fetch(`/api/profile?id=${session.user_id}`)
+		fetch(`/api/profile?id=${session.data.user_id}`)
 			.then(r => r.json())
 			.then(profile => {
 				fetch('/api/folder?id=' + profile.libraryFolder)
@@ -128,6 +124,7 @@ export function Context({ children }) {
 		openProjectId, setOpenProjectId,
 		formatFolderContents,
 		sortTabs,
+		googleAccount,
 	}
 
 
@@ -137,8 +134,22 @@ export function Context({ children }) {
 			googleTabs,
 			projects,
 			openProjectId,
+			googleAccount
 		})
-	}, [userTabs, googleTabs, projects, openProjectId, ])
+	}, [userTabs, googleTabs, projects, openProjectId, googleAccount ])
+
+	useEffect(() => {
+		async function updateAccount() {
+			if (session.data?.user_id) {
+				let accountResponse = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
+				if (accountResponse) {
+					setGoogleAccount(accountResponse)
+				}
+			}	
+		}
+
+  		updateAccount();
+	}, [session])
 
 	return (
 		<TabsContext.Provider value={value} >

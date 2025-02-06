@@ -43,8 +43,6 @@ export default function Projects({ }) {
   let [deleteProjectId, setDeleteProjectId] = useState(null)
   let [isNewTab, setIsNewTab] = useState(false)
 
-
-
   let [sidebarSortBy, setSidebarSortBy] = useState('createdTime descending')
   let [createNewSidebarItem, setCreateNewSidebarItem] = useState(false)
   let [showSidebarSearchBar, setShowSidebarSearchBar] = useState(false)
@@ -272,7 +270,6 @@ export default function Projects({ }) {
     setAction('delete project')
     setOpenObjects(projects)
   }
-
 
   function onDeleteProject(projectId) {
     setDeleteProjectId(projectId)
