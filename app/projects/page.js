@@ -90,7 +90,7 @@ export default function Projects({ }) {
       ...newGoogleTabs
     ], sidebarSortBy)
 
-    console.log('new tabs', newTabs)
+    // console.log('new tabs', newTabs)
     if (newTabs.length > 0) {
       setTabs(
         newTabs

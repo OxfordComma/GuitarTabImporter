@@ -53,21 +53,19 @@ export async function POST(request, { params }) {
 	// console.log('create body:', body, session)
 
 	
-  let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
-  // console.log('fetched account', account)
-  let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-  // console.log('fetched profile', profile)
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+	// console.log('fetched account', account)
+	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
+	// console.log('fetched profile', profile)
 
-  if (!body.tab || !profile.libraryFolder) {
+	if (!body.tab || !profile.libraryFolder) {
 		Response.json({ })
 	}
-  
 
 	const oauth2Client = new google.auth.OAuth2(
 		process.env.AUTH_GOOGLE_ID, 
 		process.env.AUTH_GOOGLE_SECRET
 	);
-
 
 	oauth2Client.setCredentials({
 		'access_token': account.access_token,
@@ -78,17 +76,18 @@ export async function POST(request, { params }) {
 	const drive = google.drive({version: 'v3', auth: oauth2Client });
 
 	let {
-  	tabText,
-  	artistName,
-  	songName,
-  	googleDocsId,
-  	capo,
-  	tuning,
-  	bpm,
-  } = body.tab
-
+		tabText,
+		artistName,
+		songName,
+		googleDocsId,
+		capo,
+		tuning,
+		bpm,
+		draft
+	} = body.tab
 	
-
+	const documentName = (draft ? '[DRAFT] ' : '') + artistName + ' - ' + songName
+	
 	let requests = []
 
 	if (googleDocsId) {
@@ -123,7 +122,7 @@ export async function POST(request, { params }) {
 	else {
 		var googleDoc = await drive.files.create({
 			resource: { 
-				name: '[DRAFT] ' + artistName + ' - ' + songName,
+				name: documentName,
 				mimeType: 'application/vnd.google-apps.document',
 				parents: [profile.libraryFolder]
 			}
@@ -218,12 +217,13 @@ export async function POST(request, { params }) {
 					}]
 				}
 			})
+
 		}
 
 		let headerText = (capo == '0' && tuning == 'EADGBe') ? ' ' :
-					(capo != '0' && tuning != 'EADGBe') ? `${tuning}, capo ${capo}` : 
-					(capo != '0') ? `capo ${capo}` : 
-					(tuning != 'EADGBe') ? tuning : ' '
+			(capo != '0' && tuning != 'EADGBe') ? `${tuning}, capo ${capo}` : 
+			(capo != '0') ? `capo ${capo}` : 
+			(tuning != 'EADGBe') ? tuning : ' '
 
 		// console.log({
 		// 	capo,
@@ -449,14 +449,21 @@ export async function POST(request, { params }) {
 			}
 		})
 
+		drive.files.update({
+			fileId: googleDocsId,
+			requestBody: {
+				name: documentName
+			}
+		})
+
 		// console.log('googleDocUpdated', googleDocUpdated)
 
 		return Response.json({
-	    mimeType: "application/vnd.google-apps.document",
-	    id: googleDocsId,
-	    name: `[DRAFT] ${artistName} - ${songName}`,
-	    starred: false,
-	    createdTime: new Date,
+			mimeType: "application/vnd.google-apps.document",
+			id: googleDocsId,
+			name: `[DRAFT] ${artistName} - ${songName}`,
+			starred: false,
+			createdTime: new Date,
 		})
 	}
 

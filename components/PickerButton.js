@@ -41,8 +41,9 @@ export async function handleOpenPicker(account, openPicker, onPick, viewId="FOLD
         return;
       }
       if (data.action === 'picked') {
-        console.log(data, data.docs[0])
+        // console.log(data, data.docs[0])
         let selected = data.docs[0]
+        console.log('file picked', selected['id'])
         onPick(selected['id'])
       }
     },

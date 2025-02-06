@@ -35,7 +35,7 @@ export function Context({ children }) {
 			aSortBy = aSortBy?.toString().toLowerCase().replace(/^the /mi, '') ?? null
 			bSortBy = bSortBy?.toString().toLowerCase().replace(/^the /mi, '') ?? null
 	    }
-	    if (['createdTime'].includes(sortByColumn)) {
+	    if (['createdTime', 'lastUpdatedTime'].includes(sortByColumn)) {
 	    	aSortBy = new Date(aSortBy)
 	    	bSortBy = new Date(bSortBy)
 	    }
@@ -128,15 +128,15 @@ export function Context({ children }) {
 	}
 
 
-	useEffect(() => {
-		console.log('Context updated:', { 
-			userTabs,
-			googleTabs,
-			projects,
-			openProjectId,
-			googleAccount
-		})
-	}, [userTabs, googleTabs, projects, openProjectId, googleAccount ])
+	// useEffect(() => {
+	// 	console.log('Context updated:', { 
+	// 		userTabs,
+	// 		googleTabs,
+	// 		projects,
+	// 		openProjectId,
+	// 		googleAccount
+	// 	})
+	// }, [userTabs, googleTabs, projects, openProjectId, googleAccount ])
 
 	useEffect(() => {
 		async function updateAccount() {

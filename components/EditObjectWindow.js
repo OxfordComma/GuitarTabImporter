@@ -38,13 +38,18 @@ export default function EditObjectWindow({
             // let key = entry[0]
             let value = editObject[key]
 
-           return (<InfoRow 
+            return (<InfoRow 
               key={key} 
               label={key} 
-              value={value} 
+              value={value}
+              items={[true, false, 'true', 'false'].includes(value) ? [true, false] : undefined}
               onChange={e => setEditObject({
                 ...editObject,
-                [e.target.id]: e.target.value
+                [key]: e.target.value
+              })}
+              onDropdownChange={e => setEditObject({
+                ...editObject,
+                [key]: e
               })}
               />)
          })
@@ -57,12 +62,15 @@ export default function EditObjectWindow({
 
 
 function InfoRow({
-  label, value, items, disabled=false, onChange=() => {},
+  label, value, items, disabled=false, onChange=() => {}, onDropdownChange=() => {},
 }) {
-  return (<div style={{display: 'flex'}}>
-    <label style={{flex: 1}} htmlFor={label}>{label}</label>
-    {items!=undefined ? 
-      <Dropdown items={items} selected={value} onDropdownChange={onChange}/> : 
-      <input id={label} style={{flex: 1}} type="text" name={label} value={value} disabled={disabled} onChange={onChange}/>}
-  </div>)
+  return (
+    <div style={{display: 'flex'}}>
+      <label style={{flex: 1}} htmlFor={label}>{label}</label>
+        {items !== undefined ? 
+          <Dropdown items={items} selected={value} onDropdownChange={onDropdownChange}/> : 
+          <input id={label} style={{flex: 1}} type="text" name={label} value={value} disabled={disabled} onChange={onChange}/>
+        }
+    </div>
+  )
 }

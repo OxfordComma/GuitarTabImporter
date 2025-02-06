@@ -76,7 +76,7 @@ export default function Library({ }) {
       ...newGoogleTabs
     ], sidebarSortBy)
 
-    console.log('new tabs', newTabs)
+    // console.log('new tabs', newTabs)
     if (newTabs.length > 0) {
       setTabs(
         newTabs
@@ -104,7 +104,7 @@ export default function Library({ }) {
       artistName: artistName ?? '',
       songName: songName ?? '',
       holiday: false,
-      draft: false,
+      draft: true,
       uri: null,
       createdTime: createdTime ?? new Date(),//.toString(),
       lastUpdatedTime: createdTime ?? new Date(),//.toString(),
@@ -140,6 +140,9 @@ export default function Library({ }) {
       console.log('tab already exists:', existingTab)
       // return;
     }
+    else {
+      console.log('create new tab')
+    }
 
     // if (tab && tab.googleDocsId) {
     //   console.log('google doc:', tab)
@@ -171,13 +174,13 @@ export default function Library({ }) {
       .replace(/\r(?!\n)/g, '\n')
 
     let createdTime = new Date()
-    if (googleTabs.map(t => t['_id']).includes(existingTab['googleDocsId'])) {
+    if (existingTab && googleTabs.map(t => t['_id']).includes(existingTab['googleDocsId'])) {
       createdTime = googleTabs.find(t => t['_id'] == existingTab['googleDocsId']).createdTime
     }
 
-    if(!userTabs.map(t => t['googleDocsId']).includes(existingTab.googleDocsId)) {
+    if (!(existingTab && userTabs.map(t => t['googleDocsId']).includes(existingTab.googleDocsId) )) {
       console.log('adding tab', existingTab)
-      addTab(artistName, songName, id, tabText, existingTab.createdTime)
+      addTab(artistName, songName, id, tabText, createdTime)
     }
     else {
       let newUserTab = userTabs.find(t => t['googleDocsId'] == existingTab['googleDocsId'])
@@ -188,9 +191,9 @@ export default function Library({ }) {
         tabText: tabText,
       }
       console.log('imported one!', newUserTab)
-      setUserTabs(
-        userTabs.map(t => t['googleDocsId'] == existingTab['googleDocsId'] ? newUserTab : t)
-      )
+      // setUserTabs(
+      //   userTabs.map(t => t['googleDocsId'] == existingTab['googleDocsId'] ? newUserTab : t)
+      // )
 
       onSaveTab(newUserTab)
     }
@@ -201,6 +204,7 @@ export default function Library({ }) {
     setAction('edit tab')
     setEditObject(userTabs.find(t => t.id === sidebarItemId))
   }
+
   async function exportTab(userTab) {
     let tab
     if (userTab) {
@@ -262,9 +266,9 @@ export default function Library({ }) {
     console.log('userTab', newUserTab)
 
     // Last Updated Time
-    if (!newUserTab?.lastUpdatedTime) {
-      newUserTab.lastUpdatedTime = new Date()
-    }
+    // if (!newUserTab?.lastUpdatedTime) {
+    newUserTab.lastUpdatedTime = new Date()
+    // }
     if (!('capo' in newUserTab)) {
       newUserTab['capo'] = 0
     }
@@ -273,16 +277,20 @@ export default function Library({ }) {
       newUserTab['tuning'] = 'EADGBe'
     }
 
+    if ('draft' in newUserTab) {
+      newUserTab['draft'] = ([true, 'true'].includes(newUserTab['draft']))
+    }
+
+    if ('holiday' in newUserTab) {
+      newUserTab['holiday'] = ([true, 'true'].includes(newUserTab['holiday']))
+    }
+
+    if ('starred' in newUserTab) {
+      newUserTab['starred'] = ([true, 'true'].includes(newUserTab['starred']))
+    }
+
     let exportResponse = await exportTab(newUserTab)
     newUserTab['googleDocsId'] = exportResponse['id']
-
-    // userTabs = userTabs.map(t => {
-    //   if (t['_id'] == sidebarItemId) {
-    //     return tab
-    //   }
-    //   return t
-    // })
-
 
     let saveResponse = await fetch('api/tab', {
       method: 'POST',
@@ -394,7 +402,7 @@ export default function Library({ }) {
         setEditObject={setEditObject}
         onOpenObject={onSaveTab}
         show={action === 'edit tab'}
-        subset={['artistName', 'songName', 'capo', 'tuning', 'bpm']}
+        subset={['artistName', 'songName', 'capo', 'tuning', 'bpm', 'draft']}
       />
       <OpenObjectsWindow // Delete Tab
         openObjects={openObjects}
@@ -463,6 +471,9 @@ export default function Library({ }) {
                 }, {
                   title: 'sort by created time',
                   onClick: () => sidebarSortBy == 'createdTime descending' ? setSidebarSortBy('createdTime ascending') : setSidebarSortBy('createdTime descending')
+                }, {
+                  title: 'sort by modified time',
+                  onClick: () => sidebarSortBy == 'lastUpdatedTime descending' ? setSidebarSortBy('lastUpdatedTime ascending') : setSidebarSortBy('lastUpdatedTime descending')
                 }, {
                   title: 'sort by capo',
                   onClick: () => sidebarSortBy == 'capo descending' ? setSidebarSortBy('capo ascending') : setSidebarSortBy('capo descending')
