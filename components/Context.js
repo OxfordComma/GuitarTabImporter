@@ -66,10 +66,13 @@ export function Context({ children }) {
 		let artistName = fc['name'].split(' - ')[0]
 			.replace('\[DRAFT\] ', '')
 			.replace('\[HOLIDAY\] ', '')
+			.trim()
 		let uri = fc['name'].match('\{(.+)\}')
 		// To avoid repeating the regex
 		if (uri) uri = uri[1]
-		let songName = fc['name'].split(' - ')[1].replace(`\{${uri}\}`, '') 
+		let songName = fc['name'].split(' - ')[1]
+			.replace(`\{${uri}\}`, '')
+			.trim()
 		let googleDocsId = fc.id
 		// let googleDocsId = fc.shortcutDetails?.targetId !== undefined ? 
 		// 	fc.shortcutDetails.targetId : 

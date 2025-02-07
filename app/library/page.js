@@ -164,8 +164,8 @@ export default function Library({ }) {
 
     let title = tabText.match(/-{10,}\r?\n?(.+)\r?\n?-{10,}/)[1]
     // console.log('doc title:', title)
-    let artistName = title.split(' - ')[0]
-    let songName = title.split(' - ')[1]
+    let artistName = title.split(' - ')[0].trim()
+    let songName = title.split(' - ')[1].trim()
     
     tabText = tabText
       .replace(title+'\r\n', '')
@@ -384,6 +384,7 @@ export default function Library({ }) {
     console.log('create spotify playlist')
     let profile = await fetch(`api/profile?id=${session.data.user_id}`)
       .then(r => r.json())
+    console.log('create spotify profile', profile)
 
     let spotifyPlaylist = await fetch(`/api/playlist`, {
       method: 'POST',
@@ -391,7 +392,7 @@ export default function Library({ }) {
         userId: session.data.user_id,
         name: 'TABR Library',
         description: '',
-        playlistId: profile?.spotifyPlaylistId,
+        playlistId: profile.spotifyPlaylistId ?? undefined,
         tabs: tabs,
       })
     }).then(r => r.json())

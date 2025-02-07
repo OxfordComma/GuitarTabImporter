@@ -69,11 +69,11 @@ export async function GET(request, { params }) {
 		spotifyAuth.setRefreshToken(account.refresh_token)
 
 		// TODO: Check to see if this works
-		// if (new Date() > new Date(account['expires_at'])) {
+		if (new Date() > new Date(account['expires_at'] * 1000)) {
 			console.log('(Playlist) Refreshing access token...', account)
 			let refresh = await spotifyAuth.refreshAccessToken()
 				.then(async r => {
-					console.log('Access token refreshed:', r)
+					console.log('Spotify access token refreshed:', r)
 					spotifyAuth.setAccessToken(r.body['access_token'])
 					let mongoClient = await clientPromise
 					var db = await mongoClient.db('tabr')
@@ -83,7 +83,7 @@ export async function GET(request, { params }) {
 						'expires_at': new Date(new Date().setHours(new Date().getHours() + 1))
 					}
 					var userResponse = await cl.updateOne({ 
-						_id: ObjectId(userId) 
+						_id: new ObjectId(searchParams.get('id'))
 					}, {
 						'$set': newObj
 					}
@@ -92,9 +92,9 @@ export async function GET(request, { params }) {
 					...account,
 					...newObj
 				}
-				console.log('spotify account refreshed:', account)
+				console.log('spotify account refreshed:', account, refresh)
 			}).catch(err => console.log('auth error:' , err))
-		// }
+		}
 	}
 	
 	return Response.json({

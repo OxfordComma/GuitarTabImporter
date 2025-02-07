@@ -127,8 +127,8 @@ export default function Projects({ }) {
           if (t.id === sidebarItemId) {
             let newTab = t
             let tabText = documentResponse.text
-            let artistName = t['name'].split(' - ')[0]
-            let songName = t['name'].split(' - ')[1]
+            let artistName = t['name'].split(' - ')[0].trim()
+            let songName = t['name'].split(' - ')[1].trim()
             let capo = 0
             let tuning = 'eBGDAE'
             
@@ -538,8 +538,8 @@ export default function Projects({ }) {
             SidebarItemComponent={(datum) => {
               if (!datum) return;
 
-              let artistName = datum['name'].split(' - ')[0]
-              let songName = datum['name'].split(' - ')[1]
+              let artistName = datum['name'].split(' - ')[0].trim()
+              let songName = datum['name'].split(' - ')[1].trim()
               return (
                 <div style={{
                     display: 'flex', 
