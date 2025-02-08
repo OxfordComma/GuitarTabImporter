@@ -1,7 +1,8 @@
 import { getSession } from "next-auth/react"
-
-const {google} = require('googleapis');
+import { ObjectId } from 'mongodb'
 import { auth } from 'auth'
+
+const { google } = require('googleapis');
 
 // export default async function handler(req, res) {
 export async function POST(request, { params }) {	
@@ -54,7 +55,13 @@ export async function POST(request, { params }) {
 		}
 	})
 
-	return Response.json(googleDoc)
+	return Response.json({
+		_id: new ObjectId(),
+		...googleDoc.data,
+		shortcutDetails: {
+			targetId: googleDocsId,
+		},
+	})
 }
 
 export async function DELETE(request, { params }) {	

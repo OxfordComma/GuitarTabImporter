@@ -314,8 +314,8 @@ export default function Projects({ }) {
         })
       })
       .then(r => r.json())
-      .then(r => {
-        const responseData = r.data
+      .then(responseData => {
+        // const responseData = r.data
         console.log('add tab', responseData)
         setProjectTabs([
           responseData,
