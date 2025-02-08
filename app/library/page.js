@@ -31,7 +31,7 @@ export default function Library({ }) {
     googleTabs, setGoogleTabs, loadGoogleTabs,
     sortTabs,
     formatFolderContents,
-    googleAccount,
+    // googleAccount,
     profile,
   } = useContext(TabsContext)
 
@@ -124,7 +124,10 @@ export default function Library({ }) {
     return newTab._id
   }
 
-  function importTabMenu() {
+  async function importTabMenu() {
+    let googleAccount = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
+
+    console.log('import tab menu:', googleAccount)
     setAction('import tab menu')
     const viewId = "DOCS"
     handleOpenPicker(googleAccount, openPicker, importTab, viewId)
@@ -565,18 +568,25 @@ export default function Library({ }) {
             SidebarItemComponent={(datum) => {
               // console.log(datum)
               return (
-                <div style={{display: 'flex', flexDirection: 'column', width: '100%', height: '100%',}}>
-                  <div style={{
-                    width: '100%',
-                  }}>
-                    {datum.songName}
+                <div style={{display: 'flex', flexDirection: 'row', width: '100%', height: '100%',}}>
+                  <div style={{display: 'flex', flexDirection: 'column', width: '100%', height: '100%',}}>
+                    <div style={{
+                      width: '100%',
+                    }}>
+                      {datum.songName}
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      fontSize: '0.8em'
+                    }}>
+                      {datum.artistName}
+                    </div>
                   </div>
-                  <div style={{
-                    width: '100%',
-                    fontSize: '0.8em'
-                  }}>
-                    {datum.artistName}
-                  </div>
+                  {
+                      datum?.draft ? 
+                        <div style={{ display: 'block', width: '5px', height: '25px', backgroundColor: 'yellow'}}></div> : 
+                        null
+                    }
                 </div>
               )
             }}

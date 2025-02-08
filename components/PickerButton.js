@@ -26,7 +26,7 @@ export async function handleOpenPicker(account, openPicker, onPick, viewId="FOLD
     // showUploadView: true,
     // showUploadFolders: true,
     // supportDrives: true,
-    multiselect: true,
+    // multiselect: true,
     // customViews: customViewsArray, // custom view
     customScopes: ['https://www.googleapis.com/auth/drive.file'],
     callbackFunction: (data) => {

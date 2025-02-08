@@ -70,30 +70,35 @@ export async function GET(request, { params }) {
 
 		// TODO: Check to see if this works
 		if (new Date() > new Date(account['expires_at'] * 1000)) {
-			console.log('(Playlist) Refreshing access token...', account)
-			let refresh = await spotifyAuth.refreshAccessToken()
-				.then(async r => {
-					console.log('Spotify access token refreshed:', r)
-					spotifyAuth.setAccessToken(r.body['access_token'])
-					let mongoClient = await clientPromise
-					var db = await mongoClient.db('tabr')
-					var cl = await db.collection('accounts')
-					let newObj = { 
-						'access_token': r.body['access_token'],
-						'expires_at': new Date(new Date().setHours(new Date().getHours() + 1))
-					}
-					var userResponse = await cl.updateOne({ 
-						_id: new ObjectId(searchParams.get('id'))
-					}, {
-						'$set': newObj
-					}
-				)
-				account = {
-					...account,
-					...newObj
-				}
-				console.log('spotify account refreshed:', account, refresh)
-			}).catch(err => console.log('auth error:' , err))
+			console.log('(Account) Refreshing access token...', account)
+			let refresh = await spotifyAuth.refreshAccessToken().catch(err => console.log('auth error:' , err))
+				// .then(async r => {
+			console.log('Spotify access token refreshed:', refresh)
+			let newAccessToken = refresh.body['access_token']
+			let newRefreshToken = refresh.body['refresh_token']
+			spotifyAuth.setAccessToken(newAccessToken)
+			spotifyAuth.setRefreshToken(newRefreshToken)
+			let mongoClient = await clientPromise
+			var db = await mongoClient.db('tabr')
+			var cl = await db.collection('accounts')
+			let newObj = { 
+				'access_token': newAccessToken,
+				'refresh_token': newRefreshToken,
+				'expires_at': new Date(new Date().setSeconds(new Date().getSeconds() + refresh.body['expires_in']))
+				// 'expires_at': new Date(refresh.body['expires_at']),
+				// 'expires_at': new Date(new Date().setHours(new Date().getHours() + 1))
+			}
+			var userResponse = await cl.updateOne({ 
+				_id: new ObjectId(account['_id'])
+			}, {
+				'$set': newObj
+			})
+			account = {
+				...account,
+				...newObj
+			}
+			console.log('spotify account refreshed:', account, refresh)
+			// })
 		}
 	}
 	

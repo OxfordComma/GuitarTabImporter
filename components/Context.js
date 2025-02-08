@@ -128,7 +128,7 @@ export function Context({ children }) {
 		openProjectId, setOpenProjectId,
 		formatFolderContents,
 		sortTabs,
-		googleAccount,
+		// googleAccount,
 		// profile
 	}
 
@@ -143,29 +143,29 @@ export function Context({ children }) {
 	// 	})
 	// }, [userTabs, googleTabs, projects, openProjectId, googleAccount ])
 
-	useEffect(() => {
-		async function updateAccount() {
-			if (session.data?.user_id) {
-				let accountResponse = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
-				if (accountResponse) {
-					setGoogleAccount(accountResponse)
-				}
-			}	
-		}
+	// useEffect(() => {
+	// 	async function updateAccount() {
+	// 		if (session.data?.user_id) {
+	// 			let accountResponse = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
+	// 			if (accountResponse) {
+	// 				setGoogleAccount(accountResponse)
+	// 			}
+	// 		}	
+	// 	}
 
-		// async function updateProfile() {
-		// 	if (session.data?.user_id) {
-		// 		let profileResponse = await fetch(`/api/profile?id=${session.data.user_id}`).then(r => r.json())
-		// 		if (profileResponse) {
-		// 			setProfile(profileResponse)
-		// 		}
-		// 	}	
-		// }
+	// 	// async function updateProfile() {
+	// 	// 	if (session.data?.user_id) {
+	// 	// 		let profileResponse = await fetch(`/api/profile?id=${session.data.user_id}`).then(r => r.json())
+	// 	// 		if (profileResponse) {
+	// 	// 			setProfile(profileResponse)
+	// 	// 		}
+	// 	// 	}	
+	// 	// }
 
-  		updateAccount();
-		// updateProfile();
+  	// 	updateAccount();
+	// 	// updateProfile();
 
-	}, [session])
+	// }, [session])
 
 	return (
 		<TabsContext.Provider value={value} >
