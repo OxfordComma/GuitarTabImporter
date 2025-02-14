@@ -206,7 +206,7 @@ export default function Library({ }) {
 
   function editTabMenu() {
     setAction('edit tab')
-    setEditObject(userTabs.find(t => t.id === sidebarItemId))
+    setEditObject(userTabs.find(t => t._id === sidebarItemId))
   }
 
   async function exportTab(userTab) {
@@ -327,7 +327,7 @@ export default function Library({ }) {
 
       setUserTabs(newUserTabs)
       // setGoogleTabs(newGoogleTabs)
-      setSidebarItemId(saveResponse.id)
+      setSidebarItemId(saveResponse._id)
     }
 
     // If it hasn't been saved to Google yet, save it
@@ -383,6 +383,23 @@ export default function Library({ }) {
     setAction(undefined)
   }
 
+  async function toggleColumnsMenu() {
+    // let tab = userTabs.find(t => t._id === sidebarItemId)
+    let newUserTabs = userTabs
+    newUserTabs = newUserTabs.map(t => {
+      return t._id === sidebarItemId ? {
+        ...t,
+        columns: t?.columns ? 
+        t.columns === 1 ? 
+            2 : 1
+          : 1
+      } : t
+    })
+    setColumns(parseInt(newUserTabs.find(t => t._id === sidebarItemId).columns) ?? 1)
+
+    setUserTabs(newUserTabs)
+  }
+
   async function createSpotifyPlaylist() {
     console.log('create spotify playlist')
     let profile = await fetch(`api/profile?id=${session.data.user_id}`)
@@ -423,7 +440,7 @@ export default function Library({ }) {
   function formatTabText() {
     console.log('format', userTabs, sidebarItemId)
     setUserTabs(userTabs.map(t => {
-      if (t.id === sidebarItemId) {
+      if (t._id === sidebarItemId) {
         return {
           ...t, 
           tabText: formatRawTabs(t.tabText)
@@ -481,17 +498,17 @@ export default function Library({ }) {
                   disabled: (!sidebarItemId),
                 },{
                   title: 'save tab',
-                  onClick: () => onSaveTab(userTabs.find(t => t.id === sidebarItemId)),
+                  onClick: () => onSaveTab(userTabs.find(t => t._id === sidebarItemId)),
                   disabled: (!sidebarItemId),
                 },{
                   title: 'update playlist',
                   onClick: () => createSpotifyPlaylist(),
-                  // onClick: () => onSaveTab(userTabs.find(t => t.id === sidebarItemId)),
+                  // onClick: () => onSaveTab(userTabs.find(t => t._id === sidebarItemId)),
                   // disabled: (!sidebarItemId),
                 }, {
                   title: 'open tab',
-                  onClick: () => window.open(`https://docs.google.com/document/d/${tabs.find(t => t.id === sidebarItemId).googleDocsId}/edit` ),
-                  disabled: !(tabs.find(t => t.id === sidebarItemId) && tabs.find(t => t.id === sidebarItemId).googleDocsId !== null )
+                  onClick: () => window.open(`https://docs.google.com/document/d/${tabs.find(t => t._id === sidebarItemId).googleDocsId}/edit` ),
+                  disabled: !(tabs.find(t => t._id === sidebarItemId) && tabs.find(t => t._id === sidebarItemId).googleDocsId !== null )
                 }, {
                   title: 'delete tab',
                   onClick: () => deleteTabMenu(),
@@ -500,7 +517,7 @@ export default function Library({ }) {
               ],
               view: [{
                 title: 'two column mode',
-                onClick: () => setColumns(columns === 2 ? 1 : 2),
+                onClick: () => toggleColumnsMenu()
               }],
               format: [{
                 title: 'format tab text',
@@ -563,7 +580,7 @@ export default function Library({ }) {
             setSidebarItems={() => {}}
             sidebarItemId={sidebarItemId}
             setSidebarItemId={setSidebarItemId}
-            keyFunction={d => d.id}
+            keyFunction={d => d._id}
             itemIsEnabled={d => userTabs.map(t => t.googleDocsId).map(t => t).includes(d.googleDocsId)}
             SidebarItemComponent={(datum) => {
               // console.log(datum)
@@ -597,7 +614,7 @@ export default function Library({ }) {
             tabs={userTabs}
             setTabs={(setUserTabs)}
             tabId={sidebarItemId}
-            keyFunction={d => d.id}
+            keyFunction={d => d._id}
             columns={columns}
           />
         </div>   

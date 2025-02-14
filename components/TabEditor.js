@@ -7,6 +7,20 @@ import { MenuBar } from 'quantifyjs'
 import menuBarStyles from '../styles/MenuBar.module.css'
 import { formatRawTabs } from '../lib/tabhelper.js'
 
+function useDebounce(cb, delay) {
+  const [debounceValue, setDebounceValue] = useState(cb);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebounceValue(cb);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [cb, delay]);
+  return debounceValue;
+}
+
 export default function Editor ({ 
   tabs, 
   setTabs,
@@ -24,115 +38,66 @@ export default function Editor ({
   columns=1,
 }) {
   const [fontSize, setFontSize] = useState(9)
-
-  const [tab, setTab] = useState(tabs.find(t => keyFunction(t) == tabId))
-  const [tabText, setTabText] = useState('')
+  const tab = tabs.find(t => keyFunction(t) === tabId)
+  const [tabText, setTabText] = useState(tab?.tabText)
   const fontScale = 1.5 // So size works better w/ google docs
 
-  // console.log('TabEditor', {
-  //   tabs, setTabs
-  // })
+  // const [debounceVal, setDebounceVal] = useState("");
+  const debounceValue = useDebounce(tabText, 3000);
+
+  useEffect(() => {
+    // console.log("Debounced:", tabText);
+    // setDebounceVal(tabText);
+      setTabs(tabs.map(t => keyFunction(t) === tabId ? { 
+        ...t, 
+        tabText: tabText,
+        fontSize: fontSize,
+      } : t))
+  }, [debounceValue]);
 
   useEffect(() => {
     let newTab = tabs.find(t => keyFunction(t) === tabId)
     // console.log('newTab', newTab, tabId, tabs)
     setTabText(newTab?.tabText ?? '');
-    setTab(newTab)
-  }, [tabId, tabs])
 
-  // useEffect(() => {
-  //   if (mode=='view') return; 
-    
-  //   let newTabs = tabs.map(t => {
-  //     if (t['_id'] === tabId && tab) {
-  //       // try {
-  //         t['tabText'] = tab['tabText'] ?? ''
-  //       // }
-  //       // catch(e) {
-  //         // console.log('error', e)
-  //       // }
-  //     }
-  //     return t
-  //   })
-
-  //   setTabs(tabs)
-
-  // }, [tab.tabText])
-
-  // let setTabText = (event) => {
-  //   event.preventDefault();
-  //   // console.log({
-  //   //   ...tab,
-  //   //   tabText: event.target.value
-  //   // })
-  //   // setTab({
-  //   //   ...tab,
-  //   //   tabText: event.target.value,
-  //   // })
-  //   setTabText(event.target.value)
-  // }
+  }, [tabs, tabId])
 
   useEffect(() => {
     if (!tabId) return;
-    // console.log('set tabs', tabs, tabId, tabText)
-    setTabs(tabs.map(t => keyFunction(t) === tabId ? { ...t, tabText: tabText } : t))
-  }, [tabText])
+    setTabs(tabs.map(t => keyFunction(t) === tabId ? { 
+      ...t, 
+      tabText: tabText,
+      fontSize: fontSize,
+    } : t))
+  }, [fontSize])
 
-  // function openTabInDocs() {
-  //   if (tab.googleDocsId)
-  //     window.open(`https://docs.google.com/document/d/${tab.googleDocsId}`)
-  // }
+ 
 
-  
-  
-  // function formatTab() {
-  //   setTab({
-  //     ...tab,
-  //     tabText: formatRawTabs(tab.tabText),
-  //   })
-  // }
+//   let addTabStaff = () => {
+//     let staffString = '\n'+
+// 'e|----------------------------------------------------------------------------------|\n'+
+// 'B|----------------------------------------------------------------------------------|\n'+
+// 'G|----------------------------------------------------------------------------------|\n'+
+// 'D|----------------------------------------------------------------------------------|\n'+
+// 'A|----------------------------------------------------------------------------------|\n'+
+// 'E|----------------------------------------------------------------------------------|'
+//     setTab({
+//       ...tab,
+//       tabText: tab.tabText + staffString
+//     })
 
-  
-
-  let addTabStaff = () => {
-    let staffString = '\n'+
-'e|----------------------------------------------------------------------------------|\n'+
-'B|----------------------------------------------------------------------------------|\n'+
-'G|----------------------------------------------------------------------------------|\n'+
-'D|----------------------------------------------------------------------------------|\n'+
-'A|----------------------------------------------------------------------------------|\n'+
-'E|----------------------------------------------------------------------------------|'
-    setTab({
-      ...tab,
-      tabText: tab.tabText + staffString
-    })
-
-  }
-
-  let toggleSidebar = () => {
-    setShowSidebar(!showSidebar)
-  }
-
-  // let toggleTwoColumns = () => {
-  //   console.log('toggling columns', columns)
-  //   setColumns(columns === 2 ? 1 : 2)
-  // }
-
+//   }
 
   let lineDelim = /\r|\r\n|\n/
   let numLines = tab?.tabText.split(lineDelim).length;
   let halfLines = parseInt(numLines/2);
   
-  // console.log({
-  //   tabs, tab, numLines
-  // })
-
-
   return (
     <div className={styles['container']}>
       <div style={{display: 'flex', backgroundColor: 'black', width: '100%',alignItems: 'center'}}>
         <TitleBar
           tab={tabs.find(t => keyFunction(t) == tabId)}
+          tabText={tabText}
         />
         <DetailBar
           tab={tabs.find(t => keyFunction(t) == tabId)}
@@ -225,10 +190,19 @@ function StyleEditor({
   )
 }
 
-function TitleBar({ tab }) {
+function TitleBar({ tab, tabText }) {
+  let lineDelim = /\r|\r\n|\n/
+  let numLines = tabText?.split(lineDelim).length;
+  function Warning({ show }) {
+    return (<div>
+      {show ? <div title='Document may exceed length requirements.'>⚠️</div> : null}
+    </div>)
+  }
+
   return (
     <div className={styles['title-bar']}>
       {tab && tab?.artistName ? `${tab?.artistName.replace(/ /g, '').toLowerCase()}_${tab.songName.replace(/ /g, '').toLowerCase()}.tab` : ''}
+      {<Warning show={numLines > 68}/>}
     </div>
   )
 }
@@ -281,6 +255,8 @@ function DetailBar({ tab, fontSize, setFontSize }) {
   }
 
 
+
+
   let detailStyles = {
     display: 'flex', 
     flexDirection: 'row', 
@@ -304,14 +280,4 @@ function DetailBar({ tab, fontSize, setFontSize }) {
     {<Bpm bpm={tabBpm} show={showBpm}/>}
     
   </div> : null)
-
-  // return (tab ? <span style={ } >
-  //     {bpm(tabBpm, showBpm)}
-  //     {showBpm ? separator(showBpm, showTuning) : ''}
-  //     {tuning(tabTuning, showTuning)}
-  //     {separator(showBpm, showTuning)}
-  //     {' '}
-  //     {capo(tabCapo, showCapo)}
-  //   </span> : <div></div>
-  // )
 }

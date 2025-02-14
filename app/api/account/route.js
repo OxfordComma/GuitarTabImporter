@@ -84,7 +84,9 @@ export async function GET(request, { params }) {
 			let newObj = { 
 				'access_token': newAccessToken,
 				'refresh_token': newRefreshToken,
-				'expires_at': new Date(new Date().setSeconds(new Date().getSeconds() + refresh.body['expires_in']))
+				'expires_at': parseInt(
+					new Date(new Date().setSeconds(new Date().getSeconds() + refresh.body['expires_in'])).getTime() / 1000
+				)
 				// 'expires_at': new Date(refresh.body['expires_at']),
 				// 'expires_at': new Date(new Date().setHours(new Date().getHours() + 1))
 			}

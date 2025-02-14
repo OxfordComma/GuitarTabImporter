@@ -46,12 +46,11 @@ export async function GET(request, { params }) {
 	})
 
 }
-// export default async function handler(req, res) {
+
 export async function POST(request, { params }) {
 	const session = await auth()
 	let body = await request.json()
 	// console.log('create body:', body, session)
-
 	
 	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
 	// console.log('fetched account', account)
@@ -83,10 +82,21 @@ export async function POST(request, { params }) {
 		capo,
 		tuning,
 		bpm,
-		draft
+		draft,
+		columns,
+		fontSize,
 	} = body.tab
 	
 	const documentName = (draft ? '[DRAFT] ' : '') + artistName + ' - ' + songName
+	if (columns === undefined) {
+		columns = 1
+	}
+	else {
+		columns = parseInt(columns)
+	}
+	if (fontSize === undefined) {
+		fontSize = 9
+	}
 	
 	let requests = []
 
@@ -164,7 +174,7 @@ export async function POST(request, { params }) {
 								fontFamily: 'PT Mono'
 							},
 							fontSize: {
-								magnitude: 9,
+								magnitude: fontSize,
 								unit: 'PT'
 							}
 						},
@@ -208,7 +218,7 @@ export async function POST(request, { params }) {
 									fontFamily: 'PT Mono'
 								},
 								fontSize: {
-									magnitude: 9,
+									magnitude: fontSize,
 									unit: 'PT'
 								}
 							},
@@ -225,16 +235,8 @@ export async function POST(request, { params }) {
 			(capo != '0') ? `capo ${capo}` : 
 			(tuning != 'EADGBe') ? tuning : ' '
 
-		// console.log({
-		// 	capo,
-		// 	tuning,
-		// 	headerText,
-		// 	headerContent,
-		// 	maxHeaderIndex
-		// })
-
-		requests = requests.concat(
-		[{
+		requests = requests.concat([
+		{
 			'updateDocumentStyle': {
 				'documentStyle': {
 					'marginTop': {
@@ -263,7 +265,7 @@ export async function POST(request, { params }) {
 		},{
 			'insertTable': {
 				rows: 1,
-				columns: 1,
+				columns: columns,
 				endOfSegmentLocation: {
 					segmentId: ''
 				}
@@ -352,9 +354,23 @@ export async function POST(request, { params }) {
 					index: 0,
 				}
 			},
-		},{
+		}])
+		
+		if (columns === 2) {
+			requests = requests.concat([{
+				'insertText': {
+					'text': '_RightColumn_',
+					location: {
+						index: 7
+					}
+				}
+			}])
+		}
+
+		requests = requests.concat([
+		{
 			'insertText': {
-				'text': '_Content_',
+				'text': '_LeftColumn_',
 				location: {
 					index: 5
 				}
@@ -370,14 +386,14 @@ export async function POST(request, { params }) {
 			'updateTextStyle': {
 				'range': {
 					startIndex: 1,
-					endIndex: 188
+					endIndex: columns === 2 ? 200 : 192
 				},
 				textStyle: {
 					weightedFontFamily: {
 						fontFamily: 'PT Mono'
 					},
 					fontSize: {
-						magnitude: 9,
+						magnitude: fontSize,
 						unit: 'PT'
 					}
 				},
@@ -407,47 +423,53 @@ export async function POST(request, { params }) {
 				fields: 'alignment'
 			}
 		},{
-				'replaceAllText': { 
-					'replaceText' : artistName,
-					'containsText': {
-						'text' : '_Artist_',
-						'matchCase' : true
-					}
-				}
-		},{
-				'replaceAllText': { 
-					'replaceText' : songName,
-					'containsText': {
-						'text' : '_Song_',
-						'matchCase' : true
-					}
-				} 
-		},{             
 			'replaceAllText': { 
-				'replaceText' : tabText,
+				'replaceText' : artistName,
 				'containsText': {
-					'text' : '_Content_',
+					'text' : '_Artist_',
 					'matchCase' : true
 				}
 			}
-
-		// },{                    
-		// 	'replaceAllText': { 
-		// 		'replaceText' : uri,
-		// 		'containsText': {
-		// 			'text' : '_spotifyUri_',
-		// 			'matchCase' : true
-		// 		}
+		},{
+			'replaceAllText': { 
+				'replaceText' : songName,
+				'containsText': {
+					'text' : '_Song_',
+					'matchCase' : true
+				}
+			} 
+		},{             
+			'replaceAllText': { 
+				'replaceText' : columns === 2 ? tabText.split('\n').slice(0, tabText.split('\n').length / 2).join('\n') : tabText,
+				'containsText': {
+					'text' : '_LeftColumn_',
+					'matchCase' : true
+				}
 			}
-		])
-
+		}])
+		
+		if (columns === 2) {
+			requests = requests.concat([
+			{             
+				'replaceAllText': {
+					'replaceText' : tabText.split('\n').slice(tabText.split('\n').length / 2).join('\n'),
+					'containsText': {
+						'text' : '_RightColumn_',
+						'matchCase' : true
+					} 
+				}
+			}])
+		}
+		
 		// console.log('updating doc')
-		var googleDocUpdated = await docs.documents.batchUpdate({
+		let batchUpdateResponse = await docs.documents.batchUpdate({
 			'documentId': googleDocsId,
 			'resource' : { 
 				'requests': requests 
 			}
 		})
+
+		console.log('batch update response', batchUpdateResponse, batchUpdateResponse.data.replies)
 
 		drive.files.update({
 			fileId: googleDocsId,
