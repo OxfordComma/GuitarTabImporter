@@ -43,16 +43,16 @@ export default function Editor ({
   const fontScale = 1.5 // So size works better w/ google docs
 
   // const [debounceVal, setDebounceVal] = useState("");
-  const debounceValue = useDebounce(tabText, 3000);
+  const debounceValue = useDebounce(tabText, 1000);
 
   useEffect(() => {
-    // console.log("Debounced:", tabText);
+    console.log("tab text set:", { tabText: tabText });
     // setDebounceVal(tabText);
-      setTabs(tabs.map(t => keyFunction(t) === tabId ? { 
-        ...t, 
-        tabText: tabText,
-        fontSize: fontSize,
-      } : t))
+    setTabs(tabs.map(t => keyFunction(t) === tabId ? { 
+      ...t, 
+      tabText: tabText,
+      fontSize: fontSize,
+    } : t))
   }, [debounceValue]);
 
   useEffect(() => {
