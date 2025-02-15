@@ -7,6 +7,7 @@ export default function EditObjectWindow({
   editObject,
   setEditObject,
   onOpenObject,
+  accessors={},
   subset,
   show=false,
   save = (obj) => console.log('default save obj', obj)
@@ -36,7 +37,11 @@ export default function EditObjectWindow({
       <div>{
         (subset ? subset : Object.keys(editObject)).map(key => {
             // let key = entry[0]
+            console.log('key', key, accessors)
+            let accessor = accessors[key] ?? (d => d)
+            console.log('accessor', accessors, accessor)
             let value = editObject[key]
+            console.log('value', value)
 
             return (<InfoRow 
               key={key} 
@@ -45,11 +50,11 @@ export default function EditObjectWindow({
               items={[true, false, 'true', 'false'].includes(value) ? [true, false] : undefined}
               onChange={e => setEditObject({
                 ...editObject,
-                [key]: e.target.value
+                [key]: accessor(e.target.value)
               })}
               onDropdownChange={e => setEditObject({
                 ...editObject,
-                [key]: e
+                [key]: accessor(e)
               })}
               />)
          })
@@ -58,8 +63,6 @@ export default function EditObjectWindow({
     }
   />)
 }
-
-
 
 function InfoRow({
   label, value, items, disabled=false, onChange=() => {}, onDropdownChange=() => {},

@@ -37,13 +37,13 @@ export default function Editor ({
   // exportTab,
   columns=1,
 }) {
-  const [fontSize, setFontSize] = useState(9)
   const tab = tabs.find(t => keyFunction(t) === tabId)
+  const [fontSize, setFontSize] = useState(tab?.fontSize ?? 9)
   const [tabText, setTabText] = useState(tab?.tabText)
   const fontScale = 1.5 // So size works better w/ google docs
 
   // const [debounceVal, setDebounceVal] = useState("");
-  const debounceValue = useDebounce(tabText, 1000);
+  const debounceValue = useDebounce(tabText, 2000);
 
   useEffect(() => {
     console.log("tab text set:", { tabText: tabText });
@@ -59,7 +59,8 @@ export default function Editor ({
     let newTab = tabs.find(t => keyFunction(t) === tabId)
     // console.log('newTab', newTab, tabId, tabs)
     setTabText(newTab?.tabText ?? '');
-
+    setFontSize(newTab?.fontSize ?? 9);
+    // setColumns(newTab?.columns ?? 1)
   }, [tabs, tabId])
 
   useEffect(() => {
@@ -71,22 +72,7 @@ export default function Editor ({
     } : t))
   }, [fontSize])
 
- 
 
-//   let addTabStaff = () => {
-//     let staffString = '\n'+
-// 'e|----------------------------------------------------------------------------------|\n'+
-// 'B|----------------------------------------------------------------------------------|\n'+
-// 'G|----------------------------------------------------------------------------------|\n'+
-// 'D|----------------------------------------------------------------------------------|\n'+
-// 'A|----------------------------------------------------------------------------------|\n'+
-// 'E|----------------------------------------------------------------------------------|'
-//     setTab({
-//       ...tab,
-//       tabText: tab.tabText + staffString
-//     })
-
-//   }
 
   let lineDelim = /\r|\r\n|\n/
   let numLines = tab?.tabText.split(lineDelim).length;
@@ -98,6 +84,8 @@ export default function Editor ({
         <TitleBar
           tab={tabs.find(t => keyFunction(t) == tabId)}
           tabText={tabText}
+          fontSize={fontSize}
+          columns={columns}
         />
         <DetailBar
           tab={tabs.find(t => keyFunction(t) == tabId)}
@@ -190,7 +178,7 @@ function StyleEditor({
   )
 }
 
-function TitleBar({ tab, tabText }) {
+function TitleBar({ tab, tabText, fontSize, columns }) {
   let lineDelim = /\r|\r\n|\n/
   let numLines = tabText?.split(lineDelim).length;
   function Warning({ show }) {
@@ -198,11 +186,13 @@ function TitleBar({ tab, tabText }) {
       {show ? <div title='Document may exceed length requirements.'>⚠️</div> : null}
     </div>)
   }
+  let showWarning = (78 - ((fontSize - 8) * 8 )) < (numLines / columns)
+  // console.log('show warning', showWarning, numLines, columns, fontSize, (78 - ((fontSize - 8) * 7 )), (numLines / columns))
 
   return (
     <div className={styles['title-bar']}>
       {tab && tab?.artistName ? `${tab?.artistName.replace(/ /g, '').toLowerCase()}_${tab.songName.replace(/ /g, '').toLowerCase()}.tab` : ''}
-      {<Warning show={numLines > 68}/>}
+      {<Warning show={showWarning}/>}
     </div>
   )
 }

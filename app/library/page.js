@@ -17,7 +17,7 @@ import styles from './page.module.css'
 
 import { useSession } from "next-auth/react"
 import { useState, useEffect, useContext } from 'react'
-import { formatRawTabs } from 'lib/tabhelper.js'
+import { formatRawTabs, getChordRowRegex } from 'lib/tabhelper.js'
 import useDrivePicker from 'react-google-drive-picker'
 
 
@@ -87,13 +87,15 @@ export default function Library({ }) {
 
   }, [userTabs, googleTabs, sidebarSortBy])
   
-  // useEffect( () => { 
-  //   console.log('sidebar item id changed to:', sidebarItemId)
-  // }, [sidebarItemId] )
+  useEffect( () => { 
+    // console.log('sidebar item id changed to:', sidebarItemId)
+    let tab = userTabs.find(t => t._id === sidebarItemId)
+    setColumns(tab?.columns ?? 1)
+  }, [userTabs, sidebarItemId] )
 
 
   // (artistName, songName, tab.googleDocsId, tabText, createdTime)
-  async function addTab(artistName, songName, googleDocsId, tabText, createdTime ) {
+  async function addTabMenu(artistName, songName, googleDocsId, tabText, createdTime ) {
     // console.log('adding tab?')
 
     let newTab = {
@@ -119,9 +121,9 @@ export default function Library({ }) {
     // setSidebarItemId(newTab._id)
     setEditObject(newTab)
     // setEditTab()
-    // setIsNewTab(true)
+    setIsNewTab(true)
     setAction('edit tab')
-    return newTab._id
+    // return newTab._id
   }
 
   async function importTabMenu() {
@@ -184,7 +186,7 @@ export default function Library({ }) {
 
     if (!(existingTab && userTabs.map(t => t['googleDocsId']).includes(existingTab.googleDocsId) )) {
       console.log('adding tab', existingTab)
-      addTab(artistName, songName, id, tabText, createdTime)
+      addTabMenu(artistName, songName, id, tabText, createdTime)
     }
     else {
       let newUserTab = userTabs.find(t => t['googleDocsId'] == existingTab['googleDocsId'])
@@ -260,7 +262,7 @@ export default function Library({ }) {
       newUserTab = saveTab
     }
     if (newUserTab === undefined) {
-      newUserTab = userTabs.find(t => t['id'] == sidebarItemId)
+      newUserTab = userTabs.find(t => t['_id'] == sidebarItemId)
     }
 
     // let userId = session?.data?.user_id
@@ -327,7 +329,10 @@ export default function Library({ }) {
 
       setUserTabs(newUserTabs)
       // setGoogleTabs(newGoogleTabs)
-      setSidebarItemId(saveResponse._id)
+      if (isNewTab) {
+        setSidebarItemId(saveResponse._id)
+      }
+      setIsNewTab(false)
     }
 
     // If it hasn't been saved to Google yet, save it
@@ -384,7 +389,6 @@ export default function Library({ }) {
   }
 
   async function toggleColumnsMenu() {
-    // let tab = userTabs.find(t => t._id === sidebarItemId)
     let newUserTabs = userTabs
     newUserTabs = newUserTabs.map(t => {
       return t._id === sidebarItemId ? {
@@ -395,9 +399,45 @@ export default function Library({ }) {
           : 1
       } : t
     })
-    setColumns(parseInt(newUserTabs.find(t => t._id === sidebarItemId).columns) ?? 1)
 
+    setColumns(parseInt(newUserTabs.find(t => t._id === sidebarItemId).columns) ?? 1)
     setUserTabs(newUserTabs)
+  }
+
+  function addTabStaffMenu() {
+    let tab = userTabs.find(t => t._id === sidebarItemId)
+    let staffString = '\n'+
+  'e|----------------------------------------------------------------------------------|\n'+
+  'B|----------------------------------------------------------------------------------|\n'+
+  'G|----------------------------------------------------------------------------------|\n'+
+  'D|----------------------------------------------------------------------------------|\n'+
+  'A|----------------------------------------------------------------------------------|\n'+
+  'E|----------------------------------------------------------------------------------|'
+    setUserTabs(userTabs.map(t => t._id === sidebarItemId ? {
+      ...tab,
+      tabText: tab.tabText + staffString
+    } : t))
+  }
+
+  function addChordListMenu() {
+    let tab = userTabs.find(t => t._id === sidebarItemId)
+    let chordRowRegex = getChordRowRegex()
+    let rows = tab?.tabText.split(/[\r\n]+/).filter(d => d != '')
+    let allChords = []
+    console.log('rows', rows)
+    rows = rows.filter(r => r.match(chordRowRegex)).map(r => {
+      let chords = r.split(' ').filter(d => d != '')
+      console.log('adding chords', r, chords)
+      allChords.push(chords)
+    })
+    let allChordsSorted = [...new Set(allChords.flat())]
+    console.log('allChordsSorted', allChordsSorted)
+
+
+    setUserTabs(userTabs.map(t => t._id === sidebarItemId ? {
+      ...tab,
+      tabText: `${tab.tabText}\n${allChordsSorted.join('    ')}`
+    } : t))
   }
 
   async function createSpotifyPlaylist() {
@@ -459,7 +499,10 @@ export default function Library({ }) {
         setEditObject={setEditObject}
         onOpenObject={onSaveTab}
         show={action === 'edit tab'}
-        subset={['artistName', 'songName', 'capo', 'tuning', 'bpm', 'draft']}
+        subset={['artistName', 'songName', 'capo', 'tuning', 'bpm', 'columns', 'draft']}
+        accessors={{
+          columns: d => isNaN(parseInt(d)) ? null : parseInt(d),
+        }}
       />
       <OpenObjectsWindow // Delete Tab
         openObjects={openObjects}
@@ -486,7 +529,7 @@ export default function Library({ }) {
             items={{
               'file': [{
                   title: 'new tab',
-                  onClick: () => addTab(),
+                  onClick: () => addTabMenu(),
                 },{
                   title: 'import tab',
                   // onClick: () => importTab(sidebarItemId),
@@ -519,9 +562,15 @@ export default function Library({ }) {
                 title: 'two column mode',
                 onClick: () => toggleColumnsMenu()
               }],
-              format: [{
+              tools: [{
                 title: 'format tab text',
                 onClick: () => formatTabText(),
+              }, {
+                title: 'add tab staff',
+                onClick: () => addTabStaffMenu(),
+              }, {
+                title: 'add chord list',
+                onClick: () => addChordListMenu(),
               }],
               sort: [
                 {
@@ -601,7 +650,11 @@ export default function Library({ }) {
                   </div>
                   {
                       datum?.draft ? 
-                        <div style={{ display: 'block', width: '5px', height: '25px', backgroundColor: 'yellow'}}></div> : 
+                        <div style={{ 
+                          display: 'block', width: '10px', height: '25px', 
+                          backgroundColor: 'yellow', boxSizing: 'border-box', border: '1px solid black',
+                          borderRadius: '10px',
+                        }}></div> : 
                         null
                     }
                 </div>
@@ -612,7 +665,7 @@ export default function Library({ }) {
         <div className={styles['editor']}>
           <Editor
             tabs={userTabs}
-            setTabs={(setUserTabs)}
+            setTabs={setUserTabs}
             tabId={sidebarItemId}
             keyFunction={d => d._id}
             columns={columns}
