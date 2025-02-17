@@ -6,7 +6,9 @@ import { auth } from 'auth'
 export async function GET(request, { params }) {
 	const session = await auth()
 
-  let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+  let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, { 
+		headers: new Headers(headers()) 
+	}).then(r => r.json())
   // console.log('fetched account', account)
 //   let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
   // console.log('fetched profile', profile)

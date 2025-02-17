@@ -519,7 +519,7 @@ export default function Library({ }) {
         show={action === 'confirm delete tab'} 
         close={()=>setDeleteTabId(null)}
         keyFunction={d => d._id}
-        />      
+      />      
       <div className={styles['content']}>
         <div className={styles['menu-bar']}>
           <MenuBar 
@@ -649,14 +649,14 @@ export default function Library({ }) {
                     </div>
                   </div>
                   {
-                      datum?.draft ? 
-                        <div style={{ 
-                          display: 'block', width: '10px', height: '25px', 
-                          backgroundColor: 'yellow', boxSizing: 'border-box', border: '1px solid black',
-                          borderRadius: '10px',
-                        }}></div> : 
-                        null
-                    }
+                    datum?.draft ? 
+                      <div style={{ 
+                        display: 'block', width: '10px', height: '25px', 
+                        backgroundColor: 'yellow', boxSizing: 'border-box', border: '1px solid black',
+                        borderRadius: '10px',
+                      }}></div> : 
+                      null
+                  }
                 </div>
               )
             }}

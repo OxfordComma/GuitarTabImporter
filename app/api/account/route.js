@@ -18,7 +18,7 @@ export async function GET(request, { params }) {
   	
   	if (!searchParams.get('id')) {
 		return Response.json({
-			id: 0
+			// id: 0
 		 })
 	}
 
@@ -29,7 +29,6 @@ export async function GET(request, { params }) {
 	let mongoClient = await clientPromise
 
 	var db = await mongoClient.db('tabr')
-	// console.log('db:', db)
 	var accounts = await db.collection('accounts')
 	var account = await accounts.findOne({ 
 		userId: new ObjectId(searchParams.get('id')),
@@ -108,7 +107,7 @@ export async function GET(request, { params }) {
 		...account,
 		client_id: process.env.AUTH_GOOGLE_ID,
 		api_key: process.env.AUTH_GOOGLE_API_KEY,
-		app_id: process.env.GOOGLE_APP_ID
+		app_id: process.env.GOOGLE_APP_ID,
 	})
 //   return Response.json({ })
 }
@@ -119,7 +118,7 @@ export async function POST(request, { params }) {
 		params
 	})
 
-	const session = await auth()
+	// const session = await auth()
 	// console.log('get user account:', session)
 	const searchParams = request.nextUrl.searchParams
 	
@@ -137,7 +136,6 @@ export async function POST(request, { params }) {
 	var db = await mongoClient.db('tabr')
 	var accounts = await db.collection('accounts')
 	let provider = 'google'
-
 
 	var update = await accounts.findOneAndUpdate(
 		{ 
