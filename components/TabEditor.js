@@ -171,8 +171,8 @@ function StyleEditor({
   return ( tab ? 
     <div style={styleEditorStyles}>
       {/*<div>font size:</div>*/}
-      <button style={buttonStyle} onClick={() => setFontSize(fontSize+1)}>+</button>
-      <button style={buttonStyle} onClick={() => setFontSize(fontSize-1)}>−</button>
+      <button style={buttonStyle} onClick={() => setFontSize(fontSize+0.5)}>+</button>
+      <button style={buttonStyle} onClick={() => setFontSize(fontSize-0.5)}>−</button>
       <div style={buttonStyle}>{fontSize}</div>
     </div> : <div></div>
   )
