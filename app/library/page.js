@@ -46,7 +46,7 @@ export default function Library({ }) {
   let [openObjects, setOpenObjects] = useState(undefined)
 
 
-  let [sidebarSortBy, setSidebarSortBy] = useState('createdTime descending')
+  let [sidebarSortBy, setSidebarSortBy] = useState('lastUpdatedTime descending')
   let [createNewSidebarItem, setCreateNewSidebarItem] = useState(false)
   let [showSidebar, setShowSidebar] = useState(true)
   // let [showSidebarSearchBar, setShowSidebarSearchBar] = useState(false)
@@ -394,13 +394,13 @@ export default function Library({ }) {
       return t._id === sidebarItemId ? {
         ...t,
         columns: t?.columns ? 
-        t.columns === 1 ? 
+          t.columns === 1 ? 
             2 : 1
           : 1
       } : t
     })
 
-    setColumns(parseInt(newUserTabs.find(t => t._id === sidebarItemId).columns) ?? 1)
+    // setColumns(parseInt(newUserTabs.find(t => t._id === sidebarItemId).columns) ?? 1)
     setUserTabs(newUserTabs)
   }
 
@@ -668,7 +668,7 @@ export default function Library({ }) {
             setTabs={setUserTabs}
             tabId={sidebarItemId}
             keyFunction={d => d._id}
-            columns={columns}
+            columns={tabs.find(t => t._id === sidebarItemId)?.columns ?? 1}
           />
         </div>   
       </div>   

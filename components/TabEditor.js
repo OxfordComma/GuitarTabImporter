@@ -37,46 +37,80 @@ export default function Editor ({
   // exportTab,
   columns=1,
 }) {
+  let lineDelim = /\r|\r\n|\n/
   const tab = tabs.find(t => keyFunction(t) === tabId)
   const [fontSize, setFontSize] = useState(tab?.fontSize ?? 9)
   const [tabText, setTabText] = useState(tab?.tabText)
   const fontScale = 1.5 // So size works better w/ google docs
-
+  const [leftColumnText, setLeftColumnText] = useState('')
+  const [rightColumnText, setRightColumnText] = useState('')
   // const [debounceVal, setDebounceVal] = useState("");
   const debounceValue = useDebounce(tabText, 2000);
 
   useEffect(() => {
-    console.log("tab text set:", { tabText: tabText });
-    // setDebounceVal(tabText);
+    let numLines = tabText?.split(lineDelim).length;
+    let colSplit = leftColumnText.split(lineDelim).length
+    // let colSplit = (tab && 'columnSplit' in tab) ? parseInt(tab['columnSplit']) : parseInt(numLines/2)
     setTabs(tabs.map(t => keyFunction(t) === tabId ? { 
       ...t, 
       tabText: tabText,
       fontSize: fontSize,
+      columnSplit: colSplit,
     } : t))
+    console.log("tab text set:", { tabText, fontSize, colSplit });
+
   }, [debounceValue]);
 
   useEffect(() => {
     let newTab = tabs.find(t => keyFunction(t) === tabId)
+    console.log('newTab', newTab, columns)
+    let numLines = newTab?.tabText?.split(lineDelim).length;
+    let halfLines = parseInt(numLines/2);
+    let colSplit = (newTab && 'columnSplit' in newTab) ? parseInt(newTab['columnSplit']) : parseInt(numLines/2)
+
     // console.log('newTab', newTab, tabId, tabs)
-    setTabText(newTab?.tabText ?? '');
+    // setTabText(newTab?.tabText ?? '');
     setFontSize(newTab?.fontSize ?? 9);
     // setColumns(newTab?.columns ?? 1)
+
+    setLeftColumnText(
+      newTab?.tabText ? newTab.tabText.split(lineDelim).slice(
+          0, columns === 2 ? colSplit : numLines
+        ).join('\n') :
+        ''
+    )
+
+    setRightColumnText(
+      newTab?.tabText ? newTab.tabText.split(lineDelim).slice(
+          columns === 2 ? colSplit : numLines
+        ).join('\n') :
+        ''
+    )
   }, [tabs, tabId])
 
   useEffect(() => {
     if (!tabId) return;
     setTabs(tabs.map(t => keyFunction(t) === tabId ? { 
       ...t, 
-      tabText: tabText,
       fontSize: fontSize,
     } : t))
   }, [fontSize])
 
+  useEffect(() => {
+    if (columns === 2 ) {
+      setTabText(`${leftColumnText}\n${rightColumnText}`)
+    }
+    else {
+      setTabText(`${leftColumnText}`)
+    }
+  }, [leftColumnText, rightColumnText])
 
 
-  let lineDelim = /\r|\r\n|\n/
-  let numLines = tab?.tabText.split(lineDelim).length;
-  let halfLines = parseInt(numLines/2);
+  // let numLines = tab?.tabText.split(lineDelim).length;
+  // let halfLines = parseInt(numLines/2);
+  // let colSplit = (tab && 'columnSplit' in tab) ? parseInt(tab['columnSplit']) : parseInt(numLines/2)
+
+  
   
   return (
     <div className={styles['container']}>
@@ -95,38 +129,30 @@ export default function Editor ({
       </div>
       <div className={styles['text-area-container']}>
         {
-          columns > 1 ? 
+          columns === 2 ? 
             [
               <TabTextArea 
                 key='left'
                 tabText={
-                  tabText ?  
-                    tabText.split(lineDelim).slice(
-                      0, halfLines
-                    ).join('\n') :
-                    ''
+                  leftColumnText
                 }  
-                setTabText={setTabText}
+                setTabText={setLeftColumnText}
                 fontSize={fontSize * fontScale}
-                readOnly={true}
+                readOnly={false}
               />,
               <TabTextArea 
                 key='right'
                 tabText={
-                  tabText ?  
-                    tabText.split(lineDelim).slice(
-                      halfLines
-                    ).join('\n') :
-                    ''
+                  rightColumnText
                 }  
-                setTabText={setTabText}
+                setTabText={setRightColumnText}
                 fontSize={fontSize * fontScale}
-                readOnly={true}
+                readOnly={false}
               />
             ] :
             <TabTextArea 
-              tabText={tabText}
-              setTabText={setTabText}
+              tabText={leftColumnText}
+              setTabText={setLeftColumnText}
               fontSize={fontSize * fontScale}
               readOnly={mode=='view'}
             />

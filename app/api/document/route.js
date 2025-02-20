@@ -86,6 +86,7 @@ export async function POST(request, { params }) {
 		bpm,
 		draft,
 		columns,
+		columnSplit,
 		fontSize,
 	} = body.tab
 	
@@ -442,7 +443,7 @@ export async function POST(request, { params }) {
 			} 
 		},{             
 			'replaceAllText': { 
-				'replaceText' : columns === 2 ? tabText.split('\n').slice(0, tabText.split('\n').length / 2).join('\n') : tabText,
+				'replaceText' : columns === 2 ? tabText.split('\n').slice(0, (columnSplit ? columnSplit : tabText.split('\n').length / 2) ).join('\n') : tabText,
 				'containsText': {
 					'text' : '_LeftColumn_',
 					'matchCase' : true
@@ -454,7 +455,7 @@ export async function POST(request, { params }) {
 			requests = requests.concat([
 			{             
 				'replaceAllText': {
-					'replaceText' : tabText.split('\n').slice(tabText.split('\n').length / 2).join('\n'),
+					'replaceText' : tabText.split('\n').slice((columnSplit ? columnSplit : tabText.split('\n').length / 2) ).join('\n'),
 					'containsText': {
 						'text' : '_RightColumn_',
 						'matchCase' : true
