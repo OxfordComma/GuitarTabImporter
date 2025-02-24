@@ -86,7 +86,7 @@ export default function Editor ({
         ).join('\n') :
         ''
     )
-  }, [tabs, tabId])
+  }, [tabs, tabId, columns])
 
   useEffect(() => {
     if (!tabId) return;
@@ -103,7 +103,7 @@ export default function Editor ({
     else {
       setTabText(`${leftColumnText}`)
     }
-  }, [leftColumnText, rightColumnText])
+  }, [columns, leftColumnText, rightColumnText])
 
 
   // let numLines = tab?.tabText.split(lineDelim).length;
