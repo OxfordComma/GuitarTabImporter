@@ -13,6 +13,9 @@ export async function POST(request, { params }) {
     let {
         tabs, name, description, playlistId, userId
     } = await request.json()
+    // console.log({
+    //     tabs, name, description, playlistId, userId
+    // } )
 
     // let playlistId
 
@@ -33,7 +36,7 @@ export async function POST(request, { params }) {
     let searchDelay = 3500;
     let numSearches = 25;
 
-    let toBeAdded, toBeRemoved
+    let toBeAdded = [], toBeRemoved = [], currentTracks = [], searchTabs = [], playlistTracks = []
 
     // if ('spotifyPlaylistId' in project && project['spotifyPlaylistId']) {
     if (playlistId) {
@@ -71,7 +74,7 @@ export async function POST(request, { params }) {
         //     allTracks.push(tracks)
         //     options.offset = options.offset+options.limit
         // }
-        let playlistTracks = playlist.tracks.items
+        playlistTracks = playlist.tracks.items
         let nextTracks = ""
         let totalTracks = playlist.tracks.total
         let offset = playlist.tracks.offset
@@ -89,87 +92,91 @@ export async function POST(request, { params }) {
         }
         while (nextTracks)
 
-        let currentTracks = playlistTracks.flat()
-        // console.log('current tracks:', currentTracks, playlistTracks) 
-        let currentUris = currentTracks.map(t => t.track.uri)
-        console.log('current uris:', currentUris)
-
-        let formatExistingTab = (t) => `${t.artistName} - ${t.songName}`
-            .toLowerCase()
-            .replaceAll(/[^A-Za-z0-9 -]/ig, '')
-            .replaceAll(/  +/ig, ' ')
-            .trim()
-            
-        let formatSpotifyTab = (t) => `${t.track.artists[0].name} - ${t.track.name }`
-            .toLowerCase()
-            .replaceAll(/[^A-Za-z0-9 -]/ig, '')
-            .replaceAll(/  +/ig, ' ')
-            .trim()
-
-        let existingTabs = currentTracks.map(formatSpotifyTab)
-        // console.log('existing tabs', existingTabs)//.slice(0, 5))
-        // let allTabs = tabs.map(formatExistingTab)
-        let searchTabs = tabs.filter(t => !(
-            existingTabs.includes(formatExistingTab(t)) || 
-            existingTabs.some(et => et.includes(formatExistingTab(t)))
-        ))
-        // console.log('search tabs', searchTabs.map(t => { return { artistName: t.artistName, songName: t.songName, formatted: formatExistingTab(t) }}))//.slice(0, 5))
-        console.log(`stats: all tabs: ${tabs.length}, existing tabs: ${existingTabs.length}, search tabs: ${searchTabs.length}`)
-
-
-        // Search for track URIs
-        let searchedTracks = []
-        for (let i = 0; i <= searchTabs.length; i+=numSearches) {
-            console.log('searching for', i, searchTabs.length)
-            await Promise.all(
-                searchTabs
-                    .slice(i, i+numSearches)
-                    .sort((a, b) => a['artistName']+a['songName'] < b['artistName']+a['songName'] ? -1 : 1)
-                    .map(tab => {
-                        let searchTerm = `track:${tab.songName.replace(/'/, '')} artist:${tab.artistName}`
-                        console.log('Searching for ', searchTerm)
-                        return spotifyAuth.searchTracks(searchTerm, { limit: 1 }).then(searchResult => {
-                            let tracks = searchResult.body.tracks.items
-                            if (tracks.length == 0)
-                                return;
-    
-                            let track = tracks[0]
-                            // console.log('track:', track['uri'])
-                            searchedTracks.push(track)
-                        })
-                    })
-            )
-            await delay(searchDelay)
-        }
-        let uris = searchedTracks.map(t => t.uri)
-        console.log('searched uris:', uris)
-        // these come as URIs now to lower message size
-        let newUris = uris
-        // console.log('new uris:', newUris)
-
-
-        toBeAdded = newUris.filter(u => !currentUris.includes(u))
-        console.log('to be added:', toBeAdded)
-
-        let removedTracks = currentTracks
-            .filter(ct => !(
-                tabs.map(formatExistingTab).includes(formatSpotifyTab(ct)) || 
-                tabs.some(t => formatSpotifyTab(ct).includes(formatExistingTab(t) ))
-            ) )
-        console.log('removed tracks: ', removedTracks.map(formatSpotifyTab))
-        toBeRemoved = removedTracks.map(t => t.track.uri)
-        console.log('to be removed:', toBeRemoved)
+        
+        
     }
     else {
         let playlist = await spotifyAuth.createPlaylist(name, { description: '', public: false })
             .then(function(data) {
-                // console.log('Created playlist:', data);
+                console.log('Created playlist:', data);
                 return data.body
             }, function(err) {
                 console.log('Something went wrong!', err);
         });
         playlistId = playlist.id
+
+        playlistTracks = []
     }
+
+    currentTracks = playlistTracks.flat()
+        // console.log('current tracks:', currentTracks, playlistTracks) 
+    let currentUris = currentTracks.map(t => t.track.uri)
+    console.log('current uris:', currentUris)
+
+    let formatExistingTab = (t) => `${t.artistName} - ${t.songName}`
+        .toLowerCase()
+        .replaceAll(/[^A-Za-z0-9 -]/ig, '')
+        .replaceAll(/  +/ig, ' ')
+        .trim()
+        
+    let formatSpotifyTab = (t) => `${t.track.artists[0].name} - ${t.track.name }`
+        .toLowerCase()
+        .replaceAll(/[^A-Za-z0-9 -]/ig, '')
+        .replaceAll(/  +/ig, ' ')
+        .trim()
+
+    let existingTabs = currentTracks.map(formatSpotifyTab)
+    // console.log('existing tabs', existingTabs)//.slice(0, 5))
+    // let allTabs = tabs.map(formatExistingTab)
+    searchTabs = tabs.filter(t => !(
+        existingTabs.includes(formatExistingTab(t)) || 
+        existingTabs.some(et => et.includes(formatExistingTab(t)))
+    ))
+    // console.log('search tabs', searchTabs.map(t => { return { artistName: t.artistName, songName: t.songName, formatted: formatExistingTab(t) }}))//.slice(0, 5))
+    console.log(`stats: all tabs: ${tabs}, existing tabs: ${existingTabs}, search tabs: ${searchTabs}`)
+    // Search for track URIs
+    let searchedTracks = []
+    for (let i = 0; i <= searchTabs.length; i+=numSearches) {
+        console.log('searching for', i, searchTabs.length)
+        await Promise.all(
+            searchTabs
+                .slice(i, i+numSearches)
+                .sort((a, b) => a['artistName']+a['songName'] < b['artistName']+a['songName'] ? -1 : 1)
+                .map(tab => {
+                    let searchTerm = `track:${tab.songName.replace(/'/, '')} artist:${tab.artistName}`
+                    console.log('Searching for ', searchTerm)
+                    return spotifyAuth.searchTracks(searchTerm, { limit: 1 }).then(searchResult => {
+                        let tracks = searchResult.body.tracks.items
+                        if (tracks.length == 0)
+                            return;
+
+                        let track = tracks[0]
+                        // console.log('track:', track['uri'])
+                        searchedTracks.push(track)
+                    })
+                })
+        )
+        await delay(searchDelay)
+    }
+    let uris = searchedTracks.map(t => t.uri)
+    console.log('searched uris:', uris)
+    // these come as URIs now to lower message size
+    let newUris = uris
+    // console.log('new uris:', newUris)
+
+
+    toBeAdded = newUris.filter(u => !currentUris.includes(u))
+    console.log('to be added:', toBeAdded)
+
+    let removedTracks = currentTracks
+        .filter(ct => !(
+            tabs.map(formatExistingTab).includes(formatSpotifyTab(ct)) || 
+            tabs.some(t => formatSpotifyTab(ct).includes(formatExistingTab(t) ))
+        ) )
+    console.log('removed tracks: ', removedTracks.map(formatSpotifyTab))
+    toBeRemoved = removedTracks.map(t => t.track.uri)
+    console.log('to be removed:', toBeRemoved)
+
 
     // Add tracks to the playlist
     // 100 at a time
@@ -186,17 +193,17 @@ export async function POST(request, { params }) {
         }
     }
 
-    // if (toBeRemoved.length > 0) {
-    //     for (var i = 0; i <= toBeRemoved.length; i = i+100) {
-    //         let tracks = await spotifyAuth.removeTracksFromPlaylist(playlistId, toBeRemoved.slice(i, i+100).map(tbr => { return { uri: tbr }}) )
-    //             .then(function(data) {
-    //                 // console.log('Added tracks to playlist:', data);
-    //                 return data.body
-    //             }, function(err) {
-    //                 console.log('Something went wrong!', err);
-    //             })
-    //     }
-    // }
+    if (toBeRemoved.length > 0) {
+        for (var i = 0; i <= toBeRemoved.length; i = i+100) {
+            let tracks = await spotifyAuth.removeTracksFromPlaylist(playlistId, toBeRemoved.slice(i, i+100).map(tbr => { return { uri: tbr }}) )
+                .then(function(data) {
+                    // console.log('Added tracks to playlist:', data);
+                    return data.body
+                }, function(err) {
+                    console.log('Something went wrong!', err);
+                })
+        }
+    }
 
     return Response.json({
         id: playlistId

@@ -349,7 +349,7 @@ export default function Projects({ }) {
       method: 'POST',
       body: JSON.stringify({
         userId: session.data.user_id,
-        name: project.name,
+        name: `[tabr] ${project.name}`,
         description: '',
         playlistId: project?.spotifyPlaylistId,
         tabs: tabs.filter(t => projectTabs.map(pt => pt.shortcutDetails.targetId).includes( t.googleDocsId ) )
