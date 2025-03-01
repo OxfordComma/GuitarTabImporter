@@ -33,6 +33,7 @@ export default function Library({ }) {
     formatFolderContents,
     // googleAccount,
     profile,
+    footerMessage, setFooterMessage,
   } = useContext(TabsContext)
 
   let [sidebarItemId, setSidebarItemId] = useState(null)
@@ -127,6 +128,7 @@ export default function Library({ }) {
   }
 
   async function importTabMenu() {
+    setFooterMessage('Importing Tab...')
     let googleAccount = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
 
     console.log('import tab menu:', googleAccount)
@@ -203,6 +205,7 @@ export default function Library({ }) {
 
       onSaveTab(newUserTab)
     }
+    setFooterMessage('')
 
   }
 
@@ -212,6 +215,7 @@ export default function Library({ }) {
   }
 
   async function exportTab(userTab) {
+    setFooterMessage('Exporting Tab...')
     let tab
     if (userTab) {
       tab = userTab
@@ -235,6 +239,7 @@ export default function Library({ }) {
     }).then(r => r.json())  
 
     console.log('exportResponse:', exportResponse)
+    setFooterMessage('')
 
     return exportResponse
     
@@ -254,6 +259,8 @@ export default function Library({ }) {
   }
 
   async function onSaveTab(saveTab) {
+    setFooterMessage('Saving Tab...')
+
     let newUserTab
     if (saveTab === undefined) {
       newUserTab = editObject
@@ -297,6 +304,7 @@ export default function Library({ }) {
 
     let exportResponse = await exportTab(newUserTab)
     newUserTab['googleDocsId'] = exportResponse['id']
+    setFooterMessage('Tab Exported. Saving Tab...')
 
     let saveResponse = await fetch('api/tab', {
       method: 'POST',
@@ -333,6 +341,11 @@ export default function Library({ }) {
         setSidebarItemId(saveResponse._id)
       }
       setIsNewTab(false)
+      setFooterMessage('')
+    }
+    else {
+      setFooterMessage('Importing Tab Error')
+
     }
 
     // If it hasn't been saved to Google yet, save it
@@ -376,6 +389,8 @@ export default function Library({ }) {
 
   async function onConfirmDeleteTab() {
     // console.log('deleting:', deleteTabId)
+    setFooterMessage('Deleting Tab...')
+
     const deleteTab = userTabs.find(t => t._id == deleteTabId)
     fetch(`/api/tab?id=${deleteTabId}`, {
       method: 'DELETE',
@@ -386,6 +401,7 @@ export default function Library({ }) {
     )
     setDeleteTabId(null)
     setAction(undefined)
+    setFooterMessage('')
   }
 
   async function toggleColumnsMenu() {

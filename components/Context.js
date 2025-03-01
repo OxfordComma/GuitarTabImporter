@@ -16,6 +16,8 @@ export function Context({ children }) {
 
 	const [googleAccount, setGoogleAccount] = useState(undefined)
 	const [profile, setProfile] = useState(undefined)
+	
+	const [footerMessage, setFooterMessage] = useState('Loading...')
 
 	function sortTabs(tabs, sortBy) { 
 	  let sortedTabs = tabs.slice(0).sort((a, b) => {
@@ -128,6 +130,7 @@ export function Context({ children }) {
 		openProjectId, setOpenProjectId,
 		formatFolderContents,
 		sortTabs,
+		footerMessage, setFooterMessage,
 		// googleAccount,
 		// profile
 	}

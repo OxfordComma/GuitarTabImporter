@@ -40,31 +40,33 @@ export default async function RootLayout({
         <ErrorBoundary>
           <SessionProvider session={session}>
             <body className={styles['body']}>
-              <div className={styles['header']}>
-                <Header 
-                  headings={
-                    session ? {
-                      'Library': '/library', 
-                      'Projects': '/projects',
-                      'Profile': '/profile' 
-                    } : { 
-                      'TABR': '/',
+              <Context>
+                <div className={styles['header']}>
+                  <Header 
+                    headings={
+                      session ? {
+                        'Library': '/library', 
+                        'Projects': '/projects',
+                        'Profile': '/profile' 
+                      } : { 
+                        'TABR': '/',
+                      }
                     }
+                  />
+                  { session ? 
+                    <SignOutButton styles={styles}/>
+                    : <SignInButton styles={styles} signInAction={signInAction}/> 
                   }
-                />
-                { session ? 
-                  <SignOutButton styles={styles}/>
-                  : <SignInButton styles={styles} signInAction={signInAction}/> 
-                }
-              </div>
-              <div className={styles['content']}>
-                <Context>
-                  {children}
-                </Context>
-              </div>
-              <div className={styles['footer']}>
-                <Footer />
-              </div>
+                </div>
+                <div className={styles['content']}>
+                  
+                    {children}
+                
+                </div>
+                <div className={styles['footer']}>
+                  <Footer />
+                </div>
+              </Context>
             </body>
           </SessionProvider>
         </ErrorBoundary>
