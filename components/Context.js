@@ -17,7 +17,7 @@ export function Context({ children }) {
 	const [googleAccount, setGoogleAccount] = useState(undefined)
 	const [profile, setProfile] = useState(undefined)
 	
-	const [footerMessage, setFooterMessage] = useState('Loading...')
+	const [footerMessage, setFooterMessage] = useState('')
 
 	function sortTabs(tabs, sortBy) { 
 	  let sortedTabs = tabs.slice(0).sort((a, b) => {

@@ -54,7 +54,7 @@
 }
 
 .edit-tab-bar-dropdown-item:hover{
-	background-color: #222222;
+	background-color: var(--bg-color-alt);
 }
 
 .text-area-container {
@@ -66,10 +66,10 @@
 
 .text-area {
 	padding: 5px;
-	caret-color: white;
-	background-color: #333333;
+	caret-color: var(--text-color);
+	background-color: var(--bg-color);
 	font-family: monospace;
-	color: white;
+	color: var(--text-color);
 
 	overflow-x: hidden;
 	width: 100%;

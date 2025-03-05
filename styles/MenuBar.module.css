@@ -26,7 +26,7 @@
 }
 
 .menu-bar-item:hover {
-  background-color: #444444;
+  background-color: var(--bg-color-alt);
   transition: background-color 100ms;
 }
 

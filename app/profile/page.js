@@ -5,8 +5,6 @@ import styles from './page.module.css'
 import { useState, useEffect } from 'react'
 import { useSession } from "next-auth/react"
 import { redirect } from 'next/navigation'
-import { SignInButtonSpotify } from 'components/SignInSpotify'
-// import authConfig from "auth.config"
 import { signInAction } from 'components/SignInSpotify'
 
 export default function Profile(props) {

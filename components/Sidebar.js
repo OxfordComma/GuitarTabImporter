@@ -158,8 +158,8 @@ function SidebarItem ({
       } }
       style={{ 
         opacity: enabled ? 1 : 0.6,
-        color: (keyFunction(datum) == sidebarItemId) ? '#222222' : undefined,
-        backgroundColor: (keyFunction(datum) == sidebarItemId) ? 'white' : undefined,
+        color: (keyFunction(datum) == sidebarItemId) ? 'var(--bg-color)' : undefined,
+        backgroundColor: (keyFunction(datum) == sidebarItemId) ? 'var(--text-color)' : undefined,
         transition: '100ms background-color ease-in',
         // 'border': (sidebarItemId == null) ? '1px solid transparent' : 
         //   (keyFunction(datum) == sidebarItemId) ? '1px solid pink' : null,

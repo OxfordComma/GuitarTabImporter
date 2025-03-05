@@ -1,6 +1,4 @@
-// import React, { useContext, Suspense } from 'react'
 import styles from "./page.module.css";
-// import { useNavigate } from "react-router-dom"
 import { auth } from "../auth"
 import { redirect } from 'next/navigation'
 

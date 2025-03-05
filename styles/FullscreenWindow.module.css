@@ -24,7 +24,7 @@
 /*	width: var(--window-width);*/
 /*	height: var(--window-height);*/
 
-	background-color: #000000;
+	background-color: var(--bg-color);
 	padding: 10px;
 	border-radius: 10px;
 }

@@ -234,7 +234,7 @@ function DetailBar({ tab, fontSize, setFontSize }) {
   
   function Tuning({tuning, show}) {
     let tuningStyle = {
-      color: show ? 'white' : 'gray'
+      color: show ? 'var(--text-color)' : 'gray'
     }
     return (<div style={tuningStyle}>
       {tuning ? tuning : 'no tuning'}
@@ -243,7 +243,7 @@ function DetailBar({ tab, fontSize, setFontSize }) {
 
   function Capo({capo, show}) {
     let capoStyle = {
-      color: show ? 'white' : 'gray'
+      color: show ? 'var(--text-color)' : 'gray'
     }
     return (<div style={capoStyle}>
       {capo ? `capo ${capo}` : 'no capo'}
@@ -252,7 +252,7 @@ function DetailBar({ tab, fontSize, setFontSize }) {
 
   function Bpm({bpm, show}) {
     let capoStyle = {
-      color: show ? 'white' : 'gray'
+      color: show ? 'var(--text-color)' : 'gray'
     }
     return (<div style={capoStyle}>
       {bpm ? `${bpm} BPM` : ''}
@@ -261,7 +261,7 @@ function DetailBar({ tab, fontSize, setFontSize }) {
 
   function Separator({left, right}) {
     let sepStyle = {
-      color: left ? 'white' : 'gray',
+      color: left ? 'var(--text-color)' : 'gray',
       marginLeft: 5,
       marginRight: 5,
     }
