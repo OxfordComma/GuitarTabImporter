@@ -13,7 +13,7 @@ export default function Footer ({
 
 	return (
     <div className={styles['footer']}>
-      <div style={{marginLeft: 'auto'}}>{footerMessage}</div>  
+      <div style={{display: 'flex', alignItems: 'center', marginLeft: 'auto'}}>{footerMessage}</div>  
     </div>	
 	)
 }
