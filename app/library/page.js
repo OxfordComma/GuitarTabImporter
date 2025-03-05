@@ -126,9 +126,7 @@ export default function Library({ }) {
 
   async function importTabMenu() {
     setFooterMessage('Importing Tab...')
-    let googleAccount = await fetch(`/api/account?id=${session.data.user_id}`, {
-    headers: new Headers(headers()),
-    }).then(r => r.json())
+    let googleAccount = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
 
     console.log('import tab menu:', googleAccount)
     setAction('import tab menu')
@@ -465,7 +463,7 @@ export default function Library({ }) {
       method: 'POST',
       body: JSON.stringify({
         userId: session.data.user_id,
-        name: 'TABR Library',
+        name: '[tabr] TABR Library',
         description: '',
         playlistId: profile.spotifyPlaylistId ?? undefined,
         tabs: tabs,

@@ -1,6 +1,7 @@
 import { getSession } from 'next-auth/react';
 import { getToken } from 'next-auth/jwt';
 var SpotifyWebApi = require('spotify-web-api-node');
+import { headers } from "next/headers"
 
 import { auth } from 'auth'
 import { ObjectId } from 'mongodb'
@@ -17,7 +18,7 @@ export async function POST(request, { params }) {
     } = await request.json()
     
     let user = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${userId}&provider=spotify`, {
-                headers: new Headers(headers()) 
+        headers: new Headers(headers()) 
     }).then(r => r.json())
 
     var spotifyAuth = new SpotifyWebApi({

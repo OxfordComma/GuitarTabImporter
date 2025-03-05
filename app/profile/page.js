@@ -48,9 +48,7 @@ export default function Profile(props) {
 		async function updateSpotifyAccount() {
 			let sessionData = session.data
 			if (sessionData.user_id) {
-				let spotifyAccountResponse = await fetch(`/api/account?id=${sessionData.user_id}&provider=spotify`, {
-    				headers: new Headers(headers()),
-				}).then(r => r.json())
+				let spotifyAccountResponse = await fetch(`/api/account?id=${sessionData.user_id}&provider=spotify`).then(r => r.json())
 
 				if ('_id' in spotifyAccountResponse) {
 					console.log('setSpotifyAccount', spotifyAccountResponse)
@@ -68,9 +66,7 @@ export default function Profile(props) {
 			let sessionData = session.data
 			// console.log('sessionData', sessionData)
 			if (sessionData.user_id) {
-				let accountResponse = await fetch(`/api/account?id=${sessionData.user_id}`, {
-    				headers: new Headers(headers()),
-				}).then(r => r.json())
+				let accountResponse = await fetch(`/api/account?id=${sessionData.user_id}`).then(r => r.json())
 				// console.log('account:', accountResponse)
 
 				if (accountResponse) {

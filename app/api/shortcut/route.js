@@ -1,6 +1,7 @@
 import { getSession } from "next-auth/react"
 import { ObjectId } from 'mongodb'
 import { auth } from 'auth'
+import { headers } from "next/headers"
 
 const { google } = require('googleapis');
 
