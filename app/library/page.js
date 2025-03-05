@@ -47,7 +47,7 @@ export default function Library({ }) {
   let [openObjects, setOpenObjects] = useState(undefined)
 
 
-  let [sidebarSortBy, setSidebarSortBy] = useState('lastUpdatedTime descending')
+  let [sidebarSortBy, setSidebarSortBy] = useState('createdTime descending')
   let [createNewSidebarItem, setCreateNewSidebarItem] = useState(false)
   let [showSidebar, setShowSidebar] = useState(true)
   // let [showSidebarSearchBar, setShowSidebarSearchBar] = useState(false)
