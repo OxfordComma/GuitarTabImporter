@@ -90,7 +90,9 @@ export async function POST(request, { params }) {
 	const session = await auth()
 	// console.log('folder post session', session)
 
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
+		headers: new Headers(headers()) 
+	}).then(r => r.json())
 //   console.log('fetched account', account)
 	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
 //   console.log('fetched profile', profile)
@@ -135,7 +137,9 @@ export async function DELETE(request, { params }) {
 
 	const _id = body._id
 	console.log('folder delete body:', body, session)	
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
+		headers: new Headers(headers()) 
+	}).then(r => r.json())
 	console.log('folder delete account', account)
 
 	const oauth2Client = new google.auth.OAuth2(

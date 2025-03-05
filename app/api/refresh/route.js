@@ -27,7 +27,13 @@ export async function POST(request, { params }) {
   // console.log('body:', body)
   // let session = body.session
   let session = await auth()
+  if (!session) {
+    session = await auth()
+    console.log('awaited session', session)
+  }
   console.log('session:', session)
+
+
 	// let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${searchParams.get('id')}`).then(r => r.json())
 
   let mongoClient = await clientPromise

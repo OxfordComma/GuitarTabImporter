@@ -2,11 +2,13 @@ import { getSession } from "next-auth/react"
 
 const {google} = require('googleapis');
 import { auth } from 'auth'
+import { headers } from "next/headers"
 
 export async function GET(request, { params }) {
 	const session = await auth()
+	console.log('document session', session)
 
-  let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, { 
+  	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, { 
 		headers: new Headers(headers()) 
 	}).then(r => r.json())
   // console.log('fetched account', account)
@@ -53,8 +55,11 @@ export async function POST(request, { params }) {
 	const session = await auth()
 	let body = await request.json()
 	// console.log('create body:', body, session)
+	console.log('document post session', session)
 	
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
+		headers: new Headers(headers()) 
+	}).then(r => r.json())
 	// console.log('fetched account', account)
 	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
 	// console.log('fetched profile', profile)
@@ -193,11 +198,11 @@ export async function POST(request, { params }) {
 				'resource' : { 
 					'requests': [{
 						"createHeader": {
-			        "sectionBreakLocation": {
-			          "index": 0
-			        },
-			        "type": "DEFAULT"
-			      }
+					"sectionBreakLocation": {
+					  "index": 0
+					},
+					"type": "DEFAULT"
+				  }
 					}]
 				}
 			})
@@ -512,6 +517,6 @@ export async function POST(request, { params }) {
 
 			// set new access token in DB
 			// ???
-    }
+	}
 	}
 }

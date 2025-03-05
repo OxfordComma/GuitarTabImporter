@@ -312,7 +312,9 @@ export default function Projects() {
     googleTab = formatFolderContents(googleTab, user)
     let project = projects.find(p => p.id == openProjectId)
     let userId = user._id
-    let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
+    let account = await fetch(`/api/account?userid=${userId}`, {
+      headers: new Headers(headers()),
+    }).then(r => r.json())
 
     console.log({googleTab, project})
     let createTab = await fetch('/api/create?shortcut', {
@@ -395,7 +397,9 @@ export default function Projects() {
   async function requestDeleteProject(projectId) {
     // let project = projects.find(p => p.id == projectId)
     let userId = user._id
-    let account = await fetch(`/api/account?userid=${userId}`).then(r => r.json())
+    let account = await fetch(`/api/account?userid=${userId}`, {
+      headers: new Headers(headers()),
+    }).then(r => r.json())
     console.log('deleting project', projects, projectId)
 
     let deleteProjectRequest = await fetch('/api/project', {

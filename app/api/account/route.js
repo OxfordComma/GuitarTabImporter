@@ -10,7 +10,7 @@ export async function GET(request, { params }) {
 	// 	request,
 	// 	// params
 	// })
-	const session = await auth()
+	let session = await auth()
 	// const session = await fetch(process.env.NEXTAUTH_URL + '/api/auth/session').then(r => r.json())
 	const searchParams = request.nextUrl.searchParams
 	// console.log('account session:', session, searchParams.get('spotify'))
@@ -45,6 +45,7 @@ export async function GET(request, { params }) {
 	if (provider === 'google') {
 		if (account.expires_at && new Date(account.expires_at * 1000) < new Date()) {
 			console.log('Token expired', session)
+
 			let refreshResponse = await fetch(process.env.NEXTAUTH_URL + '/api/refresh?id=' + searchParams.get('id'), { 
 				method: 'POST',
 				// body: JSON.stringify({ session: session }),

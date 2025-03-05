@@ -11,7 +11,9 @@ export async function POST(request, { params }) {
 	console.log('create body:', body, session)
 
 	
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
+		headers: new Headers(headers()),
+	}).then(r => r.json())
 	// console.log('fetched account', account)
 	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
 	// console.log('fetched profile', profile)
@@ -75,7 +77,9 @@ export async function DELETE(request, { params }) {
 
 	const id = body.id
 	// console.log('shortcut delete body:', body, session)	
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`).then(r => r.json())
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
+		headers: new Headers(headers()),
+	}).then(r => r.json())
 	// console.log('shortcut delete account', account)
 	// let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
 	// console.log('shortcut delete profile', profile)

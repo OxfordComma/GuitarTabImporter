@@ -97,7 +97,7 @@ export default function EditProjectWindow({
           }) : null
         }
       </div>
-    }
+    }types
     />
   )
 }
