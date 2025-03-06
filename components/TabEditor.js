@@ -6,20 +6,8 @@ import { useState, useEffect } from 'react'
 import { MenuBar } from 'quantifyjs'
 import menuBarStyles from '../styles/MenuBar.module.css'
 import { showWarning } from 'lib/tabhelper.js'
+import useDebounce from 'lib/debounce'
 
-function useDebounce(cb, delay) {
-  const [debounceValue, setDebounceValue] = useState(cb);
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebounceValue(cb);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [cb, delay]);
-  return debounceValue;
-}
 
 export default function Editor ({ 
   tabs, 

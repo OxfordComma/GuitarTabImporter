@@ -10,7 +10,7 @@ export default function FullscreenWindow({
 }) {
 	useEffect(() => {
 		const keyDownHandler = (e) => {  
-			console.log(e)
+			// console.log(e)
 			if (e.code === "Escape") {
 				close(e)
 			} 
