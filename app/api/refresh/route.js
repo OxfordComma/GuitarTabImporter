@@ -1,6 +1,7 @@
 import { auth } from 'auth'
 import clientPromise from "lib/db.js"
 import { ObjectId } from 'mongodb'
+import { headers } from "next/headers"
 
 // export async function GET(request, { params }) {
 // 	console.log('GET', {
@@ -63,23 +64,15 @@ export async function POST(request, { params }) {
       grant_type: 'refresh_token',
     })
   }).then(r => r.json())
-  console.log('refreshResponse', refreshResponse)
+  // console.log('refreshResponse', refreshResponse)
   
   let expiresAt = new Date()
   expiresAt.setSeconds(expiresAt.getSeconds() + refreshResponse.expires_in)
 
-  await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${account.userId}`, {
-    method: 'POST',
-    headers: new Headers(headers()),
-    
-    body: JSON.stringify({
-      userId: account.userId,
-      access_token: refreshResponse.access_token,
-      expires_at: parseInt(expiresAt.valueOf() / 1000),
-    })
-  })
-
   return Response.json({
-    refresh: 1
+    // refresh: 1,
+    ...account,
+    access_token: refreshResponse.access_token,
+    expires_at: parseInt(expiresAt.valueOf() / 1000),
   })
 }

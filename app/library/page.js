@@ -14,7 +14,7 @@ import styles from './page.module.css'
 
 import { useSession } from "next-auth/react"
 import { useState, useEffect, useContext } from 'react'
-import { formatRawTabs, getChordRowRegex } from 'lib/tabhelper.js'
+import { formatRawTabs, getChordRowRegex, convertChordsIntoTabs, getLineDelimiter, showWarning, getChordList } from 'lib/tabhelper.js'
 import useDrivePicker from 'react-google-drive-picker'
 
 
@@ -409,7 +409,7 @@ export default function Library({ }) {
         columns: t?.columns ? 
           t.columns === 1 ? 
             2 : 1
-          : 1
+          : 2
       } : t
     })
 
@@ -434,22 +434,21 @@ export default function Library({ }) {
 
   function addChordListMenu() {
     let tab = userTabs.find(t => t._id === sidebarItemId)
-    let chordRowRegex = getChordRowRegex()
-    let rows = tab?.tabText.split(/[\r\n]+/).filter(d => d != '')
-    let allChords = []
-    console.log('rows', rows)
-    rows = rows.filter(r => r.match(chordRowRegex)).map(r => {
-      let chords = r.split(' ').filter(d => d != '')
-      console.log('adding chords', r, chords)
-      allChords.push(chords)
-    })
-    let allChordsSorted = [...new Set(allChords.flat())]
-    console.log('allChordsSorted', allChordsSorted)
-
+    let chordList = getChordList(tab.tabText)
+    console.log('chordlist', chordList)
 
     setUserTabs(userTabs.map(t => t._id === sidebarItemId ? {
       ...tab,
-      tabText: `${tab.tabText}\n${allChordsSorted.join('    ')}`
+      tabText: `${tab.tabText}\n${chordList.join('    ')}`
+    } : t))
+  }
+
+  function convertChordsMenu() {
+    let tab = userTabs.find(t => t._id === sidebarItemId)
+    let newTabText = convertChordsIntoTabs(tab.tabText);
+    setUserTabs(userTabs.map(t => t._id === sidebarItemId ? {
+      ...tab,
+      tabText: newTabText
     } : t))
   }
 
@@ -490,13 +489,13 @@ export default function Library({ }) {
   }
 
 
-  function formatTabText() {
+  function formatTabText(n=2) {
     console.log('format', userTabs, sidebarItemId)
     setUserTabs(userTabs.map(t => {
       if (t._id === sidebarItemId) {
         return {
           ...t, 
-          tabText: formatRawTabs(t.tabText)
+          tabText: formatRawTabs(t.tabText, n)
         }
       }
       return t
@@ -576,14 +575,20 @@ export default function Library({ }) {
                 onClick: () => toggleColumnsMenu()
               }],
               tools: [{
-                title: 'format tab text',
-                onClick: () => formatTabText(),
+                title: 'format tab text (two chords per line)',
+                onClick: () => formatTabText(2),
               }, {
-                title: 'add tab staff',
+                title: 'format tab text (four chords per line)',
+                onClick: () => formatTabText(4),
+              },{
+                title: 'add empty tab staff',
                 onClick: () => addTabStaffMenu(),
               }, {
                 title: 'add chord list',
                 onClick: () => addChordListMenu(),
+              }, {
+               title: 'convert chords to tabs',
+               onClick: () => convertChordsMenu(), 
               }],
               sort: [
                 {
@@ -604,6 +609,9 @@ export default function Library({ }) {
                 }, {
                   title: 'sort by tuning',
                   onClick: () => sidebarSortBy == 'tuning ascending' ? setSidebarSortBy('tuning descending') : setSidebarSortBy('tuning ascending')
+                }, {
+                  title: 'sort by number of chords',
+                  onClick: () => sidebarSortBy == 'numberOfChords ascending' ? setSidebarSortBy('numberOfChords descending') : setSidebarSortBy('numberOfChords ascending')
                 }, {
                   title: 'don\'t sort',
                   onClick: () => setSidebarSortBy('index')
@@ -645,6 +653,9 @@ export default function Library({ }) {
             keyFunction={d => d._id}
             itemIsEnabled={d => userTabs.map(t => t.googleDocsId).map(t => t).includes(d.googleDocsId)}
             SidebarItemComponent={(datum) => {
+              let fontSize = datum?.fontSize ?? 9
+              let nCols = datum?.columns ?? 1
+              let len = datum?.tabText.split( getLineDelimiter() ).length
               // console.log(datum)
               return (
                 <div style={{display: 'flex', flexDirection: 'row', width: '100%', height: '100%',}}>
@@ -661,15 +672,30 @@ export default function Library({ }) {
                       {datum.artistName}
                     </div>
                   </div>
-                  {
-                    datum?.draft ? 
+                  <div style={{display: 'flex', 'flexDirection': 'row'}}>
+                    {
+                      datum?.draft ? 
+                        <div style={{ 
+                          display: 'flex', flex: 1, width: '15px', height: '10px', 
+                          // backgroundColor: 'yellow', boxSizing: 'border-box', border: '1px solid black',
+                          // borderRadius: '10px',
+                        }}>🚧</div> : null
+                    }
+                    {
                       <div style={{ 
-                        display: 'block', width: '10px', height: '25px', 
-                        backgroundColor: 'yellow', boxSizing: 'border-box', border: '1px solid black',
-                        borderRadius: '10px',
-                      }}></div> : 
-                      null
-                  }
+                        display: 'flex', flex: 1, width: '15px', height: '10px', 
+                        // backgroundColor: 'yellow', boxSizing: 'border-box', border: '1px solid black',
+                        // borderRadius: '10px',
+                      }}>{showWarning(fontSize, len / nCols) ? '⚠️' : null}</div>
+                    }
+                    {
+                      <div style={{ 
+                        display: 'flex', flex: 1, width: '15px', height: '10px', 
+                        // backgroundColor: 'yellow', boxSizing: 'border-box', border: '1px solid black',
+                        // borderRadius: '10px',
+                      }}>{getChordList(datum.tabText).length}</div>
+                    }
+                  </div>
                 </div>
               )
             }}

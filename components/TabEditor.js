@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 
 import { MenuBar } from 'quantifyjs'
 import menuBarStyles from '../styles/MenuBar.module.css'
-import { formatRawTabs } from '../lib/tabhelper.js'
+import { showWarning } from 'lib/tabhelper.js'
 
 function useDebounce(cb, delay) {
   const [debounceValue, setDebounceValue] = useState(cb);
@@ -45,7 +45,7 @@ export default function Editor ({
   const [leftColumnText, setLeftColumnText] = useState('')
   const [rightColumnText, setRightColumnText] = useState('')
   // const [debounceVal, setDebounceVal] = useState("");
-  const debounceValue = useDebounce(tabText, 2000);
+  const debounceValue = useDebounce(tabText, 1.75 * 1000);
 
   useEffect(() => {
     let numLines = tabText?.split(lineDelim).length;
@@ -212,13 +212,15 @@ function TitleBar({ tab, tabText, fontSize, columns }) {
       {show ? <div title='Document may exceed length requirements.'>⚠️</div> : null}
     </div>)
   }
-  let showWarning = (78 - ((fontSize - 8) * 8 )) < (numLines / columns)
+  // let showWarning = (78 - ((fontSize - 8) * 8 )) < (numLines / columns)
+  // Did a quadratic fit between 8 and 10
+  
   // console.log('show warning', showWarning, numLines, columns, fontSize, (78 - ((fontSize - 8) * 7 )), (numLines / columns))
 
   return (
     <div className={styles['title-bar']}>
       {tab && tab?.artistName ? `${tab?.artistName.replace(/ /g, '').toLowerCase()}_${tab.songName.replace(/ /g, '').toLowerCase()}.tab` : ''}
-      {<Warning show={showWarning}/>}
+      {<Warning show={showWarning(fontSize, numLines/columns)}/>}
     </div>
   )
 }

@@ -46,17 +46,30 @@ export async function GET(request, { params }) {
 		if (account.expires_at && new Date(account.expires_at * 1000) < new Date()) {
 			console.log('Token expired', session)
 
-			let refreshResponse = await fetch(process.env.NEXTAUTH_URL + '/api/refresh?id=' + searchParams.get('id'), { 
+			let refreshResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/refresh?id=${searchParams.get('id')}`, { 
 				method: 'POST',
 				// body: JSON.stringify({ session: session }),
 				headers: new Headers(headers()),
 			}).then(r => r.json())
-			console.log('refreshResponse', refreshResponse)
 
-			account = await accounts.findOne({ 
-				userId: new ObjectId(searchParams.get('id')),
-				provider: 'google'
+			console.log('account refreshResponse', refreshResponse)
+			let account = refreshResponse
+			accounts.updateOne({ 
+				_id: new ObjectId(account['_id'])
+			}, {
+				'$set': {
+					access_token: account.access_token,
+					expires_at: account.expires_at,
+					// ...account,
+					// _id: new ObjectId(account['_id']),
+					// userId: new ObjectId(account['userId']),
+				}
 			})
+
+			// account = await accounts.findOne({ 
+			// 	userId: new ObjectId(searchParams.get('id')),
+			// 	provider: 'google'
+			// })
 		}
 	}
 	if (provider === 'spotify') {
@@ -78,9 +91,9 @@ export async function GET(request, { params }) {
 			let newRefreshToken = refresh.body['refresh_token']
 			spotifyAuth.setAccessToken(newAccessToken)
 			spotifyAuth.setRefreshToken(newRefreshToken)
-			let mongoClient = await clientPromise
-			var db = await mongoClient.db('tabr')
-			var cl = await db.collection('accounts')
+			// let mongoClient = await clientPromise
+			// var db = await mongoClient.db('tabr')
+			// var cl = await db.collection('accounts')
 			let newObj = { 
 				'access_token': newAccessToken,
 				'refresh_token': newRefreshToken,
@@ -90,7 +103,7 @@ export async function GET(request, { params }) {
 				// 'expires_at': new Date(refresh.body['expires_at']),
 				// 'expires_at': new Date(new Date().setHours(new Date().getHours() + 1))
 			}
-			var userResponse = await cl.updateOne({ 
+			accounts.updateOne({ 
 				_id: new ObjectId(account['_id'])
 			}, {
 				'$set': newObj

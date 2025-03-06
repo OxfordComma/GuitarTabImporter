@@ -2,6 +2,7 @@
 import React from 'react'
 import { createContext, useContext, useState, useEffect } from "react";
 import { useSession } from "next-auth/react"
+import { getChordList } from '@/lib/tabhelper';
 
 export const TabsContext = createContext([]);
 
@@ -42,6 +43,10 @@ export function Context({ children }) {
 	    	aSortBy = new Date(aSortBy)
 	    	bSortBy = new Date(bSortBy)
 	    }
+		if (['numberOfChords'].includes(sortByColumn)) {
+			aSortBy = getChordList(a.tabText).length
+			bSortBy = getChordList(b.tabText).length
+		}
 
 	    let ascendingTrue = (ascending ? 1 : -1)
 	    let ascendingFalse = ascendingTrue * -1
