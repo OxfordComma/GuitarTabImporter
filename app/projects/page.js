@@ -52,6 +52,14 @@ export default function Projects({ }) {
   let [showSidebar, setShowSidebar] = useState(true)
   let [action, setAction] = useState(undefined)
 
+	function closeMenus() {
+		setAction(undefined)
+		setOpenObjects(undefined)
+		setEditObject(undefined)
+		// setToDeleteId(undefined)
+		// setSelectedId(undefined)
+	}
+
   // Fetch user data on startup
   useEffect( () => {
     async function getProjects() {
@@ -249,9 +257,9 @@ export default function Projects({ }) {
     setOpenObjects(projects)
   }
 
-  function onOpenProject(projectId) {
-    console.log('onOpenProject', projectId)
-    setOpenProjectId(projectId)
+  function onOpenProject(project) {
+    console.log('onOpenProject', project)
+    setOpenProjectId(project._id)
     setOpenObjects(undefined)
   }
 
@@ -293,7 +301,8 @@ export default function Projects({ }) {
       )
   }
 
-  function onAddTab(tabId) {
+  function onAddTab(saveTab) {
+    const tabId = saveTab._id
     let tab = tabs.find(t => t._id === tabId)
     let project = projects.find(p => p._id === openProjectId)
     console.log('onAddTab', tabId, tab, project)
@@ -329,7 +338,8 @@ export default function Projects({ }) {
     setOpenObjects(projectTabs)
   }
 
-  function onDeleteTab(tabId) {
+  function onDeleteTab(tab) {
+    const tabId = tab._id
     const deleteTab = projectTabs.find(pt => pt._id === tabId)
     fetch(`/api/shortcut`, { method: 'DELETE', body: JSON.stringify({ id: deleteTab.id }) }).then(r => r.json())
     setProjectTabs(projectTabs.filter(pt => pt._id !== tabId))
@@ -375,42 +385,21 @@ export default function Projects({ }) {
   
  return (
     <div className={styles.container}>
-      
       <ConfirmDelete // Confirm Delete Tab
         item={tabs.find(t => t._id === deleteTabId)}
         action={onDeleteTab}
         label={'delete'}
         show={action === 'confirm delete tab'} 
-        // close={()=>setDeleteTabId(null)}
-      />
-      
-      {/* <OpenObjectsWindow
-        openObjects={openObjects}
-        setOpenObjects={setOpenObjects}
-        // openObjectId={openProjectId}
-        // setOpenObjectId={setOpenProjectId}
-        // setPickObject={setEditObject}
-        onOpenObject={
-          action === 'add tab' ? 
-            null : 
-            onOpenProject
-        }
-        show={action === 'new project'}
-        labelFunction={
-          ['add tab'].includes(action) ? d => `${d['artistName']} - ${d['songName']}` 
-          // ['delete tab'].includes(action) ? d => `${d['artistName']} - ${d['songName']}` 
-          : d => d['name']
-        }
-      /> */}
-      
+        close={closeMenus}
+      />      
       <OpenObjectsWindow // Open Project
         openObjects={openObjects}
         setOpenObjects={setOpenObjects}
         onOpenObject={onOpenProject}
-        show={action == 'open project'}
+        show={action === 'open project'}
         keyFunction={d => d._id}
         labelFunction={d => `${d['name']}`}
-        // labelFunction={d => `${d['artistName']} - ${d['songName']}`}
+        close={closeMenus}
       />
       <EditObjectWindow // Add Project
         editObject={editObject}
@@ -418,6 +407,7 @@ export default function Projects({ }) {
         onOpenObject={onAddProject}
         show={action === 'new project'}
         subset={['name']}
+        close={closeMenus}
       />
       <OpenObjectsWindow // Delete Project
         openObjects={openObjects}
@@ -425,7 +415,7 @@ export default function Projects({ }) {
         onOpenObject={onDeleteProject}
         show={action === 'delete project'}
         keyFunction={d => d._id}
-        // labelFunction={d => `${d['artistName']} - ${d['songName']}` }
+        close={closeMenus}
       />
       <ConfirmDelete // Confirm Delete Project
         item={projects.find(t => t._id === deleteProjectId)}
@@ -433,7 +423,7 @@ export default function Projects({ }) {
         label={'delete'}
         show={action === 'confirm delete project'} 
         keyFunction={d => d._id}
-        // close={()=>setDeleteTabId(null)}
+        close={closeMenus}
       />
 
       <OpenObjectsWindow // Add Tab
@@ -443,6 +433,7 @@ export default function Projects({ }) {
         show={action === 'add tab'}
         keyFunction={d => d._id}
         labelFunction={d => `${d['artistName']} - ${d['songName']}` }
+        close={closeMenus}
       />
       <OpenObjectsWindow // Delete Tab
         openObjects={openObjects}
@@ -450,7 +441,7 @@ export default function Projects({ }) {
         onOpenObject={onDeleteTab}
         show={action === 'delete tab'}
         keyFunction={d => d._id}
-        // labelFunction={d => `${d['artistName']} - ${d['songName']}` }
+        close={closeMenus}
       />
 
       <div className={styles['content']}>

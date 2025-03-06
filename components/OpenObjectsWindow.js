@@ -1,78 +1,70 @@
 import { useState, useEffect, useContext } from 'react'
 // import { MenuBar, Dropdown } from 'quantifyjs'
 
-import FullscreenWindow from '../components/FullscreenWindow.js'
-
+import FullscreenWindow from 'components/FullscreenWindow'
+import OptionList from 'components/OptionList'
 export default function OpenObjectsWindow({ 
-  openObjects,
-  setOpenObjects,
-  onOpenObject,
-  // openObjectId,
-  // setOpenObjectId, 
-  // setPickObject,
-  show,
-  keyFunction=d => d._id,
-  labelFunction = d => d.name
+	openObjects,
+	onOpenObject,
+	show,
+	close = () => {},
+	keyFunction=d => d._id,
+	labelFunction = d => d.name
 }) {
-  // let [selectedObject, setSelectedObject] = useState(undefined)
-  // console.log('pick object', {
-  //   openObjects
+  // console.log('oow', {
+  //   show, openObjects
   // })
-  
-  const [selectedObjectId, setSelectedObjectId] = useState(openObjects ? openObjects[0]?._id : undefined)
+  if (!show) return null
 
-  if (openObjects === undefined) {
-    return null
-  }
+	const [selectedObjectId, setSelectedObjectId] = useState(openObjects ? keyFunction(openObjects[0]) : undefined)
+
+  // useEffect(() => {
+	// 	const keyDownHandler = (e) => {  
+	// 		// console.log('open objects window', e, show)
+	// 		if (e.code === "Enter" && show) {
+	// 			open()
+	// 		} 
+	// 	}
+	// 	document.addEventListener("keydown", keyDownHandler);
+
+	// 	return () => {
+	// 		document.removeEventListener("keydown", keyDownHandler);
+	// 	};
+	// }, [selectedObjectId, show])
+
+	if (openObjects === undefined) {
+		return null
+	}
 
 
-  function open() {
-    console.log('open', selectedObjectId)
-    // setOpenObjectId(selectedObjectId)
-    // setPickObject(false)
-    onOpenObject(selectedObjectId)
-  }
+	function open() {
+		// console.log('open', selectedObjectId)
+		onOpenObject(openObjects.find(obj => keyFunction(obj) === selectedObjectId))
+	}
 
-  function close() {
-    console.log('close')
-    // setPickObject(false)
-    setOpenObjects(undefined)
-  }
+	function onSelect(obj) {
+		// console.log('onSelectChange', obj); 
+		setSelectedObjectId(keyFunction(obj))
+	}
+	
+	function onClick(event) {
+		//double click
+		if (event.detail == 2) { 
+		  open()
+		}
+	}
 
-  function onClick(event) {
-    //double click
-    if (event.detail == 2) { 
-      open()
-    }
-  }
-
-  function onSelectChange(event) {
-    event.preventDefault(); 
-    // console.log(event.target); 
-    console.log('onSelectChange', event.target.value); 
-    setSelectedObjectId(event.target.value)
-  }
-
-  return <FullscreenWindow
-    show={show}
-    action={open}
-    actionLabel='open'
-    close={close}
-    content={<select 
-      size={25} 
-      onChange={onSelectChange}
-    >
-      {openObjects.map(object => {
-        return (
-          <option 
-            key={keyFunction(object)} 
-            id={keyFunction(object)} 
-            selected={keyFunction(object) === selectedObjectId} 
-            value={keyFunction(object)}
-            onClick={onClick}>
-            {labelFunction(object)}
-          </option>)
-      })}
-    </select>}
-  />
+	return <FullscreenWindow
+		show={show}
+		action={open}
+		actionLabel='open'
+		close={close}
+		content={<OptionList
+			options={openObjects}
+			onSelect={onSelect}
+			onClick={onClick}
+			keyFunction={keyFunction}
+			labelFunction={labelFunction}
+		/>}
+	/>
 }
