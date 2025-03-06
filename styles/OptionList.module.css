@@ -1,0 +1,13 @@
+.option-list-container {
+	overflow-y: scroll;
+}
+.option {
+    display: flex; 
+    flex-direction: row; 
+    cursor: pointer;
+    user-select: none
+}
+.option:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+}
