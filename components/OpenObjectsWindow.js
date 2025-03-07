@@ -14,9 +14,9 @@ export default function OpenObjectsWindow({
   // console.log('oow', {
   //   show, openObjects
   // })
-  if (!show) return null
 
 	const [selectedObjectId, setSelectedObjectId] = useState(openObjects ? keyFunction(openObjects[0]) : undefined)
+	if (!show) return null
 
   // useEffect(() => {
 	// 	const keyDownHandler = (e) => {  

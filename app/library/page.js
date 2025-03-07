@@ -51,6 +51,13 @@ export default function Library({ }) {
   const [columns, setColumns] = useState(1)
   let [action, setAction] = useState(undefined)
 
+  function closeMenus() {
+		setAction(undefined)
+		setOpenObjects(undefined)
+		setEditObject(undefined)
+		// setToDeleteId(undefined)
+		// setSelectedId(undefined)
+	}
 
   // Fetch user data on startup
   useEffect( () => { 
@@ -509,7 +516,8 @@ export default function Library({ }) {
         user={user}
         editObject={editObject}
         setEditObject={setEditObject}
-        onOpenObject={onSaveTab}
+        save={onSaveTab}
+        close={closeMenus}
         show={action === 'edit tab'}
         subset={['artistName', 'songName', 'capo', 'tuning', 'bpm', 'columns', 'draft']}
         accessors={{

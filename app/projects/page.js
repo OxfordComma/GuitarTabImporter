@@ -216,7 +216,7 @@ export default function Projects({ }) {
     let profile = await fetch(`/api/profile?id=${session.data.user_id}`)
       .then(r => r.json())
       // .then(profile => {
-    console.log('add project profile', profile, newProject)
+    // console.log('add project profile', profile, newProject)
     if (!('projectsFolder' in profile) ) {
       console.log('no projects folder')
       return;
@@ -250,6 +250,65 @@ export default function Projects({ }) {
     
     onOpenProject(newProject._id)
     setAction(undefined)
+  }
+
+  function editProjectMenu() {
+    setAction('edit project')
+    setEditObject(projects.find(p => p._id === openProjectId))
+  }
+
+  function onSaveProject(project) {
+    console.log('save project', project)
+    // let newFolder
+    // let saveProject = project
+    // console.log('save project', project)
+    let projectId = project.id
+
+
+    // if (user.projectsFolder && (!saveProject.folder || saveProject.folder == '')) {
+    //   newFolder = await fetch(`/api/folder`, {
+    //     method: 'POST',
+    //     body: JSON.stringify({
+    //       user: user,
+    //       name: saveProject.name,
+    //       folder: user.projectsFolder,
+    //     })
+    //   }).then(r => r.json())
+    //   console.log('newFolder:', newFolder)
+    //   saveProject.folder = newFolder.id
+    // }
+
+    // let GOOGLE_ID_LENGTH = 33
+    // if (!saveProject.folder || saveProject.folder == '' || saveProject.folder.length != GOOGLE_ID_LENGTH) {
+    //   setErrorMessage('Folder is required.');
+    //   return
+    // }
+
+
+    fetch(`/api/project`, {
+      method: 'POST',
+      body: JSON.stringify(project)
+    })
+
+
+    // // console.log({
+    // //   projects,
+    // //   projectId,
+    // //   p: projects.map(p => p.id).includes(projectId),
+    // // })
+
+    // if (projects.map(p => p.id).includes(projectId)) {
+    //   console.log('replacing', saveProject)
+      setProjects(projects.map(p => p.id == projectId ? project : p))
+    // }
+    // else {
+    //   console.log('appending', saveProject)
+    //   setProjects([...projects, saveProject])
+    // }
+
+    // console.log('saved ', saveProject)
+    // close(event)
+    closeMenus()
   }
 
   function openProjectMenu() {
@@ -409,6 +468,14 @@ export default function Projects({ }) {
         subset={['name']}
         close={closeMenus}
       />
+      <EditObjectWindow // Edit Project
+        editObject={editObject}
+        setEditObject={setEditObject}
+        save={onSaveProject}
+        show={action === 'edit project'}
+        subset={['name']}
+        close={closeMenus}
+      />
       <OpenObjectsWindow // Delete Project
         openObjects={openObjects}
         setOpenObjects={setOpenObjects}
@@ -425,6 +492,7 @@ export default function Projects({ }) {
         keyFunction={d => d._id}
         close={closeMenus}
       />
+
 
       <OpenObjectsWindow // Add Tab
         openObjects={openObjects}
@@ -462,7 +530,7 @@ export default function Projects({ }) {
                 },{
                   title: 'edit project',
                   onClick: () => editProjectMenu(),
-                  disabled: true,
+                  disabled: !!!openProjectId,
                 // },{
                 //   title: 'share project',
                 //   onClick: () => {},
@@ -493,7 +561,7 @@ export default function Projects({ }) {
                   onClick: () => openProjectFolder(openProjectId),
                   disabled: (!!!openProjectId),
                 },{
-                  title: 'create Spotify playlist',
+                  title: 'update Spotify playlist',
                   onClick: () => createSpotifyPlaylist(),
                   disabled: (!!!openProjectId),
                 },{
