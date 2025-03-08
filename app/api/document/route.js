@@ -264,7 +264,7 @@ export async function POST(request, { params }) {
 						'unit': 'PT'
 					},
 					marginHeader: {
-						'magnitude': 0.12 * 72,
+						'magnitude': 0.13 * 72,
 						'unit': 'PT'
 					},
 				},

@@ -1,7 +1,7 @@
 import styles from '../styles/TabEditor.module.css'
 import Link from 'next/link'
 import React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 import { MenuBar } from 'quantifyjs'
 import menuBarStyles from '../styles/MenuBar.module.css'
@@ -152,13 +152,57 @@ export default function Editor ({
 
 
 function TabTextArea({ tabText, setTabText, fontSize, readOnly=false }) {
+  const textAreaRef = useRef(null);
+  const [fixCursor, setFixCursor] = useState(false);
+
+  useEffect(() => {
+    const keyDownHandler = (e) => {
+      if (e.code === "Tab") {
+        
+        e.preventDefault();
+
+        let cursorPosition = textAreaRef.current.selectionStart
+        let cursorPositionEnd = textAreaRef.current.selectionEnd
+        // console.log('cursor position', cursorPosition, cursorPositionEnd)
+        let textBeforeCursorPosition = textAreaRef.current.value.substring(0, cursorPosition)
+        let textAfterCursorPosition = textAreaRef.current.value.substring(cursorPositionEnd, textAreaRef.current.value.length)
+      
+        setTabText( `${textBeforeCursorPosition}    ${textAfterCursorPosition}`)
+        setFixCursor(cursorPosition + 4)
+        
+        // setFixCursor(true)
+        return false;
+        
+      }
+    }
+    document.addEventListener("keydown", keyDownHandler);
+  
+    return () => {
+      document.removeEventListener("keydown", keyDownHandler);
+    };
+
+  }, [])
+
+  useEffect(() => {
+    if (!!fixCursor) {
+      // let cursorPosition = textAreaRef.current.selectionStart
+      // console.log('cursor position', cursorPosition)
+      textAreaRef.current.selectionStart = textAreaRef.current.selectionEnd = fixCursor
+        // textAreaRef.current.selectionStart = textAreaRef.current.selectionEnd = start + 1
+      // console.log('cursor position', textAreaRef.current.selectionStart)
+      setFixCursor(false)
+    }
+
+  }, [fixCursor])
+
   return (
     <textarea 
+      ref={textAreaRef}
       className={styles['text-area']}
       value={tabText}
       readOnly={readOnly}
-      onChange={e => { e.preventDefault(); setTabText(e.target.value) }}
-      style={{ fontSize: fontSize }}
+      onChange={e => { e.preventDefault();  setTabText(e.target.value); setFixCursor(textAreaRef.current.selectionStart) }}
+      style={{ fontSize: fontSize, tabSize: 4 }}
     />)
 }
 
