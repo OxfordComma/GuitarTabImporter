@@ -2,7 +2,7 @@
 	--bg-color: #222222;
 	--bg-color-alt: #444444;
 	--text-color: white;
-  }
+}
   
   @media (prefers-color-scheme: light) {
 	:root {
