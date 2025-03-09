@@ -157,7 +157,7 @@ function TabTextArea({ tabText, setTabText, fontSize, readOnly=false }) {
 
   useEffect(() => {
     const keyDownHandler = (e) => {
-      if (e.code === "Tab") {
+      if (e.code === "Tab" && document.activeElement === textAreaRef.current) {
         
         e.preventDefault();
 

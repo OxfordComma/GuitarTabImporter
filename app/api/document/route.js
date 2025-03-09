@@ -92,6 +92,7 @@ export async function POST(request, { params }) {
 		draft,
 		columns,
 		columnSplit,
+		columnWidth = 50,
 		fontSize,
 	} = body.tab
 	
@@ -278,6 +279,23 @@ export async function POST(request, { params }) {
 					segmentId: ''
 				}
 			}
+		}, {
+			'updateTableColumnProperties': {
+				'tableStartLocation': {
+					segmentId: '',
+					index: 2,
+				},
+				'columnIndices': [0],
+				'tableColumnProperties': {
+					'widthType': 'FIXED_WIDTH',
+					'width': {
+						'magnitude': 7.5 * ( (columns === 2 ? columnWidth : 100) / 100) * 72,
+						'unit': 'PT'
+					}
+				},
+			'fields': '*'
+
+			},
 		},{
 			'updateTableCellStyle' : {
 				'tableCellStyle': {
@@ -347,8 +365,25 @@ export async function POST(request, { params }) {
 						},
 
 					},
+					paddingTop: {
+							'magnitude': 0.025 * 72,
+							'unit': 'PT',
+					},
+					paddingBottom: {
+						'magnitude': 0.025 * 72,
+						'unit': 'PT',
+
+					},
+					paddingLeft: {
+						'magnitude': 0.025 * 72,
+						'unit': 'PT',
+					},
+					paddingRight: {
+						'magnitude': 0.025 * 72,
+						'unit': 'PT',
+					},
 				},
-				fields: 'borderTop,borderBottom,borderLeft,borderRight',
+				fields: 'borderTop,borderBottom,borderLeft,borderRight,paddingTop,paddingBottom,paddingLeft,paddingRight',
 				tableStartLocation: {
 					segmentId: '',
 					index: 2,
@@ -466,7 +501,36 @@ export async function POST(request, { params }) {
 						'matchCase' : true
 					} 
 				}
-			}])
+			}, 
+			// {
+			// 	'updateTableCellStyle' : {
+			// 		'tableCellStyle': {
+			// 			paddingTop: {
+			// 					'magnitude': 0.05 * 72,
+			// 					'unit': 'PT',
+			// 			},
+			// 			paddingBottom: {
+			// 				'magnitude': 0.05 * 72,
+			// 				'unit': 'PT',
+
+			// 			},
+			// 			paddingLeft: {
+			// 				'magnitude': 0.05 * 72,
+			// 				'unit': 'PT',
+			// 			},
+			// 			paddingRight: {
+			// 				'magnitude': 0.05 * 72,
+			// 				'unit': 'PT',
+			// 			},
+			// 		},
+			// 		fields: 'paddingTop,paddingBottom,paddingLeft,paddingRight',
+			// 		tableStartLocation: {
+			// 			segmentId: '',
+			// 			index: 2,
+			// 		}
+			// 	}
+			// }
+			])
 		}
 		
 		// console.log('updating doc')

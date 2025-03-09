@@ -410,14 +410,16 @@ export default function Library({ }) {
 
   async function toggleColumnsMenu() {
     let newUserTabs = userTabs
+    
     newUserTabs = newUserTabs.map(t => {
-      return t._id === sidebarItemId ? {
+      let tabWithColumns = {
         ...t,
         columns: t?.columns ? 
-          t.columns === 1 ? 
-            2 : 1
-          : 2
-      } : t
+          t.columns === 1 ? 2 : 1
+          : 2,
+        columnWidth: t?.columnWidth ? t.columnWidth: 50,
+      }
+      return t._id === sidebarItemId ? tabWithColumns : t
     })
 
     // setColumns(parseInt(newUserTabs.find(t => t._id === sidebarItemId).columns) ?? 1)
@@ -519,7 +521,8 @@ export default function Library({ }) {
         save={onSaveTab}
         close={closeMenus}
         show={action === 'edit tab'}
-        subset={['artistName', 'songName', 'capo', 'tuning', 'bpm', 'columns', 'draft']}
+        subset={['artistName', 'songName', 'capo', 'tuning', 'bpm', 'draft', 'columnWidth']}
+        options={{draft: [true, false]}}
         accessors={{
           columns: d => isNaN(parseInt(d)) ? null : parseInt(d),
         }}
