@@ -15,10 +15,10 @@ export async function GET(request, { params }) {
 	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, { 
 		headers: new Headers(headers()) 
 	}).then(r => r.json())
-	console.log('folder account', account)
+	// console.log('folder account', account)
 
 	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-	console.log('folder profile', profile)
+	// console.log('folder profile', profile)
 	
 	let searchParams = request.nextUrl.searchParams
 	// console.log('searchParams', searchParams)
@@ -28,7 +28,6 @@ export async function GET(request, { params }) {
 	if (!searchParams.get('id')) {
 		return Response.json({ })
 	}
-  
 
 	const oauth2Client = new google.auth.OAuth2(
 		process.env.AUTH_GOOGLE_ID, 
@@ -86,7 +85,7 @@ export async function GET(request, { params }) {
 }
 
 // // export default async function handler(req, res) {
-export async function POST(request, { params }) {
+export async function PUT(request, { params }) {
 	const session = await auth()
 	// console.log('folder post session', session)
 
@@ -120,6 +119,47 @@ export async function POST(request, { params }) {
 			name: body.name,
 			mimeType: 'application/vnd.google-apps.folder',
 			parents: [body.parent_folder],
+		}
+	})
+
+	return Response.json(newFolder)
+}
+
+export async function POST(request, { params }) {
+	const session = await auth()
+	// console.log('folder post session', session)
+
+	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
+		headers: new Headers(headers()) 
+	}).then(r => r.json())
+//   console.log('fetched account', account)
+	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
+//   console.log('fetched profile', profile)
+
+	let body = await request.json()
+	console.log('create folder body', body)
+
+  	if (!body.name || !body.folder) {
+		return Response.json({ })
+	}
+  
+  	const oauth2Client = new google.auth.OAuth2(
+		process.env.AUTH_GOOGLE_ID, 
+		process.env.AUTH_GOOGLE_SECRET
+	);
+
+	oauth2Client.setCredentials({
+		'access_token': account.access_token,
+		'refresh_token': account.refresh_token
+	});
+
+	const drive = google.drive({version: 'v3', auth: oauth2Client });
+	var newFolder = await drive.files.update({
+		fileId: body.folder,
+		requestBody: { 
+			name: body.name,
+			// mimeType: 'application/vnd.google-apps.folder',
+			// parents: [body.parent_folder],
 		}
 	})
 

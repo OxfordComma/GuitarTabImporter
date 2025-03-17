@@ -237,7 +237,7 @@ export default function Projects({ }) {
     console.log('newFolder', newFolder, newProject)
 
     fetch(`/api/project?id=${newProject._id}`, { 
-      method: 'POST',
+      method: 'PUT',
       body: JSON.stringify(newProject)
     })
       // })
@@ -257,26 +257,42 @@ export default function Projects({ }) {
     setEditObject(projects.find(p => p._id === openProjectId))
   }
 
-  function onSaveProject(project) {
+  async function onSaveProject(project) {
     console.log('save project', project)
     // let newFolder
-    // let saveProject = project
-    // console.log('save project', project)
+    let saveProject = project
     let projectId = project.id
-
-
-    // if (user.projectsFolder && (!saveProject.folder || saveProject.folder == '')) {
-    //   newFolder = await fetch(`/api/folder`, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       user: user,
-    //       name: saveProject.name,
-    //       folder: user.projectsFolder,
-    //     })
-    //   }).then(r => r.json())
-    //   console.log('newFolder:', newFolder)
-    //   saveProject.folder = newFolder.id
-    // }
+    let profile = await fetch(`/api/profile?id=${session.data.user_id}`)
+      .then(r => r.json())
+    
+    if (profile.projectsFolder) {
+      let newFolder
+      if (!saveProject.folder || saveProject.folder == '') {
+        // newFolder = await fetch(`/api/folder`, {
+        //   method: 'PUT',
+        //   body: JSON.stringify({
+        //     // user: profile,
+        //     name: saveProject.name,
+        //     folder: saveProject.folder,
+        //   })
+        // }).then(r => r.json())
+        // console.log('newFolder:', newFolder)
+        // saveProject.folder = newFolder.id
+        console.log('problem')
+      }
+      else {
+        newFolder = await fetch(`/api/folder`, {
+          method: 'POST',
+          body: JSON.stringify({
+            // user: profile,
+            name: saveProject.name,
+            folder: saveProject.folder,
+          })
+        }).then(r => r.json())
+        console.log('updated folder:', newFolder)
+        // saveProject.folder = newFolder.id
+      }
+    }
 
     // let GOOGLE_ID_LENGTH = 33
     // if (!saveProject.folder || saveProject.folder == '' || saveProject.folder.length != GOOGLE_ID_LENGTH) {

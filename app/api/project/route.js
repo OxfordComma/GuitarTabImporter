@@ -60,12 +60,12 @@ export async function POST(request, { params }) {
 	
     let newProject = {
         "_id": new ObjectId(body._id),
-        "id": body.id,
+        "collaborators": body.collaborators,
         "creator": new ObjectId(body.creator),
         "folder": body.folder,
+        // "id": body.id,
         "name": body.name,
         "owner": new ObjectId(body.owner),
-        "collaborators": body.collaborators,
         "pinnedTabs": body.pinnedTabs,
         "spotifyPlaylistId": body.spotifyPlaylistId,
       }
