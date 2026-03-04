@@ -1,69 +1,94 @@
 'use client'
 import React from 'react'
 import { createContext, useContext, useState, useEffect } from "react";
+import { authClient } from "@/lib/auth-client"
+
 import { useSession } from "next-auth/react"
 import { getChordList } from '@/lib/tabhelper';
 
 export const TabsContext = createContext([]);
 
 export function Context({ children }) {
-    const session = useSession()
+	const { data: session } = authClient.useSession()
+	// console.log('context session:', session)
 
 	const [userTabs, setUserTabs] = useState([])
 	const [googleTabs, setGoogleTabs] = useState([])
 
 	const [projects, setProjects] = useState([])
-	const [openProjectId, setOpenProjectId] = useState(null) 
+	const [openProjectId, setOpenProjectId] = useState(null)
 
-	const [googleAccount, setGoogleAccount] = useState(undefined)
-	const [profile, setProfile] = useState(undefined)
-	
+	// const [googleAccount, setGoogleAccount] = useState(undefined)
+	// const [profile, setProfile] = useState(undefined)
+
 	const [footerMessage, setFooterMessage] = useState('')
 
-	function sortTabs(tabs, sortBy) { 
-	  let sortedTabs = tabs.slice(0).sort((a, b) => {
-	  	let sortBySplit = sortBy.split(' ')
-	  	let sortByColumn = sortBySplit[0]
-	  	let ascending = true
-
-	  	if (sortBy.includes('descending')) {
-	  		ascending = false
-	  	}
-	    if (sortBy.includes('artist') ) {
-	      sortByColumn = 'artistName'
-	    }
-	    let aSortBy = a[sortByColumn]
-	    let bSortBy = b[sortByColumn]
-
-	    if (['artistName', 'songName', 'tuning', 'capo'].includes(sortByColumn)) {
-			aSortBy = aSortBy?.toString().toLowerCase().replace(/^the /mi, '') ?? null
-			bSortBy = bSortBy?.toString().toLowerCase().replace(/^the /mi, '') ?? null
-	    }
-	    if (['createdTime', 'lastUpdatedTime'].includes(sortByColumn)) {
-	    	aSortBy = new Date(aSortBy)
-	    	bSortBy = new Date(bSortBy)
-	    }
-		if (['numberOfChords'].includes(sortByColumn)) {
-			aSortBy = getChordList(a.tabText).length
-			bSortBy = getChordList(b.tabText).length
+	useEffect(() => {
+		async function fetchUserTabs() {
+			const userTabsResponse = await fetch(`/api/tabs`).then(r => r.json())	
+			console.log('userTabsResponse:', userTabsResponse)
+			setUserTabs(userTabsResponse)
+		}
+		if (session && userTabs.length == 0) {
+			fetchUserTabs();
 		}
 
-	    let ascendingTrue = (ascending ? 1 : -1)
-	    let ascendingFalse = ascendingTrue * -1
+		// async function fetchGoogleTabs() {
+		// 	const googleTabsResponse = fetch('/api/folder?id=' + profile.libraryFolder).then(r => r.json())
+		// 	// console.log('googleTabsResponse:', googleTabsResponse)
+		// 	setGoogleTabs(googleTabsResponse)
+		// }
+		// if (session && googleTabs.length == 0) {
+		// 	fetchGoogleTabs();
+		// }
 
-	    let result = aSortBy > bSortBy ? ascendingTrue : ascendingFalse
-	    // console.log(aSortBy, bSortBy, result)
+	}, [session])
 
-	    if (aSortBy == null )
-	    	return 1
 
-	    if (bSortBy == null )
-	    	return -1
+	function sortTabs(tabs, sortBy) {
+		let sortedTabs = tabs.slice(0).sort((a, b) => {
+			let sortBySplit = sortBy.split(' ')
+			let sortByColumn = sortBySplit[0]
+			let ascending = true
 
-	    return result
-	  })
-	  // console.log('sorted tabs by:', sortBy, sortedTabs)
-	  return sortedTabs
+			if (sortBy.includes('descending')) {
+				ascending = false
+			}
+			if (sortBy.includes('artist')) {
+				sortByColumn = 'artistName'
+			}
+			let aSortBy = a[sortByColumn]
+			let bSortBy = b[sortByColumn]
+
+			if (['artistName', 'songName', 'tuning', 'capo'].includes(sortByColumn)) {
+				aSortBy = aSortBy?.toString().toLowerCase().replace(/^the /mi, '') ?? null
+				bSortBy = bSortBy?.toString().toLowerCase().replace(/^the /mi, '') ?? null
+			}
+			if (['createdTime', 'lastUpdatedTime'].includes(sortByColumn)) {
+				aSortBy = new Date(aSortBy)
+				bSortBy = new Date(bSortBy)
+			}
+			if (['numberOfChords'].includes(sortByColumn)) {
+				aSortBy = getChordList(a.tabText).length
+				bSortBy = getChordList(b.tabText).length
+			}
+
+			let ascendingTrue = (ascending ? 1 : -1)
+			let ascendingFalse = ascendingTrue * -1
+
+			let result = aSortBy > bSortBy ? ascendingTrue : ascendingFalse
+			// console.log(aSortBy, bSortBy, result)
+
+			if (aSortBy == null)
+				return 1
+
+			if (bSortBy == null)
+				return -1
+
+			return result
+		})
+		// console.log('sorted tabs by:', sortBy, sortedTabs)
+		return sortedTabs
 	}
 
 	function formatFolderContents(fc, user) {
@@ -103,77 +128,41 @@ export function Context({ children }) {
 			capo: 0,
 			tuning: 'EADGBe',
 		}
-	} 
+	}
 
 	function loadUserTabs() {
-		if (userTabs.length == 0) {
-			fetch(`/api/tabs?userid=${session.data.user_id}`)
-			  .then(r => r.json())
-			  .then(newUserTabs => { 
-				setUserTabs(newUserTabs)
-			})
-		  }
+	// 	if (userTabs.length == 0) {
+	// 		fetch(`/api/tabs?userid=${session?.data.user_id}`)
+	// 			.then(r => r.json())
+	// 			.then(newUserTabs => {
+	// 				setUserTabs(newUserTabs)
+	// 			})
+	// 	}
 	}
 
 	function loadGoogleTabs() {
-		fetch(`/api/profile?id=${session.data.user_id}`)
-			.then(r => r.json())
-			.then(profile => {
-				fetch('/api/folder?id=' + profile.libraryFolder)
-					.then(r => r.json())
-					.then(newGoogleTabs => {            
-						newGoogleTabs = newGoogleTabs.map(formatFolderContents)
-						setGoogleTabs(newGoogleTabs)
-					})
-			}) 
+	// 	fetch(`/api/profile?id=${session?.data.user_id}`)
+	// 		.then(r => r.json())
+	// 		.then(profile => {
+	// 			fetch('/api/folder?id=' + profile.libraryFolder)
+	// 				.then(r => r.json())
+	// 				.then(newGoogleTabs => {
+	// 					newGoogleTabs = newGoogleTabs.map(formatFolderContents)
+	// 					setGoogleTabs(newGoogleTabs)
+	// 				})
+	// 		})
 	}
 
 	const value = {
-		userTabs, setUserTabs, loadUserTabs,
-		googleTabs, setGoogleTabs, loadGoogleTabs,
-		projects, setProjects,
-		openProjectId, setOpenProjectId,
-		formatFolderContents,
-		sortTabs,
-		footerMessage, setFooterMessage,
-		// googleAccount,
-		// profile
+		userTabs, 
+		// setUserTabs, loadUserTabs,
+		// googleTabs, setGoogleTabs, loadGoogleTabs,
+		// projects, setProjects,
+		// openProjectId, setOpenProjectId,
+		// formatFolderContents,
+		// sortTabs,
+		// footerMessage, setFooterMessage,
 	}
-
-
-	// useEffect(() => {
-	// 	console.log('Context updated:', { 
-	// 		userTabs,
-	// 		googleTabs,
-	// 		projects,
-	// 		openProjectId,
-	// 		googleAccount
-	// 	})
-	// }, [userTabs, googleTabs, projects, openProjectId, googleAccount ])
-
-	// useEffect(() => {
-	// 	async function updateAccount() {
-	// 		if (session.data?.user_id) {
-	// 			let accountResponse = await fetch(`/api/account?id=${session.data.user_id}`).then(r => r.json())
-	// 			if (accountResponse) {
-	// 				setGoogleAccount(accountResponse)
-	// 			}
-	// 		}	
-	// 	}
-
-	// 	// async function updateProfile() {
-	// 	// 	if (session.data?.user_id) {
-	// 	// 		let profileResponse = await fetch(`/api/profile?id=${session.data.user_id}`).then(r => r.json())
-	// 	// 		if (profileResponse) {
-	// 	// 			setProfile(profileResponse)
-	// 	// 		}
-	// 	// 	}	
-	// 	// }
-
-  	// 	updateAccount();
-	// 	// updateProfile();
-
-	// }, [session])
 
 	return (
 		<TabsContext.Provider value={value} >

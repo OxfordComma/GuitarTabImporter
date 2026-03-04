@@ -1,12 +1,16 @@
 import styles from "./page.module.css";
-import { auth } from "../auth"
+import { authClient } from "@/lib/auth-client"
 import { redirect } from 'next/navigation'
+import { headers } from "next/headers";
+
+import { AppShell, AppShellHeader, AppShellMain, Stack, Text } from '@mantine/core';
+import Header from "@/components/Header";
 
 
 export default async function Home({
 
 }) {
-  let session = await auth()
+  const session = await authClient.getSession();
   console.log('main session:', session)
 
   if (session && session.user) {
@@ -15,13 +19,31 @@ export default async function Home({
 
 
   return (
-    <main className={styles['main']}>
-      <div className={styles['content']}>
-        <div className={styles['text']}>The</div>
-        <div className={styles['text']}>All-In-One</div>
-        <div className={styles['text']}>Band</div>
-        <div className={styles['text']}>Repository</div>
-      </div>
-    </main>
+    <AppShell
+      padding="md"
+      header={{ height: 50 }}
+    >
+      <AppShellHeader>
+        <Header/>
+      </AppShellHeader>
+
+      <AppShellMain h="100vh" w="100vw">
+        <Stack gap={0} style={{WebkitTextStroke: '1px white'}}>
+          <Text fz="5em" className={styles.text}>The</Text>
+          <Text fz="5em" className={styles.text}>All-In-One</Text>
+          <Text fz="5em" className={styles.text}>Band</Text>
+          <Text fz="5em" className={styles.text}>Repository</Text>
+        </Stack>
+      </AppShellMain>
+    </AppShell>
+
+    // <main className={styles['main']}>
+    //   <div className={styles['content']}>
+    //     <div className={styles['text']}>The</div>
+    //     <div className={styles['text']}>All-In-One</div>
+    //     <div className={styles['text']}>Band</div>
+    //     <div className={styles['text']}>Repository</div>
+    //   </div>
+    // </main>
   );
 }

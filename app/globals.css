@@ -1,4 +1,4 @@
-:root {
+/* :root {
 	--bg-color: #222222;
 	--bg-color-alt: #444444;
 	--text-color: white;
@@ -26,7 +26,7 @@ body {
 }
 
 ::-webkit-scrollbar { 
-	/* display: none; */
+
 }
 
 @media (max-width: 700px) {
@@ -81,4 +81,4 @@ a {
 
 * {
   box-sizing: border-box;
-}
+} */

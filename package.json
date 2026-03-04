@@ -9,19 +9,27 @@
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.4.2",
+    "@mantine/core": "^8.3.15",
+    "@mantine/form": "^8.3.15",
+    "@mantine/hooks": "^8.3.15",
+    "better-auth": "^1.5.2",
     "googleapis": "^100.0.0",
-    "mongodb": "^6.8.0",
-    "next": "^14.2.5",
+    "mongodb": "^6.21.0",
+    "next": "^16.1.6",
     "next-auth": "^5.0.0-beta.25",
     "quantifyjs": "^0.4.39",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "react-error-boundary": "^4.0.13",
     "react-google-drive-picker": "^1.2.2",
     "spotify-web-api-node": "^5.0.2"
   },
   "devDependencies": {
-    "eslint": "8.33.0",
-    "eslint-config-next": "^14.2.5"
+    "@types/node": "25.3.3",
+    "eslint": "^10.0.2",
+    "eslint-config-next": "^16.1.6",
+    "postcss": "^8.5.8",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1"
   }
 }
