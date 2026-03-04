@@ -155,7 +155,8 @@ export function Context({ children }) {
 
 	const value = {
 		userTabs, 
-		// setUserTabs, loadUserTabs,
+		setUserTabs, 
+		// loadUserTabs,
 		// googleTabs, setGoogleTabs, loadGoogleTabs,
 		// projects, setProjects,
 		// openProjectId, setOpenProjectId,

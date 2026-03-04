@@ -11,7 +11,6 @@ export default function Header ({
   headings = []
 }) {
   const { data: session } = authClient.useSession();
-  console.log('header session:', session)
 
   const router = useRouter()
 
