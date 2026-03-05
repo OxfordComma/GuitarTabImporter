@@ -1,22 +1,95 @@
 'use client'
-import { useState, useContext, useEffect } from 'react'
+import { useState, useContext, useEffect, useRef } from 'react'
 import Header from '@/components/Header';
 import { TabsContext } from 'components/Context.js'
 
-import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, Stack, Text, Textarea } from '@mantine/core';
+import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select } from '@mantine/core';
 import { sortBy } from 'lodash';
+import { useForm } from '@mantine/form';
+import { useDisclosure } from '@mantine/hooks';
 
 
-function Editor({ tab, modified, setModified }) {
-	// console.log('editor tab:', tab)
 
-	const [editorTab, setEditorTab] = useState(tab);
-	
+function EditTabModal({ opened, close, tab, saveTab }) {
+	const form = useForm({
+		initialValues: {
+			artistName: "",
+			capo: 0,
+			columnSplit: 50,
+			createdTime: new Date(),
+			draft: true,
+			fontSize: 9,
+			googleDocsId: "",
+			holiday: false,
+			lastUpdatedTime: new Date(),
+			songName: "",
+			tabText: "",
+			tuning: "EADGBe"
+		}
+	});
+
 	useEffect(() => {
 		if (tab) {
-			setEditorTab(tab)
+			form.setValues({
+				artistName: tab?.artistName ?? "",
+				capo: tab?.capo ?? 0,
+				columnSplit: tab?.columnSplit ?? 50,
+				createdTime: new Date(tab?.createdTime) ?? new Date(),
+				draft: tab?.draft ?? true,
+				fontSize: tab?.fontSize ?? "",
+				googleDocsId: tab?.googleDocsId ?? "",
+				holiday: tab?.holiday ?? false,
+				lastUpdatedTime: new Date(tab?.lastUpdatedTime) ?? new Date(),
+				songName: tab?.songName ?? "",
+				tabText: tab?.tabText ?? "",
+				tuning: tab?.tuning ?? "EADGBe"
+			});
 		}
-	}, [tab])
+	}, [tab?._id]); // Only runs when the actual tab ID changes
+
+	return (
+		<Modal opened={opened} onClose={close} title="Edit Tab" centered>
+			<form onSubmit={form.onSubmit((values) => { saveTab(values); form.reset(); close() })}>
+				<TextInput label="Song Name" key={form.key('songName')} {...form.getInputProps('songName')} />
+				<TextInput label="Artist Name" key={form.key('artistName')} {...form.getInputProps('artistName')} />
+				<Select label="Tuning" key={form.key('tuning')} {...form.getInputProps('tuning')} data={['EADGBe']} />
+				<NumberInput label="Capo" key={form.key('capo')} {...form.getInputProps('capo')} />
+				<Group justify="flex-end" mt="md">
+					<Button type='submit'>Save</Button>
+				</Group>
+			</form>
+		</Modal>
+	)
+}
+
+function DeleteTabModal({ opened, close, tab, deleteTab }) {
+	const form = useForm({
+		initialValues: {
+			name: `${tab?.songName} - ${tab?.artistName}`,
+		}
+	});
+
+
+	return (
+		<Modal opened={opened} onClose={close} title="Delete Tab" centered>
+			Are you sure you would like to delete the tab {`${tab?.songName} - ${tab?.artistName}`}?
+			<form onSubmit={form.onSubmit((values) => deleteTab(tab))}>
+				<Group justify="flex-end" mt="md">
+					<Button type='submit' color='red'>Delete</Button>
+				</Group>
+			</form>
+		</Modal>
+	)
+}
+
+function Editor({ initialText, onTextChange, setModified }) {
+	// console.log('editor tab:', tab)
+
+	const [editorText, setEditorText] = useState(initialText);
+	
+	useEffect(() => {
+        setEditorText(initialText);
+    }, [initialText]);
 
 	return (<Textarea
 		variant='unstyled'
@@ -41,12 +114,11 @@ function Editor({ tab, modified, setModified }) {
 			},
 		}}
 
-		value={editorTab && editorTab['tabText']}
+		value={editorText}
 		onChange={(event) => {
-			setEditorTab({
-				...editorTab, tabText: event.currentTarget.value
-			})
-			setModified(true)
+			const val = event.currentTarget.value
+			setEditorText(val)
+			onTextChange(val)
 		}}
 		spellCheck={false}
 	>
@@ -65,6 +137,12 @@ export default function Home({
 	// const [activeTabId, setActiveTabId] = useState();
 	const [modified, setModified] = useState(false);
 	const [sortStatus, setSortStatus] = useState(false);
+	const [isNewTab, setIsNewTab] = useState(false);
+	// const [editorText, setEditorText] = useState("")
+	const editorTextRef = useRef("");
+
+	const [editTabModalOpened, editTabModalHandlers] = useDisclosure();
+	const [deleteTabModalOpened, deleteTabModalHandlers] = useDisclosure();
 
 	useEffect(() => {
 		setTabs(userTabs)
@@ -74,6 +152,77 @@ export default function Home({
 		const sortedTabs = sortBy(userTabs, sortStatus.columnAccessor)
 		setTabs(sortStatus.direction === 'desc' ? sortedTabs.reverse() : sortedTabs);
 	}, [sortStatus]);
+
+	async function saveTab(saveObj) {
+		saveObj = {
+			...saveObj,
+			tabText: editorTextRef.current,
+		}
+		// console.log('saving tab:', saveObj)
+		if (isNewTab) {
+			// const { ...toSave } = saveObj
+			let savedTab = await fetch(`api/tab`, {
+				method: 'POST',
+				body: JSON.stringify({tab: saveObj})
+			}).then(r => r.json())
+
+			console.log('new tab saved:', savedTab)
+
+			const newTab = {
+				'_id': savedTab['insertedId'],
+				...saveObj
+			}
+
+			setUserTabs(
+				[newTab, ...userTabs]
+			)
+		}
+		else {
+			// const { ...toSave } = saveObj
+
+			let savedTab = await fetch(`api/tab?id=${saveObj['_id']}`, {
+				method: 'PUT',
+				body: JSON.stringify({tab: saveObj})
+			}).then(r => r.json())
+
+			console.log('existing tab saved:', savedTab)
+
+			setUserTabs(
+				userTabs.map(t => t['_id'] === saveObj['_id'] ? saveObj : t)
+			)
+		}
+
+		setIsNewTab(false)
+	}
+
+	async function deleteTab(deleteObj) {
+		let deletedRecord = await fetch(`api/tab?id=${deleteObj['_id']}`, {
+			method: 'DELETE',
+			body: JSON.stringify({ tab: deleteObj })
+		}).then(r => r.json())
+
+		console.log('record deleted:', deletedRecord)
+
+		setUserTabs(
+			userTabs.filter(t => t['_id'] !== deleteObj['_id'])
+		)
+
+		deleteTabModalHandlers.close();
+	}
+
+	function newtabMenu() {
+		editTabModalHandlers.open()
+		setIsNewTab(true)
+	}
+
+	function editTabMenu() {
+		editTabModalHandlers.open()
+	}
+
+	function saveTabMenu() {
+		saveTab(activeTab)
+	}
+
 
 	return (
 		<AppShell
@@ -99,14 +248,14 @@ export default function Home({
 						</Menu.Target>
 						<Menu.Dropdown>
 							<Menu.Item
-							onClick={() => setSortStatus({})}
+								onClick={() => setSortStatus({})}
 							>
 								None
 							</Menu.Item>
 							<Menu.Item
 								onClick={() => setSortStatus({
 									columnAccessor: 'artistName',
-									direction: sortStatus?.['direction'] ===  'asc' ? 'desc' :  'asc'
+									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
 							>
 								Artist
@@ -114,7 +263,7 @@ export default function Home({
 							<Menu.Item
 								onClick={() => setSortStatus({
 									columnAccessor: 'songName',
-									direction: sortStatus?.['direction'] ===  'asc' ? 'desc' :  'asc'
+									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
 							>
 								Song
@@ -122,7 +271,7 @@ export default function Home({
 							<Menu.Item
 								onClick={() => setSortStatus({
 									columnAccessor: 'createdTime',
-									direction: sortStatus?.['direction'] ===  'asc' ? 'desc' :  'asc'
+									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
 							>
 								Created
@@ -130,7 +279,7 @@ export default function Home({
 							<Menu.Item
 								onClick={() => setSortStatus({
 									columnAccessor: 'lastModifiedTime',
-									direction: sortStatus?.['direction'] ===  'asc' ? 'desc' :  'asc'
+									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
 							>
 								Last modified
@@ -231,7 +380,7 @@ export default function Home({
 						<NavLink
 							key={tab['_id']}
 							label={
-								<Indicator offset={5} color='red' disabled={!(activeTab && (tab['_id'] === activeTab['_id']) && modified ) }>
+								<Indicator offset={5} color='red' disabled={!(activeTab && (tab['_id'] === activeTab['_id']) && modified)}>
 									<Stack gap={0}>
 										<Text fz="14">{tab['songName']}</Text>
 										<Text fz="12">{tab['artistName']}</Text>
@@ -246,87 +395,99 @@ export default function Home({
 				</AppShell.Section>
 			</AppShell.Navbar>
 
-			<AppShell.Main h="100%" style={{overflow: 'hidden' }}>
+			<AppShell.Main h="100%" style={{ overflow: 'hidden' }}>
 				<AppShell.Section>
 					<Group gap={0} ml={15} mr={15} h="auto">
-						<Menu position='bottom-start'  shadow="md" color="#4B0082">
+						<Menu position='bottom-start' shadow="md" color="#4B0082">
 							<Menu.Target>
 								<Button size='xs'>tab</Button>
 							</Menu.Target>
 
 							<Menu.Dropdown>
 								<Menu.Item
-								// onClick={() => newCollectionMenu()}
+									onClick={() => newtabMenu()}
 								>
 									New
 								</Menu.Item>
 								<Menu.Item
-								// onClick={() => newCollectionMenu()}
+									onClick={() => editTabMenu()}
+									disabled={!activeTab}
 								>
 									Edit
 								</Menu.Item>
 								<Menu.Item
 									// onClick={() => editCollectionMenu()}
-									// disabled={activeCollectionId === undefined}
 									disabled
 								>
 									Import
 								</Menu.Item>
 								<Menu.Item
-								// onClick={() => newCollectionMenu()}
+									onClick={() => saveTabMenu()}
+									disabled={activeTab === undefined}
+								>
+									Save
+								</Menu.Item>
+								<Menu.Item
+									onClick={() => window.open(`https://docs.google.com/document/d/${activeTab['googleDocsId']}/edit`)}
 								>
 									Open in Docs
 								</Menu.Item>
 								<Menu.Item
 									color="red"
-									// onClick={() => deleteCollectionModalHandlers.open()}
+									onClick={() => deleteTabModalHandlers.open()}
 									disabled={activeTab === undefined}
 								>
 									Delete
 								</Menu.Item>
 							</Menu.Dropdown>
 						</Menu>
-						<Menu position='bottom-start'  shadow="md" color="#4B0082">
+						<Menu position='bottom-start' shadow="md" color="#4B0082">
 
 							<Menu.Target>
 								<Button size='xs'>view</Button>
 							</Menu.Target>
 							<Menu.Dropdown>
 								<Menu.Item
-								// onClick={() => newCollectionMenu()}
+									// onClick={() => newCollectionMenu()}
+									disabled
 								>
 									Toggle two column mode
 								</Menu.Item>
 							</Menu.Dropdown>
 						</Menu>
-						<Menu position='bottom-start'  shadow="md" color="#4B0082">
+						<Menu position='bottom-start' shadow="md" color="#4B0082">
 
 							<Menu.Target>
 								<Button size='xs'>tools</Button>
 							</Menu.Target>
 							<Menu.Dropdown>
 								<Menu.Item
-								// onClick={() => newCollectionMenu()}
+									// onClick={() => newCollectionMenu()}
+									disabled
 								>
 									Format 2 chords per line
 								</Menu.Item>
 								<Menu.Item
-								// onClick={() => newCollectionMenu()}
+									// onClick={() => newCollectionMenu()}
+									disabled
 								>
 									Format 4 chords per line
 								</Menu.Item>
 								<Menu.Item
-								// onClick={() => newCollectionMenu()}
+									// onClick={() => newCollectionMenu()}
+									disabled
 								>
 									Add tab staff
 								</Menu.Item>
 								<Menu.Item
-								// onClick={() => newCollectionMenu()}
+									// onClick={() => newCollectionMenu()}
+									disabled
 								>
 									Create chord list
 								</Menu.Item>
 								<Menu.Item
-								// onClick={() => newCollectionMenu()}
+									// onClick={() => newCollectionMenu()}
+									disabled
 								>
 									Convert chords to tabs
 								</Menu.Item>
@@ -337,7 +498,7 @@ export default function Home({
 								{activeTab && `${activeTab['songName'].replaceAll(/ /g, '').toLowerCase()}.${activeTab['artistName'].replaceAll(/ /g, '').toLowerCase()}.tab`}
 							</Text>
 						</Group>
-						<Group  ml="auto">
+						<Group ml="auto">
 							{activeTab && activeTab['capo'] > 0 && (<Text>capo {activeTab['capo']} </Text>)}
 							{activeTab && activeTab['tuning'] && (<Text>{activeTab['tuning']} </Text>)}
 						</Group>
@@ -345,15 +506,28 @@ export default function Home({
 				</AppShell.Section>
 
 				<AppShell.Section h="100%" grow>
-					<Editor 
-						tab={activeTab} 
-						modified={modified}
-						setModified={setModified}
-						// setTab={(tab) => setUserTabs(
-						// 	userTabs.map(t => t['_id'] === tab['_id'] ? tab : t)
-						// )} 
+					<Editor
+						key={activeTab?.['_id']}
+						initialText={activeTab?.tabText ?? ""}
+						onTextChange={(val) => {
+							editorTextRef.current = val;
+					        if (!modified) setModified(true);
+						}}
 					/>
 				</AppShell.Section>
+
+				<EditTabModal
+					opened={editTabModalOpened}
+					close={editTabModalHandlers.close}
+					tab={activeTab}
+					saveTab={saveTab}
+				/>
+				<DeleteTabModal
+					opened={deleteTabModalOpened}
+					close={deleteTabModalHandlers.close}
+					tab={activeTab}
+					deleteTab={deleteTab}
+				/>
 			</AppShell.Main>
 
 			{/* <AppShell.Footer>
