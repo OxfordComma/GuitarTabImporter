@@ -12,6 +12,7 @@
     "@mantine/core": "^8.3.15",
     "@mantine/form": "^8.3.15",
     "@mantine/hooks": "^8.3.15",
+    "@tabler/icons-react": "^3.39.0",
     "better-auth": "^1.5.2",
     "googleapis": "^100.0.0",
     "lodash": "^4.17.23",

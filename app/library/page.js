@@ -3,16 +3,18 @@ import { useState, useContext, useEffect, useRef } from 'react'
 import Header from '@/components/Header';
 import { TabsContext } from 'components/Context.js'
 
-import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select } from '@mantine/core';
-import { sortBy } from 'lodash';
+import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox } from '@mantine/core';
+import { sortBy, filter } from 'lodash';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
+import { IconCheck, IconTriangle, IconTriangleInverted } from '@tabler/icons-react';
 
 
 
-function EditTabModal({ opened, close, tab, saveTab }) {
+function EditTabModal({ opened, close, tab, saveTab, isNewTab }) {
 	const form = useForm({
 		initialValues: {
+			_id: undefined,
 			artistName: "",
 			capo: 0,
 			columnSplit: 50,
@@ -31,6 +33,7 @@ function EditTabModal({ opened, close, tab, saveTab }) {
 	useEffect(() => {
 		if (tab) {
 			form.setValues({
+				_id: tab?._id ?? undefined,
 				artistName: tab?.artistName ?? "",
 				capo: tab?.capo ?? 0,
 				columnSplit: tab?.columnSplit ?? 50,
@@ -47,16 +50,25 @@ function EditTabModal({ opened, close, tab, saveTab }) {
 		}
 	}, [tab?._id]); // Only runs when the actual tab ID changes
 
+	useEffect(() => {
+		if (isNewTab) {
+			form.reset();
+		}
+	}, [isNewTab])
+
 	return (
 		<Modal opened={opened} onClose={close} title="Edit Tab" centered>
 			<form onSubmit={form.onSubmit((values) => { saveTab(values); form.reset(); close() })}>
-				<TextInput label="Song Name" key={form.key('songName')} {...form.getInputProps('songName')} />
-				<TextInput label="Artist Name" key={form.key('artistName')} {...form.getInputProps('artistName')} />
-				<Select label="Tuning" key={form.key('tuning')} {...form.getInputProps('tuning')} data={['EADGBe']} />
-				<NumberInput label="Capo" key={form.key('capo')} {...form.getInputProps('capo')} />
-				<Group justify="flex-end" mt="md">
-					<Button type='submit'>Save</Button>
-				</Group>
+				<Stack>
+					<TextInput label="Song Name" key={form.key('songName')} {...form.getInputProps('songName')} />
+					<TextInput label="Artist Name" key={form.key('artistName')} {...form.getInputProps('artistName')} />
+					<Select label="Tuning" key={form.key('tuning')} {...form.getInputProps('tuning')} data={['EADGBe', 'EbAbDbGbBbeb', 'DADGBe', 'DADF#AD']} />
+					<NumberInput label="Capo" key={form.key('capo')} {...form.getInputProps('capo')} />
+					<Checkbox label="Draft" checked={tab?.['draft']} key={form.key('draft')} {...form.getInputProps('draft')} />
+					<Group justify="flex-end" mt="md">
+						<Button type='submit'>Save</Button>
+					</Group>
+				</Stack>
 			</form>
 		</Modal>
 	)
@@ -86,10 +98,10 @@ function Editor({ initialText, onTextChange, setModified }) {
 	// console.log('editor tab:', tab)
 
 	const [editorText, setEditorText] = useState(initialText);
-	
+
 	useEffect(() => {
-        setEditorText(initialText);
-    }, [initialText]);
+		setEditorText(initialText);
+	}, [initialText]);
 
 	return (<Textarea
 		variant='unstyled'
@@ -136,7 +148,8 @@ export default function Home({
 	const [activeTab, setActiveTab] = useState();
 	// const [activeTabId, setActiveTabId] = useState();
 	const [modified, setModified] = useState(false);
-	const [sortStatus, setSortStatus] = useState(false);
+	const [sortStatus, setSortStatus] = useState({ });
+	const [filterStatus, setFilterStatus] = useState({ });
 	const [isNewTab, setIsNewTab] = useState(false);
 	// const [editorText, setEditorText] = useState("")
 	const editorTextRef = useRef("");
@@ -144,26 +157,29 @@ export default function Home({
 	const [editTabModalOpened, editTabModalHandlers] = useDisclosure();
 	const [deleteTabModalOpened, deleteTabModalHandlers] = useDisclosure();
 
-	useEffect(() => {
-		setTabs(userTabs)
-	}, [userTabs]);
+	// useEffect(() => {
+	// 	setTabs(userTabs)
+	// }, [userTabs]);
 
 	useEffect(() => {
-		const sortedTabs = sortBy(userTabs, sortStatus.columnAccessor)
-		setTabs(sortStatus.direction === 'desc' ? sortedTabs.reverse() : sortedTabs);
-	}, [sortStatus]);
+		const sortedTabs = sortBy(userTabs, sortStatus?.columnAccessor)
+		const filteredTabs = filter(sortedTabs, filterStatus?.filterFunction)
+		setTabs(sortStatus.direction === 'desc' ? filteredTabs.reverse() : filteredTabs);
+	}, [sortStatus, filterStatus, userTabs]);
+
 
 	async function saveTab(saveObj) {
 		saveObj = {
 			...saveObj,
 			tabText: editorTextRef.current,
+			lastUpdatedTime: new Date(),
 		}
-		// console.log('saving tab:', saveObj)
+		console.log('saving tab:', saveObj)
 		if (isNewTab) {
 			// const { ...toSave } = saveObj
 			let savedTab = await fetch(`api/tab`, {
 				method: 'POST',
-				body: JSON.stringify({tab: saveObj})
+				body: JSON.stringify({ tab: saveObj })
 			}).then(r => r.json())
 
 			console.log('new tab saved:', savedTab)
@@ -182,7 +198,7 @@ export default function Home({
 
 			let savedTab = await fetch(`api/tab?id=${saveObj['_id']}`, {
 				method: 'PUT',
-				body: JSON.stringify({tab: saveObj})
+				body: JSON.stringify({ tab: saveObj })
 			}).then(r => r.json())
 
 			console.log('existing tab saved:', savedTab)
@@ -191,6 +207,14 @@ export default function Home({
 				userTabs.map(t => t['_id'] === saveObj['_id'] ? saveObj : t)
 			)
 		}
+
+		// Export to Google Docs
+		let exportedTab = await fetch(`api/document`, {
+			method: 'PUT',
+			body: JSON.stringify({ tab: saveObj })
+		}).then(r => r.json())
+
+		console.log('exported tab:', exportedTab)
 
 		setIsNewTab(false)
 	}
@@ -211,8 +235,8 @@ export default function Home({
 	}
 
 	function newtabMenu() {
-		editTabModalHandlers.open()
 		setIsNewTab(true)
+		editTabModalHandlers.open()
 	}
 
 	function editTabMenu() {
@@ -227,6 +251,7 @@ export default function Home({
 	return (
 		<AppShell
 			h="100dvh"
+			style={{ overflow: 'hidden' }}
 			header={{ height: 50 }}
 			navbar={{
 				width: 300
@@ -242,6 +267,104 @@ export default function Home({
 
 			<AppShell.Navbar >
 				<AppShell.Section>
+					<Group gap={0} justify='space-between' wrap='nowrap'>
+					<Menu position='bottom-start' shadow="md" color="#4B0082">
+						<Menu.Target>
+							<Button size='xs'>file</Button>
+						</Menu.Target>
+
+						<Menu.Dropdown>
+							<Menu.Item
+								onClick={() => newtabMenu()}
+							>
+								New
+							</Menu.Item>
+							<Menu.Item
+								onClick={() => editTabMenu()}
+								disabled={!activeTab}
+							>
+								Edit
+							</Menu.Item>
+							<Menu.Item
+								// onClick={() => editCollectionMenu()}
+								disabled
+							>
+								Import
+							</Menu.Item>
+							<Menu.Item
+								onClick={() => saveTabMenu()}
+								disabled={activeTab === undefined}
+							>
+								Save
+							</Menu.Item>
+							<Menu.Item
+								onClick={() => window.open(`https://docs.google.com/document/d/${activeTab['googleDocsId']}/edit`)}
+							>
+								Open in Docs
+							</Menu.Item>
+							<Menu.Item
+								color="red"
+								onClick={() => deleteTabModalHandlers.open()}
+								disabled={activeTab === undefined}
+							>
+								Delete
+							</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
+
+					<Menu position='bottom-start' shadow="md" color="#4B0082">
+
+						<Menu.Target>
+							<Button size='xs'>view</Button>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Item
+								// onClick={() => newCollectionMenu()}
+								disabled
+							>
+								Toggle two column mode
+							</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
+
+					<Menu position='bottom-start' shadow="md" color="#4B0082">
+						<Menu.Target>
+							<Button size='xs'>tools</Button>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Item
+								// onClick={() => newCollectionMenu()}
+								disabled
+							>
+								Format 2 chords per line
+							</Menu.Item>
+							<Menu.Item
+								// onClick={() => newCollectionMenu()}
+								disabled
+							>
+								Format 4 chords per line
+							</Menu.Item>
+							<Menu.Item
+								// onClick={() => newCollectionMenu()}
+								disabled
+							>
+								Add tab staff
+							</Menu.Item>
+							<Menu.Item
+								// onClick={() => newCollectionMenu()}
+								disabled
+							>
+								Create chord list
+							</Menu.Item>
+							<Menu.Item
+								// onClick={() => newCollectionMenu()}
+								disabled
+							>
+								Convert chords to tabs
+							</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
+					
 					<Menu position='bottom-start' shadow="md" color="#4B0082">
 						<Menu.Target>
 							<Button size='xs'>sort</Button>
@@ -249,6 +372,7 @@ export default function Home({
 						<Menu.Dropdown>
 							<Menu.Item
 								onClick={() => setSortStatus({})}
+								rightSection={Object.keys(sortStatus).length === 0 && (<IconCheck size={12}/>)}
 							>
 								None
 							</Menu.Item>
@@ -257,6 +381,10 @@ export default function Home({
 									columnAccessor: 'artistName',
 									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
+								rightSection={
+									sortStatus?.columnAccessor === 'artistName' && sortStatus?.['direction'] === 'asc' && (<IconTriangleInverted size={12}/>) || 
+									sortStatus?.columnAccessor === 'artistName' && sortStatus?.['direction'] === 'desc' && (<IconTriangle size={12}/>)
+								}
 							>
 								Artist
 							</Menu.Item>
@@ -265,6 +393,10 @@ export default function Home({
 									columnAccessor: 'songName',
 									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
+								rightSection={
+									sortStatus?.columnAccessor === 'songName' && sortStatus?.['direction'] === 'asc' && (<IconTriangleInverted size={12}/>) || 
+									sortStatus?.columnAccessor === 'songName' && sortStatus?.['direction'] === 'desc' && (<IconTriangle size={12}/>)
+								}
 							>
 								Song
 							</Menu.Item>
@@ -273,6 +405,10 @@ export default function Home({
 									columnAccessor: 'createdTime',
 									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
+								rightSection={
+									sortStatus?.columnAccessor === 'createdTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
+									sortStatus?.columnAccessor === 'createdTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
+								}
 							>
 								Created
 							</Menu.Item>
@@ -281,6 +417,10 @@ export default function Home({
 									columnAccessor: 'lastModifiedTime',
 									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
+								rightSection={
+									sortStatus?.columnAccessor === 'lastModifiedTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
+									sortStatus?.columnAccessor === 'lastModifiedTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
+								}
 							>
 								Last modified
 							</Menu.Item>
@@ -300,22 +440,35 @@ export default function Home({
 								<Menu.Sub.Dropdown>
 									<Menu.Item
 										onClick={() => {
-											setTabs(userTabs)
+											// setTabs(userTabs)
+											setFilterStatus({ })
 										}}
+										rightSection={Object.keys(filterStatus).length === 0 && (<IconCheck size={12}/>)}
 									>
 										all
 									</Menu.Item>
 									<Menu.Item
 										onClick={() => {
-											setTabs(userTabs.filter(t => t['capo'] && t['capo'] > 0))
+											// setTabs(userTabs.filter(t => t['capo'] && t['capo'] > 0))
+											setFilterStatus({ 
+												columnAccessor: 'capo',
+												filterFunction: t => t['capo'] && t['capo'] > 0,
+											})
 										}}
+										rightSection={filterStatus?.columnAccessor === 'capo' && (<IconCheck size={12}/>)}
 									>
 										yes
 									</Menu.Item>
 									<Menu.Item
 										onClick={() => {
-											setTabs(userTabs.filter(t => t['capo'] === 0 || t['capo']))
+											// setTabs(userTabs.filter(t => t['capo'] === 0 || t['capo']))
+											setFilterStatus({
+												columnAccessor: 'no capo',
+												filterFunction: t => t['capo'] === 0 || t['capo']
+											})
 										}}
+										rightSection={filterStatus?.columnAccessor === 'no capo' && (<IconCheck size={12}/>)}
+										
 									>
 										no
 									</Menu.Item>
@@ -329,43 +482,70 @@ export default function Home({
 								<Menu.Sub.Dropdown>
 									<Menu.Item
 										onClick={() => {
-											setTabs(userTabs)
+											// setTabs(userTabs)
+											setFilterStatus({ })
 										}}
+										rightSection={Object.keys(filterStatus).length === 0 && (<IconCheck size={12}/>)}
 									>
 										all
 									</Menu.Item>
 									<Menu.Item
 										onClick={() => {
-											setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'EADGBe'))
+											// setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'EADGBe'))
+											setFilterStatus({
+												columnAccessor: 'tuning EADGBe',
+												filterFunction: t => t['tuning'] && t['tuning'] === 'EADGBe',
+											})
 										}}
+										rightSection={filterStatus?.columnAccessor === 'tuning EADGBe' && (<IconCheck size={12}/>)}
 									>
 										Standard
 									</Menu.Item>
 									<Menu.Item
 										onClick={() => {
-											setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'EbAbDbGbBbeb'))
+											// setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'EbAbDbGbBbeb'))
+											setFilterStatus({
+												columnAccessor: 'tuning EbAbDbGbBbeb',
+												filterFunction: t => t['tuning'] && t['tuning'] === 'EbAbDbGbBbeb',
+											})
 										}}
+										rightSection={filterStatus?.columnAccessor === 'tuning EbAbDbGbBbeb' && (<IconCheck size={12}/>)}
 									>
 										1/2 Step Down
 									</Menu.Item>
 									<Menu.Item
 										onClick={() => {
-											setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'DADGBe'))
+											// setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'DADGBe'))
+											setFilterStatus({
+												columnAccessor: 'tuning DADGBe',
+												filterFunction: t => t['tuning'] && t['tuning'] === 'DADGBe',
+											})
 										}}
+										rightSection={filterStatus?.columnAccessor === 'tuning DADGBe' && (<IconCheck size={12}/>)}
 									>
 										Drop D
 									</Menu.Item>
 									<Menu.Item
 										onClick={() => {
-											setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'DADF#Ad'))
+											// setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'DADF#Ad'))
+											setFilterStatus({
+												columnAccessor: 'tuning DADF#AD',
+												filterFunction: t => t['tuning'] && t['tuning'] === 'DADF#Ad',
+											})
 										}}
+										rightSection={filterStatus?.columnAccessor === 'tuning DADF#AD' && (<IconCheck size={12}/>)}
 									>
 										DADF#AD
 									</Menu.Item>
 									<Menu.Item
 										onClick={() => {
-											setTabs(userTabs.filter(t => t['tuning'] && !['EADGBe', 'EbAbDbGbBbeb', 'DADGBe', 'DADF#Ad'].includes(t['tuning'])))
+											// setTabs(userTabs.filter(t => t['tuning'] && !['EADGBe', 'EbAbDbGbBbeb', 'DADGBe', 'DADF#Ad'].includes(t['tuning'])))
+											setFilterStatus({
+												columnAccessor: 'tuning other',
+												filterFunction: t => t['tuning'] && !['EADGBe', 'EbAbDbGbBbeb', 'DADGBe', 'DADF#Ad'].includes(t['tuning']),
+											})
 										}}
+										rightSection={filterStatus?.columnAccessor === 'tuning other' && (<IconCheck size={12}/>)}
 									>
 										Other
 									</Menu.Item>
@@ -373,6 +553,7 @@ export default function Home({
 							</Menu.Sub>
 						</Menu.Dropdown>
 					</Menu>
+					</Group>
 				</AppShell.Section>
 
 				<AppShell.Section h="100%" style={{ overflowY: 'scroll' }}>
@@ -388,114 +569,19 @@ export default function Home({
 								</Indicator>
 							}
 							// leftSection={<IconSettings size={16} stroke={1.5} />}
-							onClick={() => { setActiveTab(tab); setModified(false); }}
+							onClick={() => { setActiveTab(tab); setModified(false); editorTextRef.current = tab['tabText'] }}
 							active={activeTab && tab['_id'] === activeTab['_id']}
 						/>
 					))}
 				</AppShell.Section>
 			</AppShell.Navbar>
 
-			<AppShell.Main h="100%" style={{ overflow: 'hidden' }}>
+			<AppShell.Main h="100%" >
 				<AppShell.Section>
 					<Group gap={0} ml={15} mr={15} h="auto">
-						<Menu position='bottom-start' shadow="md" color="#4B0082">
-							<Menu.Target>
-								<Button size='xs'>tab</Button>
-							</Menu.Target>
-
-							<Menu.Dropdown>
-								<Menu.Item
-									onClick={() => newtabMenu()}
-								>
-									New
-								</Menu.Item>
-								<Menu.Item
-									onClick={() => editTabMenu()}
-									disabled={!activeTab}
-								>
-									Edit
-								</Menu.Item>
-								<Menu.Item
-									// onClick={() => editCollectionMenu()}
-									disabled
-								>
-									Import
-								</Menu.Item>
-								<Menu.Item
-									onClick={() => saveTabMenu()}
-									disabled={activeTab === undefined}
-								>
-									Save
-								</Menu.Item>
-								<Menu.Item
-									onClick={() => window.open(`https://docs.google.com/document/d/${activeTab['googleDocsId']}/edit`)}
-								>
-									Open in Docs
-								</Menu.Item>
-								<Menu.Item
-									color="red"
-									onClick={() => deleteTabModalHandlers.open()}
-									disabled={activeTab === undefined}
-								>
-									Delete
-								</Menu.Item>
-							</Menu.Dropdown>
-						</Menu>
-						<Menu position='bottom-start' shadow="md" color="#4B0082">
-
-							<Menu.Target>
-								<Button size='xs'>view</Button>
-							</Menu.Target>
-							<Menu.Dropdown>
-								<Menu.Item
-									// onClick={() => newCollectionMenu()}
-									disabled
-								>
-									Toggle two column mode
-								</Menu.Item>
-							</Menu.Dropdown>
-						</Menu>
-						<Menu position='bottom-start' shadow="md" color="#4B0082">
-
-							<Menu.Target>
-								<Button size='xs'>tools</Button>
-							</Menu.Target>
-							<Menu.Dropdown>
-								<Menu.Item
-									// onClick={() => newCollectionMenu()}
-									disabled
-								>
-									Format 2 chords per line
-								</Menu.Item>
-								<Menu.Item
-									// onClick={() => newCollectionMenu()}
-									disabled
-								>
-									Format 4 chords per line
-								</Menu.Item>
-								<Menu.Item
-									// onClick={() => newCollectionMenu()}
-									disabled
-								>
-									Add tab staff
-								</Menu.Item>
-								<Menu.Item
-									// onClick={() => newCollectionMenu()}
-									disabled
-								>
-									Create chord list
-								</Menu.Item>
-								<Menu.Item
-									// onClick={() => newCollectionMenu()}
-									disabled
-								>
-									Convert chords to tabs
-								</Menu.Item>
-							</Menu.Dropdown>
-						</Menu>
 						<Group flex={1} justify='center'>
 							<Text>
-								{activeTab && `${activeTab['songName'].replaceAll(/ /g, '').toLowerCase()}.${activeTab['artistName'].replaceAll(/ /g, '').toLowerCase()}.tab`}
+								{activeTab && `${activeTab['songName'].replaceAll(/[ ',.]/g, '').toLowerCase()}.${activeTab['artistName'].replaceAll(/[ ',.]/g, '').toLowerCase()}.tab`}
 							</Text>
 						</Group>
 						<Group ml="auto">
@@ -505,13 +591,13 @@ export default function Home({
 					</Group>
 				</AppShell.Section>
 
-				<AppShell.Section h="100%" grow>
+				<AppShell.Section h="100%" grow style={{ overflow: 'none' }}>
 					<Editor
 						key={activeTab?.['_id']}
 						initialText={activeTab?.tabText ?? ""}
 						onTextChange={(val) => {
 							editorTextRef.current = val;
-					        if (!modified) setModified(true);
+							if (!modified) setModified(true);
 						}}
 					/>
 				</AppShell.Section>
@@ -521,6 +607,7 @@ export default function Home({
 					close={editTabModalHandlers.close}
 					tab={activeTab}
 					saveTab={saveTab}
+					isNewTab={isNewTab}
 				/>
 				<DeleteTabModal
 					opened={deleteTabModalOpened}

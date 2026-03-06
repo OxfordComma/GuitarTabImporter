@@ -48,7 +48,7 @@ export default async function RootLayout({
         </head>
         {/* <SessionProvider session={session}> */}
         <Context>
-          <body>
+          <body style={{overflow: 'hidden'}}>
             <MantineProvider defaultColorScheme="auto" theme={theme} >
               {children}
             </MantineProvider>

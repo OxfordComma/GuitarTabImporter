@@ -1,117 +1,93 @@
 import clientPromise from "lib/db.js"
+import { auth } from "@/lib/auth"; // path to your Better Auth server instance
+import { headers } from "next/headers";
 import { ObjectId } from 'mongodb'
-// import { getSession } from "next-auth/react"
-import { auth } from 'auth'
 
+const mongoClient = await clientPromise
+const db = await mongoClient.db(process.env.MONGO_CLIENT_DB)
+var mongoCollection = await db.collection('profiles')
+
+// Search and return a record
 export async function GET(request, { params }) {
-	console.log('GET', {
-		// request,
-		params
-	})
-	const session = await auth()
-	console.log('get user session:', session)
-	const searchParams = request.nextUrl.searchParams
-  	// console.log(request.nextUrl.searchParams)
-  	// console.log('session', session)
-  	if (!searchParams.get('id')) 
-		return Response.json({ })
 
-
-	let mongoClient = await clientPromise
-
-	var db = await mongoClient.db('tabr')
-	// console.log('db:', db)
-	var profiles = await db.collection('profiles')
-	var profile = await profiles.findOne({ 
-		userId: new ObjectId(searchParams.get('id')),
-		// email: session.data.user.email 
-	})
-	// console.log(profile)
-	return Response.json({
-		...profile,
-		client_id: process.env.AUTH_GOOGLE_ID,
-		api_key: process.env.AUTH_GOOGLE_API_KEY,
+	// Get user session
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() // you need to pass the headers object.
 	})
 
+	if (!session?.userId) {
+		return Response.json({ error: "No userId in session." }, { status: 500 });
+	}
+
+	var record = await mongoCollection.findOne({
+		userId: new ObjectId(session.userId),
+	})
+
+	return Response.json(record)
 }
 
+// Create a new record with no specified id
 export async function POST(request, { params }) {
-	console.log('POST', {
-		// request,
-		params
+	let body = await request.json()
+
+	// Get user session
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() // you need to pass the headers object.
 	})
 
-	let body = await request.json()
-	console.log('body:', body )
-	
-	// if (!(body.id) || !(body.folder || body.projectsFolder || body.instruments || body.lastOpenedProject)) {
-	// 	return Response.json({ }, { status: 500 })
-	// }
-	let mongoClient = await clientPromise
-	var db = await mongoClient.db('tabr')
-	var profiles = await db.collection('profiles')
-	// var profile = await profiles.findOne({ 
-	// 	_id: new ObjectId(body.id) 
-	// })
+	if (!('userId' in session)) {
+		return Response.json({ error: "No userId in session." }, { status: 500 });
+	}
 
-	let newObj = {}
-	if (body.folder) newObj = { ...newObj, folder: body.folder }
-	if (body.libraryFolder) newObj = { ...newObj, libraryFolder: body.libraryFolder }
-	if (body.projectsFolder) newObj = { ...newObj, projectsFolder: body.projectsFolder }
-	if (body.instruments) newObj = { ...newObj, instruments: body.instruments }
-	if (body.lastOpenedProject) newObj = { ...newObj, lastOpenedProject: body.lastOpenedProject }
-	if (body.spotifyPlaylistId) newObj = { ...newObj, spotifyPlaylistId: body.spotifyPlaylistId }
-	
+	if (!('profile' in body)) {
+		return Response.json({ error: "No profile in request body." }, { status: 500 });
+	}
 
-	var update = await profiles.updateOne({ 
-			userId: new ObjectId(body.id)
-		}, {
-			'$set': newObj
-		}, {
-			upsert: true,
-		}
+	const addtoRecord = {
+		...body['profile']
+	}
+
+	const newRecord = {
+		...addtoRecord,
+		userId: ObjectId.createFromHexString(session.userId),
+	}
+
+	const result = await mongoCollection.insertOne(newRecord)
+	console.log(
+		`A document was inserted with ObjectId ${result.insertedId}.`
 	)
+	return Response.json(result)
+}
 
-	return Response.json({ newObj, update})
+// Update a record at a specific ID
+export async function PUT(request, { params }) {
+	const searchParams = request.nextUrl.searchParams
+	const body = await request.json()
 
-	// let session = await getSession({ req })
-	// console.log('session:', session)
-	// let mongoClient = await clientPromise
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() // you need to pass the headers object.
+	})
 
+	if (!('userId' in session)) {
+		return Response.json({ error: "No userId in session." }, { status: 500 });
+	}
 
-	// if (req.method == 'GET') {
-	// 	var db = await mongoClient.db('tabr')
-	// 	// console.log('db:', db)
-	// 	var users = await db.collection('users')
-	// 	var user = await users.findOne({ email: session.user.email })
-	// 	console.log(user)
-	// 	res.send(user)
-	// }
+	const { _id, ...addtoRecord } = body['profile']
 
-	// if (req.method == 'POST' && req.body) {
-  // 	let body = JSON.parse(req.body)
-  // 	console.log('body', body)
-	// 	if (!(body.email) && !(body.folder || body.projectsFolder || body.instruments || body.lastOpenedProject)) {
-	// 		res.send(500)
-	// 	}
+	const newRecord = {
+		...addtoRecord,
+		userId: ObjectId.createFromHexString(session.userId),
+	}
 
-
-	// 	var db = await mongoClient.db('tabr')
-	// 	var users = await db.collection('users')
-	// 	var user = await users.findOne({ email: body.email })
-
-	// 	let newObj = {}
-	// 	if (body.folder) newObj = { ...newObj, folder: body.folder }
-	// 	if (body.projectsFolder) newObj = { ...newObj, projectsFolder: body.projectsFolder }
-	// 	if (body.instruments) newObj = { ...newObj, instruments: body.instruments }
-	// 	if (body.lastOpenedProject) newObj = { ...newObj, lastOpenedProject: body.lastOpenedProject }
-
-	// 	var update = await users.updateOne({ 
-	// 			email: body.email
-	// 		}, {'$set': newObj
-	// 	})
-
-	// 	res.send(update)
-	// }
-  return Response.json({ })
+	const result = await mongoCollection.findOneAndUpdate({
+		_id: ObjectId.createFromHexString(_id),
+	}, {
+		'$set': newRecord
+	}, {
+		returnDocument: 'after'
+	})
+	console.log(
+		`A document was updated with ObjectId ${result['_id']}.`
+	)
+	return Response.json(result)
 }

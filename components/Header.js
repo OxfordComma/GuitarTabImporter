@@ -6,6 +6,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function Header ({ 
   headings = []
@@ -90,8 +91,12 @@ export default function Header ({
       }
       <Group ml="auto" >
         { session ? 
-          <Group> {session['user']['email']} <SignOut/> </Group>: 
-          <Group> <SignIn/> <SignUp/> </Group> }
+          <Group> 
+            <Link href="/profile">{session['user']['email']}</Link> <SignOut/> 
+          </Group>: 
+          <Group> 
+            <SignIn/> <SignUp/> 
+          </Group> }
       </Group>
 
       <Center>
