@@ -1,7 +1,6 @@
 import clientPromise from "lib/db.js"
 import { ObjectId } from 'mongodb'
-// import { getSession } from "next-auth/react"
-import { auth } from "@/lib/auth"; // path to your Better Auth server instance
+import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
 const mongoClient = await clientPromise
@@ -10,7 +9,7 @@ var mongoCollection = await db.collection('tabs')
 
 export async function GET(request, { params }) {
 	const { session, user } = await auth.api.getSession({
-		headers: await headers() // you need to pass the headers object.
+		headers: await headers() 
 	})
 	if (!session?.userId) {
 		return Response.json({ error: "No userId in session." }, { status: 500 });

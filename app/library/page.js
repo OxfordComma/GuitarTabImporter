@@ -8,10 +8,11 @@ import { sortBy, filter } from 'lodash';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import { IconCheck, IconTriangle, IconTriangleInverted } from '@tabler/icons-react';
+import Editor from '@/components/Editor';
 
 
 
-function EditTabModal({ opened, close, tab, saveTab, isNewTab }) {
+function EditModal({ opened, close, tab, saveTab, isNewTab }) {
 	const form = useForm({
 		initialValues: {
 			_id: undefined,
@@ -74,7 +75,7 @@ function EditTabModal({ opened, close, tab, saveTab, isNewTab }) {
 	)
 }
 
-function DeleteTabModal({ opened, close, tab, deleteTab }) {
+function DeleteModal({ opened, close, tab, deleteTab }) {
 	const form = useForm({
 		initialValues: {
 			name: `${tab?.songName} - ${tab?.artistName}`,
@@ -94,50 +95,6 @@ function DeleteTabModal({ opened, close, tab, deleteTab }) {
 	)
 }
 
-function Editor({ initialText, onTextChange, setModified }) {
-	// console.log('editor tab:', tab)
-
-	const [editorText, setEditorText] = useState(initialText);
-
-	useEffect(() => {
-		setEditorText(initialText);
-	}, [initialText]);
-
-	return (<Textarea
-		variant='unstyled'
-		ml={15} mr={15}
-		w="100%"
-		// h="100%"
-		styles={{
-			root: {
-				height: '100%',
-				display: 'flex',
-				flexDirection: 'column',
-			},
-			wrapper: {
-				flex: 1, // Forces the wrapper to take all available space
-				display: 'flex',
-			},
-			input: {
-				// flex: 1,
-				fontFamily: 'var(--mantine-font-family-monospace)',
-				fontSize: '12px',
-				lineHeight: '1.25',
-			},
-		}}
-
-		value={editorText}
-		onChange={(event) => {
-			const val = event.currentTarget.value
-			setEditorText(val)
-			onTextChange(val)
-		}}
-		spellCheck={false}
-	>
-
-	</Textarea>)
-}
-
 export default function Home({
 }) {
 	let {
@@ -154,8 +111,8 @@ export default function Home({
 	// const [editorText, setEditorText] = useState("")
 	const editorTextRef = useRef("");
 
-	const [editTabModalOpened, editTabModalHandlers] = useDisclosure();
-	const [deleteTabModalOpened, deleteTabModalHandlers] = useDisclosure();
+	const [editModalOpened, editModalHandlers] = useDisclosure();
+	const [deleteModalOpened, deleteModalHandlers] = useDisclosure();
 
 	// useEffect(() => {
 	// 	setTabs(userTabs)
@@ -231,19 +188,19 @@ export default function Home({
 			userTabs.filter(t => t['_id'] !== deleteObj['_id'])
 		)
 
-		deleteTabModalHandlers.close();
+		deleteModalHandlers.close();
 	}
 
-	function newtabMenu() {
+	function newMenu() {
 		setIsNewTab(true)
-		editTabModalHandlers.open()
+		editModalHandlers.open()
 	}
 
-	function editTabMenu() {
-		editTabModalHandlers.open()
+	function editMenu() {
+		editModalHandlers.open()
 	}
 
-	function saveTabMenu() {
+	function saveMenu() {
 		saveTab(activeTab)
 	}
 
@@ -275,12 +232,12 @@ export default function Home({
 
 						<Menu.Dropdown>
 							<Menu.Item
-								onClick={() => newtabMenu()}
+								onClick={() => newMenu()}
 							>
 								New
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => editTabMenu()}
+								onClick={() => editMenu()}
 								disabled={!activeTab}
 							>
 								Edit
@@ -292,7 +249,7 @@ export default function Home({
 								Import
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => saveTabMenu()}
+								onClick={() => saveMenu()}
 								disabled={activeTab === undefined}
 							>
 								Save
@@ -304,7 +261,7 @@ export default function Home({
 							</Menu.Item>
 							<Menu.Item
 								color="red"
-								onClick={() => deleteTabModalHandlers.open()}
+								onClick={() => deleteModalHandlers.open()}
 								disabled={activeTab === undefined}
 							>
 								Delete
@@ -602,16 +559,16 @@ export default function Home({
 					/>
 				</AppShell.Section>
 
-				<EditTabModal
-					opened={editTabModalOpened}
-					close={editTabModalHandlers.close}
+				<EditModal
+					opened={editModalOpened}
+					close={editModalHandlers.close}
 					tab={activeTab}
 					saveTab={saveTab}
 					isNewTab={isNewTab}
 				/>
-				<DeleteTabModal
-					opened={deleteTabModalOpened}
-					close={deleteTabModalHandlers.close}
+				<DeleteModal
+					opened={deleteModalOpened}
+					close={deleteModalHandlers.close}
 					tab={activeTab}
 					deleteTab={deleteTab}
 				/>
