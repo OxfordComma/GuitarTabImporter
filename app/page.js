@@ -36,14 +36,5 @@ export default async function Home({
         </Stack>
       </AppShellMain>
     </AppShell>
-
-    // <main className={styles['main']}>
-    //   <div className={styles['content']}>
-    //     <div className={styles['text']}>The</div>
-    //     <div className={styles['text']}>All-In-One</div>
-    //     <div className={styles['text']}>Band</div>
-    //     <div className={styles['text']}>Repository</div>
-    //   </div>
-    // </main>
   );
 }

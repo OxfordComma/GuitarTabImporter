@@ -91,3 +91,7 @@ export async function PUT(request, { params }) {
 	)
 	return Response.json(result)
 }
+
+export async function DELETE(request, { params }) {
+	// To be added
+}

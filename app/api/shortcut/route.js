@@ -3,19 +3,12 @@ import { headers } from "next/headers"
 
 const { google } = require('googleapis');
 
-// export default async function handler(req, res) {
 export async function PUT(request, { params }) {
 	const body = await request.json()
 
 	const { session, user } = await auth.api.getSession({
 		headers: await headers() 
 	})
-
-	// let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile`, {
-	// 	headers: await headers() // Have to pass headers to nested API calls
-	// }).then(r => r.json())
-
-	// console.log('create folder body', body)
 
 	if (!('tab' in body)) {
 		return Response.json({ error: "No name in request body." }, { status: 500 });
@@ -64,13 +57,11 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {	
-
 	const body = await request.json()
 
 	const { session, user } = await auth.api.getSession({
 		headers: await headers() 
 	})
-
 
 	if (!('record' in body)) {
 		return Response.json({ error: "No record in request body." }, { status: 500 });

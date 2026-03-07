@@ -492,8 +492,6 @@ export async function PUT(request, { params }) {
 		}
 	})
 
-	// console.log('googleDocUpdated', googleDocUpdated)
-
 	return Response.json({
 		mimeType: "application/vnd.google-apps.document",
 		id: googleDocsId,
