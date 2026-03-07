@@ -21,7 +21,7 @@ export default function Header ({
   if (session) {
     headings = [
       { title: 'Library', href: '/library' },
-      // { title: 'Deckbuilder', href: '/deckbuilder' },
+      { title: 'Projects', href: '/projects' },
     ]
   }
 
@@ -83,10 +83,10 @@ export default function Header ({
   
   return (
     <Group h="100%" px="md">
-      <Anchor size='xl' c='white' fw={1000} href='/'>TABR</Anchor>
+      <Anchor size='xl' c='white' fw={1000} href='/' component={Link}>TABR</Anchor>
       { 
         headings.map(h => (
-          <Anchor c='white' key={h['title']} href={h['href']}>{h['title']}</Anchor>
+          <Anchor c='white' key={h['title']} href={h['href']} component={Link}>{h['title']}</Anchor>
         ))
       }
       <Group ml="auto" >

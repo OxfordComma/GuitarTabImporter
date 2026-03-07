@@ -103,10 +103,13 @@ export async function PUT(request, { params }) {
 
 	const newRecord = {
 		...addtoRecord,
-        tabs: addtoRecord.tabs.map(t => ObjectId.createFromHexString(t)),
+        tabIds: addtoRecord.tabIds.map(t => ({
+			...t,
+			tabId: ObjectId.createFromHexString(t['tabId'])
+		}) ),
 		userId: ObjectId.createFromHexString(session.userId),
-		createdTime: new Date(addtoRecord?.createdTime) ?? new Date(),
-		lastUpdatedTime: new Date(addtoRecord?.lastUpdatedTime) ?? new Date(),
+		// createdTime: new Date(addtoRecord?.createdTime) ?? new Date(),
+		// lastUpdatedTime: new Date(addtoRecord?.lastUpdatedTime) ?? new Date(),
 	}
 
 	const result = await mongoCollection.findOneAndUpdate({

@@ -8,7 +8,7 @@ import { getChordList } from '@/lib/tabhelper';
 
 export const TabsContext = createContext([]);
 
-export function Context({ children }) {
+export function TabsContextProvider({ children }) {
 	const { data: session } = authClient.useSession()
 	// console.log('context session:', session)
 
@@ -30,6 +30,7 @@ export function Context({ children }) {
 			setUserTabs(userTabsResponse)
 		}
 		if (session && userTabs.length == 0) {
+			console.log(session, userTabs)
 			fetchUserTabs();
 		}
 

@@ -2,6 +2,7 @@ import '@mantine/core/styles.layer.css';
 // import 'mantine-datatable/styles.layer.css';
 
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps, createTheme } from '@mantine/core';
+import { TabsContextProvider } from 'components/Context.js'
 
 
 // import "./globals.css";
@@ -47,14 +48,14 @@ export default async function RootLayout({
           />
         </head>
         {/* <SessionProvider session={session}> */}
-        <Context>
-          <body style={{overflow: 'hidden'}}>
-            <MantineProvider defaultColorScheme="auto" theme={theme} >
-              {children}
-            </MantineProvider>
-          </body>
+          <TabsContextProvider>
+            <body style={{overflow: 'hidden'}}>
+              <MantineProvider defaultColorScheme="auto" theme={theme} >
+                  {children}
+              </MantineProvider>
+            </body>
           {/* </SessionProvider> */}
-        </Context>
+          </TabsContextProvider>
       </ErrorBoundary>
     </html>
   );

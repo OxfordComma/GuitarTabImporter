@@ -1,7 +1,7 @@
 import { getSession } from "next-auth/react"
 
 const { google } = require('googleapis');
-import { auth } from "@/lib/auth"; // path to your Better Auth server instance
+import { auth } from "@/lib/auth"; 
 import { headers } from "next/headers"
 
 // Update a record at a specific ID

@@ -1,10 +1,8 @@
-import { getSession } from "next-auth/react"
+import { auth } from "@/lib/auth"; 
 import { headers } from "next/headers"
 import { ObjectId } from 'mongodb'
 
-const {google} = require('googleapis');
-import { auth } from 'auth'
-import { file } from "googleapis/build/src/apis/file";
+const {google} = require('googleapis');	
 
 export async function GET(request, { params }) {
 
@@ -86,22 +84,34 @@ export async function GET(request, { params }) {
 
 // // export default async function handler(req, res) {
 export async function PUT(request, { params }) {
-	const session = await auth()
-	// console.log('folder post session', session)
+	const body = await request.json()
 
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
-		headers: new Headers(headers()) 
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() 
+	})
+
+	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile`, {
+		headers: await headers() // Have to pass headers to nested API calls
 	}).then(r => r.json())
-//   console.log('fetched account', account)
-	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-//   console.log('fetched profile', profile)
 
-	let body = await request.json()
-	console.log('create folder body', body)
+	// console.log('create folder body', body)
 
-  	if (!body.name && !body.parent_folder) {
-		return Response.json({ })
+	if (!('id' in body)) {
+		return Response.json({ error: "No id in request body." }, { status: 500 });
 	}
+	if (!('name' in body)) {
+		return Response.json({ error: "No name in request body." }, { status: 500 });
+	}
+	if (!('projectsFolder' in profile)) {
+		return Response.json({ error: "No library folder in profile." }, { status: 500 });
+	}
+
+	const account = await auth.api.getAccessToken({
+		body: {
+			providerId: "google"
+		},
+		headers: await headers() 
+	});
   
   	const oauth2Client = new google.auth.OAuth2(
 		process.env.AUTH_GOOGLE_ID, 
@@ -109,16 +119,17 @@ export async function PUT(request, { params }) {
 	);
 
 	oauth2Client.setCredentials({
-		'access_token': account.access_token,
-		'refresh_token': account.refresh_token
+		'access_token': account['accessToken'],
+		// 'refresh_token': account.refresh_token
 	});
 
 	const drive = google.drive({version: 'v3', auth: oauth2Client });
-	var newFolder = await drive.files.create({
-		resource: { 
-			name: body.name,
-			mimeType: 'application/vnd.google-apps.folder',
-			parents: [body.parent_folder],
+	var newFolder = await drive.files.update({
+		fileId: body['id'],
+		requestBody: { 
+			name: body['name'],
+			// mimeType: 'application/vnd.google-apps.folder',
+			// parents: [profile['projectsFolder']],
 		}
 	})
 
@@ -126,22 +137,31 @@ export async function PUT(request, { params }) {
 }
 
 export async function POST(request, { params }) {
-	const session = await auth()
-	// console.log('folder post session', session)
+	const body = await request.json()
 
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
-		headers: new Headers(headers()) 
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() 
+	})
+
+	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile`, {
+		headers: await headers() // Have to pass headers to nested API calls
 	}).then(r => r.json())
-//   console.log('fetched account', account)
-	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-//   console.log('fetched profile', profile)
 
-	let body = await request.json()
-	console.log('create folder body', body)
+	// console.log('create folder body', body)
 
-  	if (!body.name || !body.folder) {
-		return Response.json({ })
+	if (!('name' in body)) {
+		return Response.json({ error: "No name in request body." }, { status: 500 });
 	}
+	if (!('projectsFolder' in profile)) {
+		return Response.json({ error: "No library folder in profile." }, { status: 500 });
+	}
+
+	const account = await auth.api.getAccessToken({
+		body: {
+			providerId: "google"
+		},
+		headers: await headers() 
+	});
   
   	const oauth2Client = new google.auth.OAuth2(
 		process.env.AUTH_GOOGLE_ID, 
@@ -149,17 +169,16 @@ export async function POST(request, { params }) {
 	);
 
 	oauth2Client.setCredentials({
-		'access_token': account.access_token,
-		'refresh_token': account.refresh_token
+		'access_token': account['accessToken'],
+		// 'refresh_token': account.refresh_token
 	});
 
 	const drive = google.drive({version: 'v3', auth: oauth2Client });
-	var newFolder = await drive.files.update({
-		fileId: body.folder,
+	var newFolder = await drive.files.create({
 		requestBody: { 
-			name: body.name,
-			// mimeType: 'application/vnd.google-apps.folder',
-			// parents: [body.parent_folder],
+			name: body['name'],
+			mimeType: 'application/vnd.google-apps.folder',
+			parents: [profile['projectsFolder']],
 		}
 	})
 
@@ -167,36 +186,36 @@ export async function POST(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {	
-	// console.log('folder delete')
-	const session = await auth()
-	let body = await request.json()
+	// // console.log('folder delete')
+	// const session = await auth()
+	// let body = await request.json()
 
-	if (!body._id) {
-		Response.json({ })
-	}
+	// if (!body._id) {
+	// 	Response.json({ })
+	// }
 
-	const _id = body._id
-	console.log('folder delete body:', body, session)	
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
-		headers: new Headers(headers()) 
-	}).then(r => r.json())
-	console.log('folder delete account', account)
+	// const _id = body._id
+	// console.log('folder delete body:', body, session)	
+	// let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
+	// 	headers: new Headers(headers()) 
+	// }).then(r => r.json())
+	// console.log('folder delete account', account)
 
-	const oauth2Client = new google.auth.OAuth2(
-		process.env.AUTH_GOOGLE_ID, 
-		process.env.AUTH_GOOGLE_SECRET
-	);
+	// const oauth2Client = new google.auth.OAuth2(
+	// 	process.env.AUTH_GOOGLE_ID, 
+	// 	process.env.AUTH_GOOGLE_SECRET
+	// );
 
-	oauth2Client.setCredentials({
-		'access_token': account.access_token,
-		'refresh_token': account.refresh_token
-	});
+	// oauth2Client.setCredentials({
+	// 	'access_token': account.access_token,
+	// 	'refresh_token': account.refresh_token
+	// });
 
-	const drive = google.drive({version: 'v3', auth: oauth2Client });
+	// const drive = google.drive({version: 'v3', auth: oauth2Client });
 
-	var googleDoc = await drive.files.delete({
-		fileId: _id,
-	})
+	// var googleDoc = await drive.files.delete({
+	// 	fileId: _id,
+	// })
 
-	return Response.json(googleDoc)
+	// return Response.json(googleDoc)
 }

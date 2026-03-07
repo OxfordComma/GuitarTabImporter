@@ -44,15 +44,22 @@ function EditModal({ opened, close, object: project, submit, isNew }) {
 	const form = useForm({
 		initialValues: {
 			_id: undefined,
-			name: ""
+			folder: "",
+			name: "",
+			tabIds: [],
+			collaborators: [],
+			createdTime: new Date(),
+			lastUpdatedTime: new Date(),
+
 		}
 	});
 
 	useEffect(() => {
 		if (project) {
 			form.setValues({
-				_id: project?._id ?? undefined,
-				name: project?.name ?? ""
+				// _id: project?._id ?? undefined,
+				// name: project?.name ?? ""
+				...project,
 			});
 		}
 	}, [project?._id]); // Only runs when the actual tab ID changes
@@ -191,7 +198,20 @@ export default function Projects({ }) {
 		console.log('saving project:', saveObj)
 		
 		if (isNew) {
-			// const { ...toSave } = saveObj
+			// Create folder in projects folder for new project
+			let projectFolder = await fetch(`api/folder`, {
+				method: 'POST',
+				body: JSON.stringify({ name: saveObj['name'] })
+			}).then(r => r.json())
+
+			console.log('project folder created:', projectFolder)
+			// Add google drive folder id to save object
+			saveObj = {
+				...saveObj,
+				folder: projectFolder?.['data']?.['id'],
+			}
+			
+			// Save project to database with new folder id
 			let savedProject = await fetch(`api/project`, {
 				method: 'POST',
 				body: JSON.stringify({ record: saveObj })
@@ -199,26 +219,42 @@ export default function Projects({ }) {
 
 			console.log('new project saved:', savedProject)
 
-			const newProject = {
+			saveObj = {
+				...saveObj,
 				'_id': savedProject['insertedId'],
-				...saveObj
 			}
 
 			setUserProjects(
-				[newProject, ...userProjects]
+				[saveObj, ...userProjects]
 			)
+
+			setActiveProject(saveObj)
 		}
 		else {
-			let savedTab = await fetch(`api/tab?id=${saveObj['_id']}`, {
+			// Create folder in projects folder for new project
+			let projectFolder = await fetch(`api/folder`, {
+				method: 'put',
+				body: JSON.stringify({ 
+					id: saveObj['folder'],
+					name: saveObj['name'],
+				})
+			}).then(r => r.json())
+
+			console.log('project folder updated:', projectFolder)
+			// Add google drive folder id to save object
+
+			let savedTab = await fetch(`api/project?id=${saveObj['_id']}`, {
 				method: 'PUT',
 				body: JSON.stringify({ record: saveObj })
 			}).then(r => r.json())
 
-			console.log('existing tab saved:', savedTab)
+			console.log('existing project saved:', savedTab)
 
 			setUserProjects(
 				userProjects.map(p => p['_id'] === saveObj['_id'] ? saveObj : p)
 			)
+
+			setActiveProject(saveObj)
 		}
 
 		setIsNew(false)
@@ -235,42 +271,67 @@ export default function Projects({ }) {
 		setUserProjects(
 			userProjects.filter(t => t['_id'] !== deleteObj['_id'])
 		)
+		setActiveProject();
 
 		deleteModalHandlers.close();
 	}
 
 	async function addTabToProject(project, tabId) {
-		// let saveObj = project
+		let saveObj = project
 
-		// saveObj = {
-		// 	...saveObj,
-		// 	tabs: [ ...saveObj['tabs'] ?? [], tabId ],
-		// 	lastUpdatedTime: new Date(),
-		// }
+		// Create shortcut in project folder
+		const tab = userTabs.find(t => t['_id'] === tabId)
+		const shortcut = await fetch(`api/shortcut`, {
+			method: 'PUT',
+			body: JSON.stringify({ tab: tab, folder: project['folder'] })
+		}).then(r => r.json())
 
-		// let savedProject = await fetch(`api/project?id=${saveObj._id}`, {
-		// 	method: 'PUT',
-		// 	body: JSON.stringify({ record: saveObj })
-		// }).then(r => r.json())
+		console.log('shortcut', shortcut)
 
-		// setUserProjects(
-		// 	userProjects.map(p => p['_id'] === saveObj['_id'] ? saveObj : p)
-		// )
-		setActiveProject(
-			{
-				...project, 
-				tabIds: [ ...project['tabIds'] ?? [], tabId ],
-			}
+		saveObj = {
+			...saveObj,
+			tabIds: [ ...saveObj['tabIds'], { tabId: tabId, shortcutId: shortcut.data.id } ],
+			lastUpdatedTime: new Date(),
+		}
+		// Save project to database
+		let savedProject = await fetch(`api/project?id=${saveObj._id}`, {
+			method: 'PUT',
+			body: JSON.stringify({ record: saveObj })
+		}).then(r => r.json())
+	
+		setUserProjects(
+			userProjects.map(p => p['_id'] === saveObj['_id'] ? saveObj : p)
 		)
+
+		setActiveProject( saveObj )
 	}
 
 	async function removeTabFromProject(project, tabId) {
-		setActiveProject(
-			{
-				...project, 
-				tabIds: (project['tabIds'] ?? []).filter(t => t !== tabId)
-			}
+		let saveObj = project
+
+		// Delete shortcut in project folder
+		const tab = userTabs.find(t => t['_id'] === tabId)
+		fetch(`api/shortcut`, {
+			method: 'DELETE',
+			body: JSON.stringify({ record: { id: saveObj['tabIds'].find(t => t['tabId'] === tabId)['shortcutId']} })
+		}).then(r => r.json())
+
+		saveObj = {
+			...saveObj,
+			tabIds: saveObj['tabIds'].filter(t => t['tabId'] !== tabId),
+			lastUpdatedTime: new Date(),
+		}
+		// Save project to database
+		let savedProject = await fetch(`api/project?id=${saveObj._id}`, {
+			method: 'PUT',
+			body: JSON.stringify({ record: saveObj })
+		}).then(r => r.json())
+
+		setUserProjects(
+			userProjects.map(p => p['_id'] === saveObj['_id'] ? saveObj : p)
 		)
+
+		setActiveProject( saveObj )
 	}
 
 	return (
@@ -350,20 +411,42 @@ export default function Projects({ }) {
 							</Menu.Dropdown>
 						</Menu>
 
+						<Menu position='bottom-start' shadow="md" color="#4B0082">
+							<Menu.Target>
+								<Button size='xs'>social</Button>
+							</Menu.Target>
+							<Menu.Dropdown>
+								<Menu.Item
+									onClick={() =>{  } }
+									// rightSection={Object.keys(sortStatus).length === 0 && (<IconCheck size={12} />)}
+									disabled={activeProject === undefined}
+								>
+									Create Spotify playlist
+								</Menu.Item>
+								<Menu.Item
+									onClick={() => ('folder' in activeProject) && window.open(`https://drive.google.com/drive/u/0/folders/${activeProject['folder']}`) }
+									disabled={activeProject === undefined}
+								>
+									Open Drive folder
+								</Menu.Item>
+							</Menu.Dropdown>
+						</Menu>
+
 					</Group>
 				</AppShell.Section>
 
 				<AppShell.Section h="100%" style={{ overflowY: 'scroll' }}>
-					{activeProject && ('tabIds' in activeProject) && activeProject['tabIds'].map(tabId => {
+					{activeProject && ('tabIds' in activeProject) && activeProject['tabIds'].map(t => {
+						const { tabId } = t;
 						const tab = userTabs.find(t => t._id === tabId)
 						return (
 							<NavLink
 							key={tab['_id']}
 							label={
-									<Stack gap={0}>
-										<Text fz="14">{tab['songName']}</Text>
-										<Text fz="12">{tab['artistName']}</Text>
-									</Stack>
+								<Stack gap={0}>
+									<Text fz="14">{tab['songName']}</Text>
+									<Text fz="12">{tab['artistName']}</Text>
+								</Stack>
 							}
 							onClick={() => { setActiveTab(tab); }}
 							active={activeTab && tab['_id'] === activeTab['_id']}
@@ -375,9 +458,9 @@ export default function Projects({ }) {
 
 			<AppShell.Main h="100%" >
 				<AppShell.Section>
-					<Group gap={0} ml={15} mr={15} h="auto">
+					<Group gap={0} pl={15} pr={15} style={{borderBottom: '1px solid var(--app-shell-border-color)'}} h="auto">
 						<Group flex={1} justify='center'>
-							<Text>
+							<Text fw="bold">
 								{activeProject && `${activeProject?.['name'].replaceAll(/[ ',./]/g, '').toLowerCase()}.proj`}
 							</Text>
 						</Group>
@@ -393,10 +476,10 @@ export default function Projects({ }) {
 						key={activeTab?.['_id']}
 						initialText={activeTab?.tabText ?? ""}
 						disabled={true}
-						onTextChange={(val) => {
+						// onTextChange={(val) => {
 							// editorTextRef.current = val;
 							// if (!modified) setModified(true);
-						}}
+						// }}
 					/>
 				</AppShell.Section>
 
@@ -426,9 +509,9 @@ export default function Projects({ }) {
 					opened={pickTabModalOpened}
 					close={pickTabModalHandlers.close}
 					tabs={pickTabMode === 'add' ? 
-						userTabs.filter(t => !activeProject?.['tabIds'].includes(t['_id']) ) : 
+						userTabs.filter(t => !activeProject?.['tabIds'].map(t => t['tabId']).includes(t['_id']) ) : 
 						pickTabMode === 'remove' ? 
-						userTabs.filter(t => activeProject?.['tabIds'].includes(t['_id']) ) :
+						userTabs.filter(t => activeProject?.['tabIds'].map(t => t['tabId']).includes(t['_id']) ) :
 						[]
 					}
 					// object={activeProject}
