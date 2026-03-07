@@ -48,7 +48,7 @@ export default {
           session.user_id = token.sub 
           // session.access_token = token.access_token// Put the provider's access token in the session so that we can access it client-side and server-side with `auth()`
           session.api_key = process.env.AUTH_GOOGLE_API_KEY
-          session.client_id = process.env.AUTH_GOOGLE_ID
+          session.client_id = process.env.AUTH_GOOGLE_CLIENT_ID
           session.client_secret = process.env.AUTH_GOOGLE_SECRET
       }
       return session
