@@ -11,12 +11,6 @@ export default async function Home({
 
 }) {
   const session = await authClient.getSession();
-  console.log('main session:', session)
-
-  if (session && session.user) {
-    redirect(`/library`) // Navigate to the new post page
-  }
-
 
   return (
     <AppShell
