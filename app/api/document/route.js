@@ -1,85 +1,47 @@
 import { getSession } from "next-auth/react"
 
-const {google} = require('googleapis');
-import { auth } from 'auth'
+const { google } = require('googleapis');
+import { auth } from "@/lib/auth"; 
 import { headers } from "next/headers"
 
-export async function GET(request, { params }) {
-	const session = await auth()
-	console.log('document session', session)
+// Update a record at a specific ID
+export async function PUT(request, { params }) {
+	const body = await request.json()
 
-  	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, { 
-		headers: new Headers(headers()) 
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() 
+	})
+
+	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile`, {
+		headers: await headers() // Have to pass headers to nested API calls
 	}).then(r => r.json())
-  // console.log('fetched account', account)
-//   let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-  // console.log('fetched profile', profile)
-  let searchParams = request.nextUrl.searchParams
-	console.log('searchParams', searchParams)
-  
-  if (!searchParams.get('id') ) {
-		return Response.json({ })
+
+	if (!('tab' in body)) {
+		return Response.json({ error: "No tab in request body." }, { status: 500 });
 	}
-  
+	if (!('libraryFolder' in profile)) {
+		return Response.json({ error: "No library folder in profile." }, { status: 500 });
+	}
+
+	const account = await auth.api.getAccessToken({
+		body: {
+			providerId: "google"
+		},
+		headers: await headers() 
+	});
+
 	const oauth2Client = new google.auth.OAuth2(
-		process.env.AUTH_GOOGLE_ID, 
+		process.env.AUTH_GOOGLE_ID,
 		process.env.AUTH_GOOGLE_SECRET
 	);
 
 	oauth2Client.setCredentials({
-		'access_token': account.access_token,
-		'refresh_token': account.refresh_token
+		'access_token': account['accessToken'],
+		// 'refresh_token': account.refresh_token // Not necessary
 	});
 
-	const docs = google.docs({version: 'v1', auth: oauth2Client });
-	const drive = google.drive({version: 'v3', auth: oauth2Client });
-
-  const fileExport = await drive.files.export({
-  	fileId: searchParams.get('id'),
-  	mimeType: 'text/plain'
-	}).catch(e => { 
-		console.log('error', e.response)
-		return e.response
-	})
-
-	if (fileExport?.status === 404) { 
-		return Response.json({ text: '' }, {status: 404 })
-	}
-	return Response.json({ 
-		text: fileExport.data 
-	})
-
-}
-
-export async function POST(request, { params }) {
-	const session = await auth()
-	let body = await request.json()
-	// console.log('create body:', body, session)
-	console.log('document post session', session)
-	
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
-		headers: new Headers(headers()) 
-	}).then(r => r.json())
-	// console.log('fetched account', account)
-	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-	// console.log('fetched profile', profile)
-
-	if (!body.tab || !profile.libraryFolder) {
-		Response.json({ })
-	}
-
-	const oauth2Client = new google.auth.OAuth2(
-		process.env.AUTH_GOOGLE_ID, 
-		process.env.AUTH_GOOGLE_SECRET
-	);
-
-	oauth2Client.setCredentials({
-		'access_token': account.access_token,
-		'refresh_token': account.refresh_token
-	});
-
-	const docs = google.docs({version: 'v1', auth: oauth2Client });
-	const drive = google.drive({version: 'v3', auth: oauth2Client });
+	const docs = google.docs({ version: 'v1', auth: oauth2Client });
+	const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
 	let {
 		tabText,
@@ -90,57 +52,40 @@ export async function POST(request, { params }) {
 		tuning,
 		bpm,
 		draft,
-		columns,
+		columns = 1,
 		columnSplit,
 		columnWidth = 50,
-		fontSize,
+		fontSize = 9,
 	} = body.tab
-	
-	const documentName = (draft ? '[DRAFT] ' : '') + artistName + ' - ' + songName
-	if (columns === undefined) {
-		columns = 1
-	}
-	else {
+
+	const documentName = `${(draft ? '[DRAFT] ' : '')} ${artistName} - ${songName}`
+	if (columns !== undefined) {
 		columns = parseInt(columns)
 	}
-	if (fontSize === undefined) {
-		fontSize = 9
-	}
-	
 	let requests = []
 
+	// Remove contents before we start if the doc exists
 	if (googleDocsId) {
 		var googleDoc = await docs.documents.get({
 			documentId: googleDocsId
 		})
-		// console.log('document:', googleDoc)
-		// console.log('document:', googleDoc.data)
-		// console.log('document:', googleDoc.data.body)
-		// console.log('document:', googleDoc.data.body.content)
-		// console.log('document:', googleDoc.data.body.content)
 
 		var content = googleDoc.data.body.content
 		var maxIndex = content.reduce((acc, curr) => curr.endIndex > acc ? curr.endIndex : acc, 0)
 
-		// console.log({
-		// 	content, 
-		// 	maxIndex
-		// })
-		// Remove contents before we start if the doc exists
-		requests = [
-		{
+		requests = [{
 			'deleteContentRange': {
 				'range': {
 					'startIndex': 1,
-					'endIndex': maxIndex-1,
+					'endIndex': maxIndex - 1,
 				}
 			}
 		}]
 	}
 	// Otherwise we're good to make a new one
 	else {
-		var googleDoc = await drive.files.create({
-			resource: { 
+		var googleDoc = drive.files.create({
+			resource: {
 				name: documentName,
 				mimeType: 'application/vnd.google-apps.document',
 				parents: [profile.libraryFolder]
@@ -151,22 +96,19 @@ export async function POST(request, { params }) {
 	}
 
 
-	try {
-		let headerId, headerContent, maxHeaderIndex
-		if (googleDoc.data?.headers != undefined) {
-			headerId = Object.keys(googleDoc.data.headers)[0]
-			headerContent = googleDoc.data.headers[headerId].content
-			maxHeaderIndex = headerContent.reduce((acc, curr) => curr.endIndex > acc ? curr.endIndex : acc, 0)
+	let headerId, headerContent, maxHeaderIndex
+	if (googleDoc.data?.headers != undefined) {
+		headerId = Object.keys(googleDoc.data.headers)[0]
+		headerContent = googleDoc.data.headers[headerId].content
+		maxHeaderIndex = headerContent.reduce((acc, curr) => curr.endIndex > acc ? curr.endIndex : acc, 0)
 
-
-			if (maxHeaderIndex > 2) {
-				requests = requests.concat([
-				
+		if (maxHeaderIndex > 2) {
+			requests = requests.concat([
 				{
 					'deleteContentRange': {
 						'range': {
 							'startIndex': 0,
-							'endIndex': maxHeaderIndex-1,
+							'endIndex': maxHeaderIndex - 1,
 							segmentId: headerId,
 						}
 					},
@@ -190,61 +132,61 @@ export async function POST(request, { params }) {
 						fields: 'weightedFontFamily,fontSize'
 					}
 				},
-				])
+			])
+		}
+	}
+	else {
+		let createHeader = await docs.documents.batchUpdate({
+			'documentId': googleDocsId,
+			'resource': {
+				'requests': [{
+					"createHeader": {
+						"sectionBreakLocation": {
+							"index": 0
+						},
+						"type": "DEFAULT"
+					}
+				}]
 			}
-		}
-		else {
-			let createHeader = await docs.documents.batchUpdate({
-				'documentId': googleDocsId,
-				'resource' : { 
-					'requests': [{
-						"createHeader": {
-					"sectionBreakLocation": {
-					  "index": 0
-					},
-					"type": "DEFAULT"
-				  }
-					}]
-				}
-			})
+		})
 
-			// console.log('create header:', createHeader)
-			// console.log('create header:', createHeader.data.replies[0].createHeader.headerId)
-			headerId = createHeader.data.replies[0].createHeader.headerId
+		// console.log('create header:', createHeader)
+		// console.log('create header:', createHeader.data.replies[0].createHeader.headerId)
+		headerId = createHeader.data.replies[0].createHeader.headerId
 
-			await docs.documents.batchUpdate({
-				'documentId': googleDocsId,
-				'resource' : { 
-					'requests': [{
-						'updateTextStyle': {
-							'range': {
-								startIndex: 0,
-								endIndex: 1,
-								segmentId: headerId,
+		await docs.documents.batchUpdate({
+			'documentId': googleDocsId,
+			'resource': {
+				'requests': [{
+					'updateTextStyle': {
+						'range': {
+							startIndex: 0,
+							endIndex: 1,
+							segmentId: headerId,
+						},
+						textStyle: {
+							weightedFontFamily: {
+								fontFamily: 'PT Mono'
 							},
-							textStyle: {
-								weightedFontFamily: {
-									fontFamily: 'PT Mono'
-								},
-								fontSize: {
-									magnitude: fontSize,
-									unit: 'PT'
-								}
-							},
-							fields: 'weightedFontFamily,fontSize'
-						}
-					}]
-				}
-			})
+							fontSize: {
+								magnitude: fontSize,
+								unit: 'PT'
+							}
+						},
+						fields: 'weightedFontFamily,fontSize'
+					}
+				}]
+			}
+		})
 
-		}
+	}
 
-		let headerText = (capo == '0' && tuning == 'EADGBe') ? ' ' :
-			(capo != '0' && tuning != 'EADGBe') ? `${tuning}, capo ${capo}` : 
-			(capo != '0') ? `capo ${capo}` : 
-			(tuning != 'EADGBe') ? tuning : ' '
+	let headerText = (capo == '0' && tuning == 'EADGBe') ? ' ' :
+		(capo != '0' && tuning != 'EADGBe') ? `${tuning}, capo ${capo}` :
+			(capo != '0') ? `capo ${capo}` :
+				(tuning != 'EADGBe') ? tuning : ' '
 
-		requests = requests.concat([
+	requests = requests.concat([
 		{
 			'updateDocumentStyle': {
 				'documentStyle': {
@@ -271,7 +213,7 @@ export async function POST(request, { params }) {
 				},
 				'fields': 'marginTop,marginLeft,marginBottom,marginRight,marginHeader'
 			}
-		},{
+		}, {
 			'insertTable': {
 				rows: 1,
 				columns: columns,
@@ -289,15 +231,15 @@ export async function POST(request, { params }) {
 				'tableColumnProperties': {
 					'widthType': 'FIXED_WIDTH',
 					'width': {
-						'magnitude': 7.5 * ( (columns === 2 ? columnWidth : 100) / 100) * 72,
+						'magnitude': 7.5 * ((columns === 2 ? columnWidth : 100) / 100) * 72,
 						'unit': 'PT'
 					}
 				},
-			'fields': '*'
+				'fields': '*'
 
 			},
-		},{
-			'updateTableCellStyle' : {
+		}, {
+			'updateTableCellStyle': {
 				'tableCellStyle': {
 					borderTop: {
 						width: {
@@ -366,8 +308,8 @@ export async function POST(request, { params }) {
 
 					},
 					paddingTop: {
-							'magnitude': 0.025 * 72,
-							'unit': 'PT',
+						'magnitude': 0.025 * 72,
+						'unit': 'PT',
 					},
 					paddingBottom: {
 						'magnitude': 0.025 * 72,
@@ -389,7 +331,7 @@ export async function POST(request, { params }) {
 					index: 2,
 				}
 			}
-		},{
+		}, {
 			'insertText': {
 				'text': headerText,
 				location: {
@@ -398,19 +340,19 @@ export async function POST(request, { params }) {
 				}
 			},
 		}])
-		
-		if (columns === 2) {
-			requests = requests.concat([{
-				'insertText': {
-					'text': '_RightColumn_',
-					location: {
-						index: 7
-					}
-				}
-			}])
-		}
 
-		requests = requests.concat([
+	if (columns === 2) {
+		requests = requests.concat([{
+			'insertText': {
+				'text': '_RightColumn_',
+				location: {
+					index: 7
+				}
+			}
+		}])
+	}
+
+	requests = requests.concat([
 		{
 			'insertText': {
 				'text': '_LeftColumn_',
@@ -418,14 +360,14 @@ export async function POST(request, { params }) {
 					index: 5
 				}
 			},
-		},{
+		}, {
 			'insertText': {
 				'text': "-----------------------------------------------------------------------------\u000b_Artist_ - _Song_\u000b----------------------------------------------------------------------------",
 				location: {
 					index: 1
 				}
 			}
-		},{
+		}, {
 			'updateTextStyle': {
 				'range': {
 					startIndex: 1,
@@ -442,7 +384,7 @@ export async function POST(request, { params }) {
 				},
 				fields: 'weightedFontFamily,fontSize'
 			}
-		},{
+		}, {
 			'updateParagraphStyle': {
 				paragraphStyle: {
 					alignment: 'CENTER'
@@ -453,7 +395,7 @@ export async function POST(request, { params }) {
 				},
 				fields: 'alignment'
 			}
-		},{
+		}, {
 			'updateParagraphStyle': {
 				paragraphStyle: {
 					alignment: 'END'
@@ -465,43 +407,43 @@ export async function POST(request, { params }) {
 				},
 				fields: 'alignment'
 			}
-		},{
-			'replaceAllText': { 
-				'replaceText' : artistName,
+		}, {
+			'replaceAllText': {
+				'replaceText': artistName,
 				'containsText': {
-					'text' : '_Artist_',
-					'matchCase' : true
+					'text': '_Artist_',
+					'matchCase': true
 				}
 			}
-		},{
-			'replaceAllText': { 
-				'replaceText' : songName,
+		}, {
+			'replaceAllText': {
+				'replaceText': songName,
 				'containsText': {
-					'text' : '_Song_',
-					'matchCase' : true
+					'text': '_Song_',
+					'matchCase': true
 				}
-			} 
-		},{             
-			'replaceAllText': { 
-				'replaceText' : columns === 2 ? tabText.split('\n').slice(0, (columnSplit ? columnSplit : tabText.split('\n').length / 2) ).join('\n') : tabText,
+			}
+		}, {
+			'replaceAllText': {
+				'replaceText': columns === 2 ? tabText.split('\n').slice(0, (columnSplit ? columnSplit : tabText.split('\n').length / 2)).join('\n') : tabText,
 				'containsText': {
-					'text' : '_LeftColumn_',
-					'matchCase' : true
+					'text': '_LeftColumn_',
+					'matchCase': true
 				}
 			}
 		}])
-		
-		if (columns === 2) {
-			requests = requests.concat([
-			{             
+
+	if (columns === 2) {
+		requests = requests.concat([
+			{
 				'replaceAllText': {
-					'replaceText' : tabText.split('\n').slice((columnSplit ? columnSplit : tabText.split('\n').length / 2) ).join('\n'),
+					'replaceText': tabText.split('\n').slice((columnSplit ? columnSplit : tabText.split('\n').length / 2)).join('\n'),
 					'containsText': {
-						'text' : '_RightColumn_',
-						'matchCase' : true
-					} 
+						'text': '_RightColumn_',
+						'matchCase': true
+					}
 				}
-			}, 
+			},
 			// {
 			// 	'updateTableCellStyle' : {
 			// 		'tableCellStyle': {
@@ -530,57 +472,31 @@ export async function POST(request, { params }) {
 			// 		}
 			// 	}
 			// }
-			])
+		])
+	}
+
+	// console.log('updating doc')
+	let batchUpdateResponse = await docs.documents.batchUpdate({
+		'documentId': googleDocsId,
+		'resource': {
+			'requests': requests
 		}
-		
-		// console.log('updating doc')
-		let batchUpdateResponse = await docs.documents.batchUpdate({
-			'documentId': googleDocsId,
-			'resource' : { 
-				'requests': requests 
-			}
-		})
+	})
 
-		console.log('batch update response', batchUpdateResponse, batchUpdateResponse.data.replies)
+	console.log('batch update response', batchUpdateResponse, batchUpdateResponse.data.replies)
 
-		drive.files.update({
-			fileId: googleDocsId,
-			requestBody: {
-				name: documentName
-			}
-		})
+	drive.files.update({
+		fileId: googleDocsId,
+		requestBody: {
+			name: documentName
+		}
+	})
 
-		// console.log('googleDocUpdated', googleDocUpdated)
-
-		return Response.json({
-			mimeType: "application/vnd.google-apps.document",
-			id: googleDocsId,
-			name: `[DRAFT] ${artistName} - ${songName}`,
-			starred: false,
-			createdTime: new Date,
-		})
-	}
-
-	catch(err) {
-		console.log(err)
-		if (err.code == 401 || err.code == 400) {
-			console.log('Refresh?')
-			let extraParams = { 
-				client_id: process.env.AUTH_GOOGLE_ID, 
-				client_secret: process.env.AUTH_GOOGLE_SECRET, 
-				refresh_token: account.refresh_token,
-				grant_type: 'refresh_token',
-			}
-
-			// Request refresh token
-			let response = await fetch('https://www.googleapis.com/oauth2/v4/token', { 
-					method: 'POST',
-					body: JSON.stringify(extraParams)
-			 }).then(r => r.json())
-			// console.log(response)
-
-			// set new access token in DB
-			// ???
-	}
-	}
+	return Response.json({
+		mimeType: "application/vnd.google-apps.document",
+		id: googleDocsId,
+		name: `[DRAFT] ${artistName} - ${songName}`,
+		starred: false,
+		createdTime: new Date,
+	})
 }

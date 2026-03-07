@@ -1,102 +1,94 @@
-import { getSession } from "next-auth/react"
-import { ObjectId } from 'mongodb'
-import { auth } from 'auth'
+import { auth } from "@/lib/auth"; 
 import { headers } from "next/headers"
 
 const { google } = require('googleapis');
 
-// export default async function handler(req, res) {
-export async function POST(request, { params }) {	
-	const session = await auth()
-	let body = await request.json()
-	console.log('create body:', body, session)
+export async function PUT(request, { params }) {
+	const body = await request.json()
 
-	
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
-		headers: new Headers(headers()),
-	}).then(r => r.json())
-	// console.log('fetched account', account)
-	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-	// console.log('fetched profile', profile)
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() 
+	})
 
-	if (!body.tab || !body.folder) {
-		Response.json({ })
+	if (!('tab' in body)) {
+		return Response.json({ error: "No name in request body." }, { status: 500 });
+	}
+	if (!('folder' in body)) {
+		return Response.json({ error: "No name in request body." }, { status: 500 });
 	}
 
+	const account = await auth.api.getAccessToken({
+		body: {
+			providerId: "google"
+		},
+		headers: await headers() 
+	});
+  
 	const oauth2Client = new google.auth.OAuth2(
 		process.env.AUTH_GOOGLE_ID, 
 		process.env.AUTH_GOOGLE_SECRET
 	);
 
-
 	oauth2Client.setCredentials({
-		'access_token': account.access_token,
-		'refresh_token': account.refresh_token
+		'access_token': account['accessToken'],
+		// 'refresh_token': account.refresh_token
 	});
 
-	const docs = google.docs({version: 'v1', auth: oauth2Client });
 	const drive = google.drive({version: 'v3', auth: oauth2Client });
 
 	let {
-		tabText,
 		artistName,
 		songName,
 		googleDocsId,
-		capo,
-		tuning,
-		bpm,
-	} = body.tab
+	} = body['tab']
 
-	var googleDoc = await drive.files.create({
+	const shortcut = await drive.files.create({
 		resource: { 
-			name: artistName + ' - ' + songName,
+			name: `${artistName} - ${songName}`,
 			mimeType: 'application/vnd.google-apps.shortcut',
 			shortcutDetails: {
 				targetId: googleDocsId,
 			},
-			parents: [body.folder]
+			parents: [body['folder']]
 		}
 	})
 
-	return Response.json({
-		_id: new ObjectId(),
-		...googleDoc.data,
-		shortcutDetails: {
-			targetId: googleDocsId,
-		},
-	})
+	return Response.json( shortcut )
 }
 
 export async function DELETE(request, { params }) {	
-	console.log('shortcut delete')
-	const session = await auth()
-	let body = await request.json()
+	const body = await request.json()
 
-	if (!body.id) {
-		Response.json({ })
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() 
+	})
+
+	if (!('record' in body)) {
+		return Response.json({ error: "No record in request body." }, { status: 500 });
 	}
 
-	const id = body.id
-	// console.log('shortcut delete body:', body, session)	
-	let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
-		headers: new Headers(headers()),
-	}).then(r => r.json())
-	// console.log('shortcut delete account', account)
-	// let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile?id=${session.user_id}`).then(r => r.json())
-	// console.log('shortcut delete profile', profile)
-
-
+	const account = await auth.api.getAccessToken({
+		body: {
+			providerId: "google"
+		},
+		headers: await headers() 
+	});
+  
 	const oauth2Client = new google.auth.OAuth2(
 		process.env.AUTH_GOOGLE_ID, 
 		process.env.AUTH_GOOGLE_SECRET
 	);
 
 	oauth2Client.setCredentials({
-		'access_token': account.access_token,
-		'refresh_token': account.refresh_token
+		'access_token': account['accessToken'],
+		// 'refresh_token': account.refresh_token
 	});
 
 	const drive = google.drive({version: 'v3', auth: oauth2Client });
+
+	let {
+		id
+	} = body['record']
 
 	var googleDoc = await drive.files.delete({
 		fileId: id,

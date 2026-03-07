@@ -1,32 +1,26 @@
 import clientPromise from "lib/db.js"
 import { ObjectId } from 'mongodb'
-// import { getSession } from "next-auth/react"
-import { auth } from 'auth'
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+
+const mongoClient = await clientPromise
+const db = await mongoClient.db(process.env.MONGO_CLIENT_DB)
+var mongoCollection = await db.collection('projects')
 
 export async function GET(request, { params }) {
-	console.log('GET', {
-		// request,
-		params
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() 
 	})
-		const session = await auth()
-		// console.log('get user account:', session)
-		const searchParams = request.nextUrl.searchParams
-  	
-  	if (!searchParams.get('userid')) 
-		  return Response.json({ })
+	if (!session?.userId) {
+		return Response.json({ error: "No userId in session." }, { status: 500 });
+	}
 
-		let mongoClient = await clientPromise
+	let cursor = mongoCollection.find({
+		userId: ObjectId.createFromHexString(session['userId'])
+	})
+	let cursorList = await cursor.toArray()
 
-		let db = await mongoClient.db('tabr')
-		let cl = await db.collection('projects')
-
-		let cursor = cl.find({ 
-			creator: new ObjectId(searchParams.get('userid') )
-		})
-		let cursorList = await cursor.toArray()
-		
-	  return Response.json(
-	  	cursorList
-  	)
-
+	return Response.json(
+		cursorList
+	)
 }

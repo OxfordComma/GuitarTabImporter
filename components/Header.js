@@ -1,19 +1,117 @@
 'use client'
-import styles from '../styles/Header.module.css'
+
+import { Group, Anchor, Button, Modal, TextInput, Center, Stack, PasswordInput, Checkbox } from '@mantine/core'
+import { authClient } from '@/lib/auth-client'
+import { useDisclosure } from '@mantine/hooks'
+import { useForm } from '@mantine/form'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-
 export default function Header ({ 
-  headings = {'Home': '/home'},
+  headings = []
 }) {
+  const { data: session } = authClient.useSession();
 
-	return (
-    <div className={styles['header']}>
-      {
-        Object.keys(headings).map(h => <div key={h} className={styles['header-item']}>
-          <Link key={h} onClick={() => {}} legacyBehavior={false} href={headings[h]}>{h}</Link>
-        </div>)
+  const router = useRouter()
+
+  const [signInOutModalOpened, { open, close, toggle }] = useDisclosure();
+  const [modalMethod, setModalMethod] = useState()
+
+  if (session) {
+    headings = [
+      { title: 'Library', href: '/library' },
+      { title: 'Projects', href: '/projects' },
+    ]
+  }
+
+  function SignIn({}) {
+    return (<Button onClick={() => {toggle(); setModalMethod("Sign In") }}>Sign In</Button>)
+  }
+
+  function SignOut({}) {
+    return (<Button onClick={() => authClient.signOut({ 
+      fetchOptions: { onSuccess: () => {
+        router.push("/"); // redirect to login page
       }
-    </div>	
-	)
+    }}) }>Sign Out</Button>)
+  }
+
+  function SignUp({}) {
+    return (<Button onClick={() => {toggle(); setModalMethod("Sign Up") }}>Sign Up</Button>)
+  }
+
+  const form = useForm({
+    initialValues: {
+      name: "",
+      email: "",
+      password: "",
+    }
+  })
+
+  async function onFormSubmit({ name, email, password }) {
+    if (modalMethod === "Sign Up") {
+      const { data, error } = await authClient.signUp.email({
+        name,
+        email,
+        password
+      });
+
+      if (error) {
+        console.log('Error!', error)
+      }
+      else {
+        // console.log('Success!', data)
+        close();
+      }
+    }
+    else if (modalMethod === "Sign In") {
+      const { data, error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/library"
+      });
+      if (error) {
+        console.log('Error!', error)
+      }
+      else {
+        // console.log('Success!', data)
+        close();
+      }
+    }
+    
+  }
+  
+  return (
+    <Group h="100%" px="md">
+      <Anchor size='xl' c='white' fw={1000} href='/' component={Link}>TABR</Anchor>
+      { 
+        headings.map(h => (
+          <Anchor c='white' key={h['title']} href={h['href']} component={Link}>{h['title']}</Anchor>
+        ))
+      }
+      <Group ml="auto" >
+        { session ? 
+          <Group> 
+            <Link href="/profile">{session['user']['email']}</Link> <SignOut/> 
+          </Group>: 
+          <Group> 
+            <SignIn/> <SignUp/> 
+          </Group> }
+      </Group>
+
+      <Center>
+        <Modal title={modalMethod} opened={signInOutModalOpened} onClose={close}>
+          <form onSubmit={form.onSubmit((values) => onFormSubmit(values))}>
+            <Stack>
+              {/* {modalMethod === "Sign Up" && <TextInput label="name" key={form.key('name')} {...form.getInputProps('name')}></TextInput>} */}
+              {/* <TextInput label="email" key={form.key('email')} {...form.getInputProps('email')}></TextInput> */}
+              {/* <PasswordInput label="password" key={form.key('password')} {...form.getInputProps('password')}></PasswordInput> */}
+              {/* <Checkbox label="Remember Me" value={rememberMe} onChange={() => setRememberMe(!rememberMe)}/> */}
+              <Button type="submit">Sign in with Google</Button>
+            </Stack>
+          </form>
+        </Modal>
+      </Center>
+    </Group>
+  )
 }

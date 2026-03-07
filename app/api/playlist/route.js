@@ -1,11 +1,5 @@
-import { getSession } from 'next-auth/react';
-import { getToken } from 'next-auth/jwt';
 var SpotifyWebApi = require('spotify-web-api-node');
 import { headers } from "next/headers"
-
-import { auth } from 'auth'
-import { ObjectId } from 'mongodb'
-
 
 // So we can delay between requests. Maybe not good practice, will work to remove
 const delay = ms => new Promise(res => setTimeout(res, ms));
