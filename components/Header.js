@@ -1,6 +1,6 @@
 'use client'
 
-import { Group, Anchor, Button, Modal, TextInput, Center, Stack, PasswordInput, Checkbox } from '@mantine/core'
+import { Group, Anchor, Button, Modal, TextInput, Center, Stack, PasswordInput, Checkbox, Loader } from '@mantine/core'
 import { authClient } from '@/lib/auth-client'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
@@ -11,12 +11,12 @@ import Link from 'next/link'
 export default function Header ({ 
   headings = []
 }) {
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
 
   const router = useRouter()
 
-  const [signInOutModalOpened, { open, close, toggle }] = useDisclosure();
-  const [modalMethod, setModalMethod] = useState()
+  // const [signInOutModalOpened, { open, close, toggle }] = useDisclosure();
+  // const [modalMethod, setModalMethod] = useState()
 
   if (session) {
     headings = [
@@ -26,7 +26,12 @@ export default function Header ({
   }
 
   function SignIn({}) {
-    return (<Button onClick={() => {toggle(); setModalMethod("Sign In") }}>Sign In</Button>)
+    return (<Button onClick={() => {
+      authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/library"
+      }); 
+    }}>Sign In</Button>)
   }
 
   function SignOut({}) {
@@ -37,49 +42,48 @@ export default function Header ({
     }}) }>Sign Out</Button>)
   }
 
-  function SignUp({}) {
-    return (<Button onClick={() => {toggle(); setModalMethod("Sign Up") }}>Sign Up</Button>)
-  }
+  // function SignUp({}) {
+  //   return (<Button onClick={() => {toggle(); setModalMethod("Sign Up") }}>Sign Up</Button>)
+  // }
 
-  const form = useForm({
-    initialValues: {
-      name: "",
-      email: "",
-      password: "",
-    }
-  })
+  // const form = useForm({
+  //   initialValues: {
+  //     name: "",
+  //     email: "",
+  //     password: "",
+  //   }
+  // })
 
-  async function onFormSubmit({ name, email, password }) {
-    if (modalMethod === "Sign Up") {
-      const { data, error } = await authClient.signUp.email({
-        name,
-        email,
-        password
-      });
+  // async function onFormSubmit({ }) {
+    // if (modalMethod === "Sign Up") {
+    //   const { data, error } = await authClient.signUp.email({
+    //     name,
+    //     email,
+    //     password
+    //   });
 
-      if (error) {
-        console.log('Error!', error)
-      }
-      else {
-        // console.log('Success!', data)
-        close();
-      }
-    }
-    else if (modalMethod === "Sign In") {
-      const { data, error } = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/library"
-      });
-      if (error) {
-        console.log('Error!', error)
-      }
-      else {
-        // console.log('Success!', data)
-        close();
-      }
-    }
-    
-  }
+    //   if (error) {
+    //     console.log('Error!', error)
+    //   }
+    //   else {
+    //     // console.log('Success!', data)
+    //     close();
+    //   }
+    // }
+    // else if (modalMethod === "Sign In") {
+      // const { data, error } = await authClient.signIn.social({
+      //   provider: "google",
+      //   callbackURL: "/library"
+      // });
+      // if (error) {
+      //   console.log('Error!', error)
+      // }
+      // else {
+      //   // console.log('Success!', data)
+      //   close();
+      // }
+    // }
+  // }
   
   return (
     <Group h="100%" px="md">
@@ -90,28 +94,29 @@ export default function Header ({
         ))
       }
       <Group ml="auto" >
-        { session ? 
-          <Group> 
-            <Link href="/profile">{session['user']['email']}</Link> <SignOut/> 
-          </Group>: 
-          <Group> 
-            <SignIn/> <SignUp/> 
-          </Group> }
+        { 
+          isPending ? 
+            <Loader /> : 
+          session ? 
+            <Group> 
+              <Link href="/profile">{session['user']['email']}</Link>
+              <SignOut/> 
+            </Group> : 
+            <Group> 
+              <SignIn/>
+            </Group> 
+          }
       </Group>
 
-      <Center>
+      {/* <Center>
         <Modal title={modalMethod} opened={signInOutModalOpened} onClose={close}>
           <form onSubmit={form.onSubmit((values) => onFormSubmit(values))}>
             <Stack>
-              {/* {modalMethod === "Sign Up" && <TextInput label="name" key={form.key('name')} {...form.getInputProps('name')}></TextInput>} */}
-              {/* <TextInput label="email" key={form.key('email')} {...form.getInputProps('email')}></TextInput> */}
-              {/* <PasswordInput label="password" key={form.key('password')} {...form.getInputProps('password')}></PasswordInput> */}
-              {/* <Checkbox label="Remember Me" value={rememberMe} onChange={() => setRememberMe(!rememberMe)}/> */}
               <Button type="submit">Sign in with Google</Button>
             </Stack>
           </form>
         </Modal>
-      </Center>
+      </Center> */}
     </Group>
   )
 }

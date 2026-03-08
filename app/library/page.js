@@ -3,13 +3,14 @@ import { useState, useContext, useEffect, useRef } from 'react'
 import Header from '@/components/Header';
 import { TabsContext } from 'components/Context.js'
 
-import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox } from '@mantine/core';
+import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress } from '@mantine/core';
 import { sortBy, filter } from 'lodash';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import { IconCheck, IconTriangle, IconTriangleInverted } from '@tabler/icons-react';
 import Editor from '@/components/Editor';
 
+import { syncToSpotify } from '@/lib/spotify';
 
 
 function EditModal({ opened, close, tab, saveTab, isNewTab }) {
@@ -109,6 +110,10 @@ export default function Home({
 	const [filterStatus, setFilterStatus] = useState({ });
 	const [isNewTab, setIsNewTab] = useState(false);
 	// const [editorText, setEditorText] = useState("")
+    const [syncStatus, setSyncStatus] = useState({ current: 0, total: 0, label: '' });
+	const [footerText, setFooterText] = useState();
+	
+	
 	const editorTextRef = useRef("");
 
 	const [editModalOpened, editModalHandlers] = useDisclosure();
@@ -187,7 +192,9 @@ export default function Home({
 		setUserTabs(
 			userTabs.filter(t => t['_id'] !== deleteObj['_id'])
 		)
-
+		
+		setActiveTab();
+		
 		deleteModalHandlers.close();
 	}
 
@@ -202,6 +209,38 @@ export default function Home({
 
 	function saveMenu() {
 		saveTab(activeTab)
+	}
+	async function updateSpotifyPlaylistMenu() {
+		const profile = await fetch(`/api/profile`).then(r => r.json())
+
+		let spotifyPlaylistId;
+
+		if (profile["spotifyPlaylistId"] === null) {
+			// Create new playlist for the project
+			let libraryPlaylist = await fetch(`api/spotify/playlist`, {
+				method: 'POST',
+				body: JSON.stringify({ name: "Library" })
+			}).then(r => r.json())
+
+			console.log('library playlist created:', projectPlaylist)
+			const { id } = libraryPlaylist.body;
+			spotifyPlaylistId = id;
+
+			let saveObj = {
+				...profile,
+				spotifyPlaylistId
+			}
+
+			let savedRecord = await fetch(`api/profile`, {
+				method: 'PUT',
+				body: JSON.stringify({ profile: saveObj })
+			}).then(r => r.json())
+		}
+		else {
+			spotifyPlaylistId = profile["spotifyPlaylistId"]
+		}
+
+		syncToSpotify(userTabs, spotifyPlaylistId, setSyncStatus)
 	}
 
 
@@ -243,7 +282,7 @@ export default function Home({
 								Edit
 							</Menu.Item>
 							<Menu.Item
-								// onClick={() => editCollectionMenu()}
+								// onClick={() => importMenu()}
 								disabled
 							>
 								Import
@@ -255,33 +294,36 @@ export default function Home({
 								Save
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => window.open(`https://docs.google.com/document/d/${activeTab['googleDocsId']}/edit`)}
-							>
-								Open in Docs
-							</Menu.Item>
-							<Menu.Item
 								color="red"
 								onClick={() => deleteModalHandlers.open()}
 								disabled={activeTab === undefined}
 							>
 								Delete
 							</Menu.Item>
+							
 						</Menu.Dropdown>
 					</Menu>
 
 					<Menu position='bottom-start' shadow="md" color="#4B0082">
 
 						<Menu.Target>
-							<Button size='xs'>view</Button>
+							<Button size='xs'>social</Button>
 						</Menu.Target>
 						<Menu.Dropdown>
-							<Menu.Item
-								// onClick={() => newCollectionMenu()}
-								disabled
-							>
-								Toggle two column mode
-							</Menu.Item>
+						<Menu.Item
+							onClick={() => window.open(`https://docs.google.com/document/d/${activeTab['googleDocsId']}/edit`)}
+							disabled={activeTab === undefined}
+						>
+							Open in Docs
+						</Menu.Item>
+						<Menu.Item
+							onClick={() => updateSpotifyPlaylistMenu() }
+							disabled={userTabs.length === 0}
+						>
+							Update Spotify playlist
+						</Menu.Item>
 						</Menu.Dropdown>
+
 					</Menu>
 
 					<Menu position='bottom-start' shadow="md" color="#4B0082">
@@ -318,6 +360,12 @@ export default function Home({
 								disabled
 							>
 								Convert chords to tabs
+							</Menu.Item>
+							<Menu.Item
+								// onClick={() => newCollectionMenu()}
+								disabled
+							>
+								Toggle two column mode
 							</Menu.Item>
 						</Menu.Dropdown>
 					</Menu>
@@ -574,9 +622,15 @@ export default function Home({
 				/>
 			</AppShell.Main>
 
-			{/* <AppShell.Footer>
-				'Footer text'
-			</AppShell.Footer> */}
+			<AppShell.Footer>
+				<Group h="100%" justify='flex-end' align='center' wrap="nowrap" >
+					{footerText && <Text>{footerText}</Text>}
+					{syncStatus.total > 0 && (<Group w="fit-content" wrap="nowrap">
+						<Text>{syncStatus.label}</Text>
+						<Progress w={300} justify="center" flex={1} value={(syncStatus.current / syncStatus.total) * 100} animated mr="sm" />
+					</Group>)}
+				</Group>
+			</AppShell.Footer>
 		</AppShell>
 
 	);

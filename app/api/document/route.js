@@ -12,7 +12,7 @@ export async function PUT(request, { params }) {
 		headers: await headers() 
 	})
 
-	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile`, {
+	let profile = await fetch(`${process.env.BETTER_AUTH_URL}/api/profile`, {
 		headers: await headers() // Have to pass headers to nested API calls
 	}).then(r => r.json())
 

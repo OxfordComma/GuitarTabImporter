@@ -2,10 +2,11 @@
 import { TabsContext } from 'components/Context.js'
 import { useState, useEffect, useContext } from 'react'
 import Header from '@/components/Header';
-import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox } from '@mantine/core';
+import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import Editor from '@/components/Editor';
+import { syncToSpotify } from '@/lib/spotify';
 
 
 function OpenModal({ opened, close, projects, submit }) {
@@ -22,17 +23,17 @@ function OpenModal({ opened, close, projects, submit }) {
 		<Modal opened={opened} onClose={close} title="Open Project" centered>
 			<form onSubmit={form.onSubmit(() => { submit(projectId); form.reset(); close() })}>
 				<Stack>
-					<Select 
+					<Select
 						data={projects.map(p => ({
 							value: p._id,
 							label: `${p?.name}`
-						}) ) }
+						}))}
 						value={projectId}
 						onChange={(value, option) => setProjectId(value)}
 						searchable
 					/>
 					<Group justify="flex-end" mt="md">
-						<Button type='submit'>Save</Button>
+						<Button type='submit'>Open</Button>
 					</Group>
 				</Stack>
 			</form>
@@ -43,13 +44,14 @@ function OpenModal({ opened, close, projects, submit }) {
 function EditModal({ opened, close, object: project, submit, isNew }) {
 	const form = useForm({
 		initialValues: {
-			_id: undefined,
-			folder: "",
+			_id: null,
+			folder: null,
 			name: "",
 			tabIds: [],
 			collaborators: [],
 			createdTime: new Date(),
 			lastUpdatedTime: new Date(),
+			spotifyPlaylistId: null,
 
 		}
 	});
@@ -121,17 +123,17 @@ function PickTabModal({ opened, close, tabs, submit }) {
 
 	return (
 		<Modal opened={opened} onClose={close} title="Edit Project" centered>
-			<form onSubmit={form.onSubmit(() => { 
+			<form onSubmit={form.onSubmit(() => {
 				if (tabId) {
-					submit(tabId); form.reset(); close(); 
+					submit(tabId); form.reset(); close();
 				}
 			})}>
 				<Stack>
-					<Select 
+					<Select
 						data={tabs.map(t => ({
 							value: t._id,
 							label: `${t?.songName} - ${t?.artistName}`
-						}) ) }
+						}))}
 						value={tabId}
 						onChange={(value, option) => setTabId(value)}
 						searchable
@@ -156,6 +158,8 @@ export default function Projects({ }) {
 	const [activeTab, setActiveTab] = useState();
 	const [isNew, setIsNew] = useState(false);
 	const [pickTabMode, setPickTabMode] = useState();
+	const [syncStatus, setSyncStatus] = useState({ current: 0, total: 0, label: '' });
+	const [footerText, setFooterText] = useState();
 
 	const [openModalOpened, openModalHandlers] = useDisclosure();
 	const [editModalOpened, editModalHandlers] = useDisclosure();
@@ -167,10 +171,10 @@ export default function Projects({ }) {
 		// const filteredTabs = filter(sortedTabs, filterStatus?.filterFunction)
 		setProjects(userProjects);
 	}, [
-			// sortStatus, filterStatus, 
-			userProjects
+		// sortStatus, filterStatus, 
+		userProjects
 	]);
-	
+
 	function newMenu() {
 		setIsNew(true)
 		editModalHandlers.open()
@@ -189,6 +193,41 @@ export default function Projects({ }) {
 		saveProject(activeProject)
 	}
 
+	function deleteMenu() {
+		deleteModalHandlers.open()
+	}
+
+	async function updateSpotifyPlaylistMenu() {
+		const userTabsMap = new Map(userTabs.map(ut => [ut['_id'], ut]));
+		const projectTabs = activeProject?.tabIds.map(t => userTabsMap.get(t['tabId']));
+
+		let spotifyPlaylistId;
+
+		if (activeProject["spotifyPlaylistId"] === null) {
+			// Create new playlist for the project
+			let projectPlaylist = await fetch(`api/spotify/playlist`, {
+				method: 'POST',
+				body: JSON.stringify({ name: activeProject['name'] })
+			}).then(r => r.json())
+
+			console.log('project playlist created:', projectPlaylist)
+			const { id } = projectPlaylist.body;
+			spotifyPlaylistId = id;
+
+			let saveObj = {
+				...activeProject,
+				spotifyPlaylistId
+			}
+
+			saveProject(saveObj)
+		}
+		else {
+			spotifyPlaylistId = activeProject["spotifyPlaylistId"]
+		}
+
+		syncToSpotify(projectTabs, spotifyPlaylistId, setSyncStatus)
+	}
+
 	async function saveProject(saveObj) {
 		saveObj = {
 			...saveObj,
@@ -196,7 +235,7 @@ export default function Projects({ }) {
 		}
 
 		console.log('saving project:', saveObj)
-		
+
 		if (isNew) {
 			// Create folder in projects folder for new project
 			let projectFolder = await fetch(`api/folder`, {
@@ -210,7 +249,7 @@ export default function Projects({ }) {
 				...saveObj,
 				folder: projectFolder?.['data']?.['id'],
 			}
-			
+
 			// Save project to database with new folder id
 			let savedProject = await fetch(`api/project`, {
 				method: 'POST',
@@ -233,16 +272,16 @@ export default function Projects({ }) {
 		else {
 			// Create folder in projects folder for new project
 			let projectFolder = await fetch(`api/folder`, {
-				method: 'put',
-				body: JSON.stringify({ 
+				method: 'PUT',
+				body: JSON.stringify({
 					id: saveObj['folder'],
 					name: saveObj['name'],
 				})
 			}).then(r => r.json())
 
 			console.log('project folder updated:', projectFolder)
+			
 			// Add google drive folder id to save object
-
 			let savedTab = await fetch(`api/project?id=${saveObj['_id']}`, {
 				method: 'PUT',
 				body: JSON.stringify({ record: saveObj })
@@ -261,6 +300,15 @@ export default function Projects({ }) {
 	}
 
 	async function deleteProject(deleteObj) {
+		// Delete project folder
+		let projectFolder = await fetch(`api/folder`, {
+			method: 'DELETE',
+			body: JSON.stringify({
+				id: deleteObj['folder'],
+			})
+		}).then(r => r.json())
+
+
 		let deletedRecord = await fetch(`api/project?id=${deleteObj['_id']}`, {
 			method: 'DELETE',
 			body: JSON.stringify({ tab: deleteObj })
@@ -290,7 +338,7 @@ export default function Projects({ }) {
 
 		saveObj = {
 			...saveObj,
-			tabIds: [ ...saveObj['tabIds'], { tabId: tabId, shortcutId: shortcut.data.id } ],
+			tabIds: [...saveObj['tabIds'], { tabId: tabId, shortcutId: shortcut.data.id }],
 			lastUpdatedTime: new Date(),
 		}
 		// Save project to database
@@ -298,12 +346,12 @@ export default function Projects({ }) {
 			method: 'PUT',
 			body: JSON.stringify({ record: saveObj })
 		}).then(r => r.json())
-	
+
 		setUserProjects(
 			userProjects.map(p => p['_id'] === saveObj['_id'] ? saveObj : p)
 		)
 
-		setActiveProject( saveObj )
+		setActiveProject(saveObj)
 	}
 
 	async function removeTabFromProject(project, tabId) {
@@ -313,7 +361,7 @@ export default function Projects({ }) {
 		const tab = userTabs.find(t => t['_id'] === tabId)
 		fetch(`api/shortcut`, {
 			method: 'DELETE',
-			body: JSON.stringify({ record: { id: saveObj['tabIds'].find(t => t['tabId'] === tabId)['shortcutId']} })
+			body: JSON.stringify({ record: { id: saveObj['tabIds'].find(t => t['tabId'] === tabId)['shortcutId'] } })
 		}).then(r => r.json())
 
 		saveObj = {
@@ -331,7 +379,7 @@ export default function Projects({ }) {
 			userProjects.map(p => p['_id'] === saveObj['_id'] ? saveObj : p)
 		)
 
-		setActiveProject( saveObj )
+		setActiveProject(saveObj)
 	}
 
 	return (
@@ -341,6 +389,9 @@ export default function Projects({ }) {
 			header={{ height: 50 }}
 			navbar={{
 				width: 300
+			}}
+			footer={{
+				height: 25
 			}}
 		>
 			<AppShell.Header>
@@ -380,7 +431,7 @@ export default function Projects({ }) {
 								</Menu.Item>
 								<Menu.Item
 									color="red"
-									onClick={() => deleteModalHandlers.open()}
+									onClick={() => deleteMenu()}
 									disabled={activeProject === undefined}
 								>
 									Delete
@@ -394,15 +445,13 @@ export default function Projects({ }) {
 							</Menu.Target>
 							<Menu.Dropdown>
 								<Menu.Item
-									onClick={() => { setPickTabMode('add'); pickTabModalHandlers.open() } }
-									// rightSection={Object.keys(sortStatus).length === 0 && (<IconCheck size={12} />)}
+									onClick={() => { setPickTabMode('add'); pickTabModalHandlers.open() }}
 									disabled={activeProject === undefined}
 								>
 									Add
 								</Menu.Item>
 								<Menu.Item
-									onClick={() =>{ setPickTabMode('remove'); pickTabModalHandlers.open() } }
-									// rightSection={Object.keys(sortStatus).length === 0 && (<IconCheck size={12} />)}
+									onClick={() => { setPickTabMode('remove'); pickTabModalHandlers.open() }}
 									disabled={activeProject === undefined}
 								>
 									Remove
@@ -417,14 +466,13 @@ export default function Projects({ }) {
 							</Menu.Target>
 							<Menu.Dropdown>
 								<Menu.Item
-									onClick={() =>{  } }
-									// rightSection={Object.keys(sortStatus).length === 0 && (<IconCheck size={12} />)}
+									onClick={() => updateSpotifyPlaylistMenu()}
 									disabled={activeProject === undefined}
 								>
-									Create Spotify playlist
+									{`${(activeProject?.spotifyPlaylistId ? 'Update' : 'Create')} Spotify playlist`}
 								</Menu.Item>
 								<Menu.Item
-									onClick={() => ('folder' in activeProject) && window.open(`https://drive.google.com/drive/u/0/folders/${activeProject['folder']}`) }
+									onClick={() => ('folder' in activeProject) && window.open(`https://drive.google.com/drive/u/0/folders/${activeProject['folder']}`)}
 									disabled={activeProject === undefined}
 								>
 									Open Drive folder
@@ -439,26 +487,28 @@ export default function Projects({ }) {
 					{activeProject && ('tabIds' in activeProject) && activeProject['tabIds'].map(t => {
 						const { tabId } = t;
 						const tab = userTabs.find(t => t._id === tabId)
+
 						return (
 							<NavLink
-							key={tab['_id']}
-							label={
-								<Stack gap={0}>
-									<Text fz="14">{tab['songName']}</Text>
-									<Text fz="12">{tab['artistName']}</Text>
-								</Stack>
-							}
-							onClick={() => { setActiveTab(tab); }}
-							active={activeTab && tab['_id'] === activeTab['_id']}
+								key={tab['_id']}
+								label={
+									<Stack gap={0}>
+										<Text fz="14">{tab['songName']}</Text>
+										<Text fz="12">{tab['artistName']}</Text>
+									</Stack>
+								}
+								onClick={() => { setActiveTab(tab); }}
+								active={activeTab && tab['_id'] === activeTab['_id']}
 							/>
-						)}
+						)
+					}
 					)}
 				</AppShell.Section>
 			</AppShell.Navbar>
 
 			<AppShell.Main h="100%" >
 				<AppShell.Section>
-					<Group gap={0} pl={15} pr={15} style={{borderBottom: '1px solid var(--app-shell-border-color)'}} h="auto">
+					<Group gap={0} pl={15} pr={15} style={{ borderBottom: '1px solid var(--app-shell-border-color)' }} h="auto">
 						<Group flex={1} justify='center'>
 							<Text fw="bold">
 								{activeProject && `${activeProject?.['name'].replaceAll(/[ ',./]/g, '').toLowerCase()}.proj`}
@@ -476,10 +526,10 @@ export default function Projects({ }) {
 						key={activeTab?.['_id']}
 						initialText={activeTab?.tabText ?? ""}
 						disabled={true}
-						// onTextChange={(val) => {
-							// editorTextRef.current = val;
-							// if (!modified) setModified(true);
-						// }}
+					// onTextChange={(val) => {
+					// editorTextRef.current = val;
+					// if (!modified) setModified(true);
+					// }}
 					/>
 				</AppShell.Section>
 
@@ -488,9 +538,9 @@ export default function Projects({ }) {
 					close={openModalHandlers.close}
 					projects={userProjects}
 					// object={activeProject}
-					submit={( _id ) => setActiveProject(userProjects.find(p => p['_id'] === _id))}
-					// submit={(val) => console.log(val)}
-					// isNew={isNew}
+					submit={(_id) => setActiveProject(userProjects.find(p => p['_id'] === _id))}
+				// submit={(val) => console.log(val)}
+				// isNew={isNew}
 				/>
 				<EditModal
 					opened={editModalOpened}
@@ -508,27 +558,33 @@ export default function Projects({ }) {
 				<PickTabModal
 					opened={pickTabModalOpened}
 					close={pickTabModalHandlers.close}
-					tabs={pickTabMode === 'add' ? 
-						userTabs.filter(t => !activeProject?.['tabIds'].map(t => t['tabId']).includes(t['_id']) ) : 
-						pickTabMode === 'remove' ? 
-						userTabs.filter(t => activeProject?.['tabIds'].map(t => t['tabId']).includes(t['_id']) ) :
-						[]
+					tabs={pickTabMode === 'add' ?
+						userTabs.filter(t => !activeProject?.['tabIds'].map(t => t['tabId']).includes(t['_id'])) :
+						pickTabMode === 'remove' ?
+							userTabs.filter(t => activeProject?.['tabIds'].map(t => t['tabId']).includes(t['_id'])) :
+							[]
 					}
 					// object={activeProject}
-					submit={( _id ) => pickTabMode === 'add' ? 
-						addTabToProject(activeProject, _id) : 
-						pickTabMode === 'remove' ? 
-						removeTabFromProject(activeProject, _id) : 
-						[]
+					submit={(_id) => pickTabMode === 'add' ?
+						addTabToProject(activeProject, _id) :
+						pickTabMode === 'remove' ?
+							removeTabFromProject(activeProject, _id) :
+							[]
 					}
-					// deleteProject={deleteProject}
+				// deleteProject={deleteProject}
 
 				/>
 			</AppShell.Main>
 
-			{/* <AppShell.Footer>
-				'Footer text'
-			</AppShell.Footer> */}
+			<AppShell.Footer>
+				<Group h="100%" justify='flex-end' align='center' wrap="nowrap" >
+					{footerText && <Text>{footerText}</Text>}
+					{syncStatus.total > 0 && (<Group w="fit-content" wrap="nowrap">
+						<Text>{syncStatus.label}</Text>
+						<Progress w={300} justify="center" flex={1} value={(syncStatus.current / syncStatus.total) * 100} animated mr="sm" />
+					</Group>)}
+				</Group>
+			</AppShell.Footer>
 		</AppShell>
 	)
 }

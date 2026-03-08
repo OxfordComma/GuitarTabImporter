@@ -8,7 +8,7 @@ export async function GET(request, { params }) {
 	// const session = await auth()
 
 	// // Pass headers to allow nested api call to access session
-	// let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, { 
+	// let account = await fetch(`${process.env.BETTER_AUTH_URL}/api/account?id=${session.user_id}`, { 
 	// 	headers: new Headers(headers()) 
 	// }).then(r => r.json())
 
@@ -73,7 +73,7 @@ export async function PUT(request, { params }) {
 		headers: await headers() 
 	})
 
-	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile`, {
+	let profile = await fetch(`${process.env.BETTER_AUTH_URL}/api/profile`, {
 		headers: await headers() // Have to pass headers to nested API calls
 	}).then(r => r.json())
 
@@ -124,7 +124,7 @@ export async function POST(request, { params }) {
 		headers: await headers() 
 	})
 
-	let profile = await fetch(`${process.env.NEXTAUTH_URL}/api/profile`, {
+	let profile = await fetch(`${process.env.BETTER_AUTH_URL}/api/profile`, {
 		headers: await headers() // Have to pass headers to nested API calls
 	}).then(r => r.json())
 
@@ -167,36 +167,44 @@ export async function POST(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {	
-	// // console.log('folder delete')
-	// const session = await auth()
-	// let body = await request.json()
+	// console.log('folder delete')
+	const body = await request.json()
 
-	// if (!body._id) {
-	// 	Response.json({ })
-	// }
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() 
+	})
 
-	// const _id = body._id
+	if (!('id' in body)) {
+		return Response.json({ error: "No id in request body." }, { status: 500 });
+	}
+
+	const {
+		id
+	} = body;
+
 	// console.log('folder delete body:', body, session)	
-	// let account = await fetch(`${process.env.NEXTAUTH_URL}/api/account?id=${session.user_id}`, {
-	// 	headers: new Headers(headers()) 
-	// }).then(r => r.json())
-	// console.log('folder delete account', account)
+	const account = await auth.api.getAccessToken({
+		body: {
+			providerId: "google"
+		},
+		headers: await headers() 
+	});
+  
+  	const oauth2Client = new google.auth.OAuth2(
+		process.env.AUTH_GOOGLE_CLIENT_ID, 
+		process.env.AUTH_GOOGLE_SECRET
+	);
 
-	// const oauth2Client = new google.auth.OAuth2(
-	// 	process.env.AUTH_GOOGLE_CLIENT_ID, 
-	// 	process.env.AUTH_GOOGLE_SECRET
-	// );
+	oauth2Client.setCredentials({
+		'access_token': account['accessToken'],
+		// 'refresh_token': account.refresh_token
+	});
 
-	// oauth2Client.setCredentials({
-	// 	'access_token': account.access_token,
-	// 	'refresh_token': account.refresh_token
-	// });
+	const drive = google.drive({version: 'v3', auth: oauth2Client });
 
-	// const drive = google.drive({version: 'v3', auth: oauth2Client });
+	var googleDoc = await drive.files.delete({
+		fileId: id,
+	})
 
-	// var googleDoc = await drive.files.delete({
-	// 	fileId: _id,
-	// })
-
-	// return Response.json(googleDoc)
+	return Response.json(googleDoc)
 }
