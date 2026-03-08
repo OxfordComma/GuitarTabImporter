@@ -12,6 +12,7 @@ import PickerButton from "@/components/PickerButton"
 import { TabsContext } from 'components/Context.js'
 
 import { syncToSpotify } from '@/lib/spotify';
+import { update } from 'lodash';
 
 export default function Home({
 }) {
@@ -83,6 +84,19 @@ export default function Home({
 
 	}
 
+	async function updatePickedFolder(newFolder) {
+		const {
+			id: newFolderId
+		} = newFolder.docs[0]
+		let updateFolder = `${showPicker}Folder`;
+
+		const saveObj = {
+			...profile,
+			[updateFolder]: newFolderId,
+		}
+
+		saveProfile( saveObj )
+	}
 
 	const form = useForm({
 		initialValues: {
@@ -147,7 +161,7 @@ export default function Home({
 			{showPicker && <PickerButton
 				key="picker"
 				title={`Choose ${showPicker} folder`}
-				onPicked={(e) => { console.log("Picked:", e.detail); setShowPicker(); } }
+				onPicked={(e) => { console.log("Picked:", e.detail); updatePickedFolder(e.detail); setShowPicker(); } }
 				onCanceled={() => { console.log("Picker was canceled"); setShowPicker(); } }
 			/>}
 		</AppShell>
