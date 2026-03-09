@@ -139,7 +139,7 @@ export default function Home({
 	async function saveTab(saveObj) {
 		saveObj = {
 			...saveObj,
-			tabText: editorTextRef.current,
+			tabText: isNewTab ? "" : editorTextRef.current,
 			lastUpdatedTime: new Date(),
 		}
 		console.log('saving tab:', saveObj)
