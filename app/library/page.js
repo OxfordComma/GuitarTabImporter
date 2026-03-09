@@ -12,6 +12,8 @@ import Editor from '@/components/Editor';
 
 import { syncToSpotify } from '@/lib/spotify';
 
+import { formatRawTabs, getTabStaff, getChordList  } from '@/lib/tabhelper';
+
 
 function EditModal({ opened, close, tab, saveTab, isNewTab }) {
 	const form = useForm({
@@ -352,26 +354,26 @@ export default function Home({
 						</Menu.Target>
 						<Menu.Dropdown>
 							<Menu.Item
-								// onClick={() => newCollectionMenu()}
-								disabled
+								onClick={() => setActiveTab({ ...activeTab, tabText: formatRawTabs(editorTextRef.current, 2) } )}
+								disabled={userTabs.length === 0}
 							>
 								Format 2 chords per line
 							</Menu.Item>
 							<Menu.Item
-								// onClick={() => newCollectionMenu()}
-								disabled
+								onClick={() => setActiveTab({ ...activeTab, tabText: formatRawTabs(editorTextRef.current, 4) } )}
+								disabled={userTabs.length === 0}
 							>
 								Format 4 chords per line
 							</Menu.Item>
 							<Menu.Item
-								// onClick={() => newCollectionMenu()}
-								disabled
+								onClick={() => setActiveTab({ ...activeTab, tabText: `${editorTextRef.current}\n${getTabStaff()}` } )}
+								disabled={userTabs.length === 0}
 							>
 								Add tab staff
 							</Menu.Item>
 							<Menu.Item
-								// onClick={() => newCollectionMenu()}
-								disabled
+								onClick={() => setActiveTab({ ...activeTab, tabText: `${editorTextRef.current}\n${getChordList(editorTextRef.current).join('\t')}` } )}
+								disabled={userTabs.length === 0}
 							>
 								Create chord list
 							</Menu.Item>
@@ -580,6 +582,48 @@ export default function Home({
 									</Menu.Item>
 								</Menu.Sub.Dropdown>
 							</Menu.Sub>
+							
+							<Menu.Sub openDelay={120} closeDelay={150}>
+								<Menu.Sub.Target>
+									<Menu.Sub.Item>draft</Menu.Sub.Item>
+								</Menu.Sub.Target>
+
+								<Menu.Sub.Dropdown>
+									<Menu.Item
+										onClick={() => {
+											// setTabs(userTabs)
+											setFilterStatus({ })
+										}}
+										rightSection={Object.keys(filterStatus).length === 0 && (<IconCheck size={12}/>)}
+									>
+										all
+									</Menu.Item>
+									<Menu.Item
+										onClick={() => {
+											// setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'EADGBe'))
+											setFilterStatus({
+												columnAccessor: 'is draft',
+												filterFunction: t => t['draft'],
+											})
+										}}
+										rightSection={filterStatus?.columnAccessor === 'is draft' && (<IconCheck size={12}/>)}
+									>
+										yes
+									</Menu.Item>
+									<Menu.Item
+										onClick={() => {
+											// setTabs(userTabs.filter(t => t['tuning'] && t['tuning'] === 'EADGBe'))
+											setFilterStatus({
+												columnAccessor: 'is not draft',
+												filterFunction: t => !t['draft'],
+											})
+										}}
+										rightSection={filterStatus?.columnAccessor === 'is not draft' && (<IconCheck size={12}/>)}
+									>
+										no
+									</Menu.Item>
+								</Menu.Sub.Dropdown>
+							</Menu.Sub>
 						</Menu.Dropdown>
 					</Menu>
 					</Group>
@@ -608,11 +652,11 @@ export default function Home({
 			<AppShell.Main h="100%" >
 				<AppShell.Section>
 					<Group gap={0} pl={15} pr={15} style={{ borderBottom: '1px solid var(--app-shell-border-color)' }} h="auto">
-						<Group>
+						{activeTab && <Group>
 							<Button h="auto" onClick={() => setActiveTab({ ...activeTab, fontSize: activeTab.fontSize - 0.5})}>-</Button>
-							<Text w={15} m={0} align="center">{activeTab && activeTab?.fontSize}</Text>
+							<Text w={15} m={0} align="center">{activeTab?.fontSize}</Text>
 							<Button h="auto" onClick={() => setActiveTab({ ...activeTab, fontSize: activeTab.fontSize + 0.5})}>+</Button>
-						</Group>
+						</Group>}
 						<Group flex={1} justify='center' >
 							<Text >
 								{activeTab && `${activeTab['songName'].replaceAll(/[ ',.]/g, '').toLowerCase()}.${activeTab['artistName'].replaceAll(/[ ',.]/g, '').toLowerCase()}.tab`}
@@ -625,7 +669,7 @@ export default function Home({
 					</Group>
 				</AppShell.Section>
 
-				<AppShell.Section h="100%" grow style={{ overflow: 'none' }}>
+				<AppShell.Section h="95%" grow style={{ overflow: 'none' }}>
 					<Editor
 						key={activeTab?.['_id']}
 						initialText={activeTab?.tabText ?? ""}
