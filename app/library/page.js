@@ -213,7 +213,7 @@ export default function Home({
 		console.log('doc deleted:', deletedDoc)
 		
 		deleteModalHandlers.close();
-		
+
 		setUserTabs(
 			userTabs.filter(t => t['_id'] !== deleteObj['_id'])
 		)
@@ -355,25 +355,41 @@ export default function Home({
 						</Menu.Target>
 						<Menu.Dropdown>
 							<Menu.Item
-								onClick={() => setActiveTab({ ...activeTab, tabText: formatRawTabs(editorTextRef.current, 2) } )}
+								onClick={() => {
+									const newText = formatRawTabs(editorTextRef.current, 2);
+									editorTextRef.current = newText;
+									setActiveTab({ ...activeTab, tabText: newText } );
+								}}
 								disabled={userTabs.length === 0}
 							>
 								Format 2 chords per line
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => setActiveTab({ ...activeTab, tabText: formatRawTabs(editorTextRef.current, 4) } )}
+								onClick={() => {
+									const newText = formatRawTabs(editorTextRef.current, 4);
+									editorTextRef.current = newText;
+									setActiveTab({ ...activeTab, tabText: newText } );
+								}}
 								disabled={userTabs.length === 0}
 							>
 								Format 4 chords per line
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => setActiveTab({ ...activeTab, tabText: `${editorTextRef.current}\n${getTabStaff()}` } )}
+								onClick={() => { 
+									const newText = `${editorTextRef.current}\n${getTabStaff()}`;
+									editorTextRef.current = newText;
+									setActiveTab({ ...activeTab, tabText: newText } )
+								}}
 								disabled={userTabs.length === 0}
 							>
 								Add tab staff
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => setActiveTab({ ...activeTab, tabText: `${editorTextRef.current}\n${getChordList(editorTextRef.current).join('\t')}` } )}
+								onClick={() => { 
+									const newText = `${editorTextRef.current}\n${getChordList(editorTextRef.current).join('\t')}`;
+									editorTextRef.current = newText;
+									setActiveTab({ ...activeTab, tabText: newText } )
+								}}
 								disabled={userTabs.length === 0}
 							>
 								Create chord list
