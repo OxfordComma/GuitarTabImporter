@@ -173,6 +173,7 @@ export default function Home({
 			setUserTabs(
 				[saveObj, ...userTabs]
 			)
+			editorTextRef.current = ""
 
 			setActiveTab(saveObj)
 		}
@@ -203,12 +204,6 @@ export default function Home({
 
 		console.log('record deleted:', deletedRecord)
 
-		setUserTabs(
-			userTabs.filter(t => t['_id'] !== deleteObj['_id'])
-		)
-		
-		setActiveTab();
-
 		// Delete from Google Docs
 		let deletedDoc = await fetch(`api/document`, {
 			method: 'DELETE',
@@ -218,6 +213,12 @@ export default function Home({
 		console.log('doc deleted:', deletedDoc)
 		
 		deleteModalHandlers.close();
+		
+		setUserTabs(
+			userTabs.filter(t => t['_id'] !== deleteObj['_id'])
+		)
+		
+		setActiveTab();
 	}
 
 	function newMenu() {
