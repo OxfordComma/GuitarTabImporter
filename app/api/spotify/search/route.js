@@ -1,7 +1,7 @@
 import client from "@/lib/db"; // Your MongoDB client
 
 import { getSpotifyClient} from "@/lib/spotifyclient";
-import { clean} from "@/lib/spotify";
+import { clean } from "@/lib/spotify";
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
@@ -27,13 +27,19 @@ export async function GET(request) {
     
     let tracks = res.body.tracks.items;
     
-    // Filter out Live tracks if the user didn't specifically ask for them
-    let track = tracks.find(t => !t.name.toLowerCase().includes('live')) || tracks[0];
+    // Try to find the track that matches the cleaned name
+    let track = tracks.find(t => `${clean(t.artists[0].name)}-${clean(t.name)}` === cacheKey)
+
+    if (!track) {
+        track = tracks[0]
+    }
+    // let track = tracks.find(t => !t.name.toLowerCase().includes('live')) || tracks[0];
 
     if (track) {
         // Verify the artist matches before returning
         const isArtistMatch = clean(track.artists[0].name).includes(clean(artistName));
         if (isArtistMatch) {
+            // console.log(`Updating cache: ${cacheKey}`)
             await cacheCollection.updateOne(
                 { _id: cacheKey },
                 { $set: { uri: track.uri, name: track.name, artist: track.artists[0].name, updatedAt: new Date() } },
@@ -43,11 +49,11 @@ export async function GET(request) {
             return Response.json({ uri: track.uri });
         }
         else {
-            console.log(`No match found for ${cacheKey}. Closest track: ${track.name} - ${track.artists[0].name}`)
+            // console.log(`No match found for ${cacheKey}. Closest track: ${track.name} - ${track.artists[0].name}`)
         }
     }
     else {
-        console.log(`No track found for ${cacheKey}`)
+        // console.log(`No track found for ${cacheKey}`)
     }
 
     return Response.json({ uri: null });

@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import { TabsContext } from 'components/Context.js'
 
 import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress } from '@mantine/core';
-import { sortBy, filter } from 'lodash';
+import { sortBy, orderBy, filter } from 'lodash';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import { IconCheck, IconTriangle, IconTriangleInverted } from '@tabler/icons-react';
@@ -41,7 +41,7 @@ function EditModal({ opened, close, tab, saveTab, isNewTab }) {
 				columnSplit: tab?.columnSplit ?? 50,
 				createdTime: new Date(tab?.createdTime) ?? new Date(),
 				draft: tab?.draft ?? true,
-				fontSize: tab?.fontSize ?? "",
+				fontSize: tab?.fontSize ?? 9,
 				googleDocsId: tab?.googleDocsId ?? "",
 				holiday: tab?.holiday ?? false,
 				lastUpdatedTime: new Date(tab?.lastUpdatedTime) ?? new Date(),
@@ -60,7 +60,7 @@ function EditModal({ opened, close, tab, saveTab, isNewTab }) {
 
 	return (
 		<Modal opened={opened} onClose={close} title="Edit Tab" centered>
-			<form onSubmit={form.onSubmit((values) => { saveTab(values); form.reset(); close() })}>
+			<form onSubmit={form.onSubmit((values) => { saveTab(values); close() })}>
 				<Stack>
 					<TextInput label="Song Name" key={form.key('songName')} {...form.getInputProps('songName')} />
 					<TextInput label="Artist Name" key={form.key('artistName')} {...form.getInputProps('artistName')} />
@@ -106,7 +106,11 @@ export default function Home({
 	const [activeTab, setActiveTab] = useState();
 	// const [activeTabId, setActiveTabId] = useState();
 	const [modified, setModified] = useState(false);
-	const [sortStatus, setSortStatus] = useState({ });
+	const [sortStatus, setSortStatus] = useState({ 
+		columnName: 'lastUpdatedTime',
+		columnAccessor: d => new Date(d['lastUpdatedTime']),
+		direction: 'desc',
+	});
 	const [filterStatus, setFilterStatus] = useState({ });
 	const [isNewTab, setIsNewTab] = useState(false);
 	// const [editorText, setEditorText] = useState("")
@@ -124,9 +128,9 @@ export default function Home({
 	// }, [userTabs]);
 
 	useEffect(() => {
-		const sortedTabs = sortBy(userTabs, sortStatus?.columnAccessor)
+		const sortedTabs = orderBy(userTabs, sortStatus?.columnAccessor, [sortStatus?.direction])
 		const filteredTabs = filter(sortedTabs, filterStatus?.filterFunction)
-		setTabs(sortStatus.direction === 'desc' ? filteredTabs.reverse() : filteredTabs);
+		setTabs(filteredTabs)
 	}, [sortStatus, filterStatus, userTabs]);
 
 
@@ -137,8 +141,21 @@ export default function Home({
 			lastUpdatedTime: new Date(),
 		}
 		console.log('saving tab:', saveObj)
+
+		// Export to Google Docs
+		let exportedDocument = await fetch(`api/document`, {
+			method: 'PUT',
+			body: JSON.stringify({ tab: saveObj })
+		}).then(r => r.json())
+
+		console.log('exported tab:', exportedDocument)
+
+		saveObj = {
+			...saveObj,
+			googleDocsId: exportedDocument.id,
+		}
+
 		if (isNewTab) {
-			// const { ...toSave } = saveObj
 			let savedTab = await fetch(`api/tab`, {
 				method: 'POST',
 				body: JSON.stringify({ tab: saveObj })
@@ -146,18 +163,18 @@ export default function Home({
 
 			console.log('new tab saved:', savedTab)
 
-			const newTab = {
+			saveObj = {
+				...saveObj,
 				'_id': savedTab['insertedId'],
-				...saveObj
 			}
 
 			setUserTabs(
-				[newTab, ...userTabs]
+				[saveObj, ...userTabs]
 			)
+
+			setActiveTab(saveObj)
 		}
 		else {
-			// const { ...toSave } = saveObj
-
 			let savedTab = await fetch(`api/tab?id=${saveObj['_id']}`, {
 				method: 'PUT',
 				body: JSON.stringify({ tab: saveObj })
@@ -168,15 +185,10 @@ export default function Home({
 			setUserTabs(
 				userTabs.map(t => t['_id'] === saveObj['_id'] ? saveObj : t)
 			)
-		}
 
-		// Export to Google Docs
-		let exportedTab = await fetch(`api/document`, {
-			method: 'PUT',
-			body: JSON.stringify({ tab: saveObj })
-		}).then(r => r.json())
+			setActiveTab(saveObj)
 
-		console.log('exported tab:', exportedTab)
+		}	
 
 		setIsNewTab(false)
 	}
@@ -194,6 +206,14 @@ export default function Home({
 		)
 		
 		setActiveTab();
+
+		// Delete from Google Docs
+		let deletedDoc = await fetch(`api/document`, {
+			method: 'DELETE',
+			body: JSON.stringify({ record: deleteObj })
+		}).then(r => r.json());
+		
+		console.log('doc deleted:', deletedDoc)
 		
 		deleteModalHandlers.close();
 	}
@@ -210,6 +230,7 @@ export default function Home({
 	function saveMenu() {
 		saveTab(activeTab)
 	}
+
 	async function updateSpotifyPlaylistMenu() {
 		const profile = await fetch(`/api/profile`).then(r => r.json())
 
@@ -242,7 +263,6 @@ export default function Home({
 
 		syncToSpotify(userTabs, spotifyPlaylistId, setSyncStatus)
 	}
-
 
 	return (
 		<AppShell
@@ -383,48 +403,52 @@ export default function Home({
 							</Menu.Item>
 							<Menu.Item
 								onClick={() => setSortStatus({
+									columnName: 'artistName',
 									columnAccessor: 'artistName',
 									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
 								rightSection={
-									sortStatus?.columnAccessor === 'artistName' && sortStatus?.['direction'] === 'asc' && (<IconTriangleInverted size={12}/>) || 
-									sortStatus?.columnAccessor === 'artistName' && sortStatus?.['direction'] === 'desc' && (<IconTriangle size={12}/>)
+									sortStatus?.columnName ==='artistName' && sortStatus?.['direction'] === 'asc' && (<IconTriangleInverted size={12}/>) || 
+									sortStatus?.columnName ==='artistName' && sortStatus?.['direction'] === 'desc' && (<IconTriangle size={12}/>)
 								}
 							>
 								Artist
 							</Menu.Item>
 							<Menu.Item
 								onClick={() => setSortStatus({
+									columnName: 'songName',
 									columnAccessor: 'songName',
 									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
 								rightSection={
-									sortStatus?.columnAccessor === 'songName' && sortStatus?.['direction'] === 'asc' && (<IconTriangleInverted size={12}/>) || 
-									sortStatus?.columnAccessor === 'songName' && sortStatus?.['direction'] === 'desc' && (<IconTriangle size={12}/>)
+									sortStatus?.columnName ==='songName' && sortStatus?.['direction'] === 'asc' && (<IconTriangleInverted size={12}/>) || 
+									sortStatus?.columnName ==='songName' && sortStatus?.['direction'] === 'desc' && (<IconTriangle size={12}/>)
 								}
 							>
 								Song
 							</Menu.Item>
 							<Menu.Item
 								onClick={() => setSortStatus({
-									columnAccessor: 'createdTime',
+									columnName: 'createdTime',
+									columnAccessor: d => new Date(d['createdTime']),
 									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
 								rightSection={
-									sortStatus?.columnAccessor === 'createdTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
-									sortStatus?.columnAccessor === 'createdTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
+									sortStatus?.columnName ==='createdTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
+									sortStatus?.columnName ==='createdTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
 								}
 							>
 								Created
 							</Menu.Item>
 							<Menu.Item
 								onClick={() => setSortStatus({
-									columnAccessor: 'lastModifiedTime',
+									columnName: 'lastModifiedTime',
+									columnAccessor: d => new Date(d['lastModifiedTime']),
 									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 								})}
 								rightSection={
-									sortStatus?.columnAccessor === 'lastModifiedTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
-									sortStatus?.columnAccessor === 'lastModifiedTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
+									sortStatus?.columnName ==='lastModifiedTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
+									sortStatus?.columnName ==='lastModifiedTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
 								}
 							>
 								Last modified

@@ -84,13 +84,14 @@ export async function PUT(request, { params }) {
 	}
 	// Otherwise we're good to make a new one
 	else {
-		var googleDoc = drive.files.create({
+		var googleDoc = await drive.files.create({
 			resource: {
 				name: documentName,
 				mimeType: 'application/vnd.google-apps.document',
 				parents: [profile.libraryFolder]
 			}
 		})
+		console.log('google doc created:', googleDoc)
 
 		googleDocsId = googleDoc.data.id
 	}
@@ -499,4 +500,45 @@ export async function PUT(request, { params }) {
 		starred: false,
 		createdTime: new Date,
 	})
+}
+
+export async function DELETE(request, { params }) {
+	const body = await request.json()
+
+	const { session, user } = await auth.api.getSession({
+		headers: await headers() 
+	})
+
+	if (!('record' in body)) {
+		return Response.json({ error: "No record in request body." }, { status: 500 });
+	}
+
+	const account = await auth.api.getAccessToken({
+		body: {
+			providerId: "google"
+		},
+		headers: await headers() 
+	});
+  
+	const oauth2Client = new google.auth.OAuth2(
+		process.env.AUTH_GOOGLE_CLIENT_ID, 
+		process.env.AUTH_GOOGLE_SECRET
+	);
+
+	oauth2Client.setCredentials({
+		'access_token': account['accessToken'],
+		// 'refresh_token': account.refresh_token
+	});
+
+	const drive = google.drive({version: 'v3', auth: oauth2Client });
+
+	let {
+		googleDocsId
+	} = body['record']
+
+	var googleDoc = await drive.files.delete({
+		fileId: googleDocsId,
+	})
+
+	return Response.json(googleDoc)
 }
