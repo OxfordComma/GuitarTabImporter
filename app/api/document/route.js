@@ -7,13 +7,15 @@ import { headers } from "next/headers"
 // Update a record at a specific ID
 export async function PUT(request, { params }) {
 	const body = await request.json()
+	const headerList = await headers();
+    const mutableHeaders = new Headers(headerList);
 
 	const { session, user } = await auth.api.getSession({
-		headers: await headers() 
+		headers: mutableHeaders
 	})
 
 	let profile = await fetch(`${process.env.BETTER_AUTH_URL}/api/profile`, {
-		headers: await headers() // Have to pass headers to nested API calls
+		headers: mutableHeaders
 	}).then(r => r.json())
 
 	if (!('tab' in body)) {
@@ -27,7 +29,7 @@ export async function PUT(request, { params }) {
 		body: {
 			providerId: "google"
 		},
-		headers: await headers() 
+		headers: mutableHeaders
 	});
 
 	const oauth2Client = new google.auth.OAuth2(
