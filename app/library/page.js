@@ -607,9 +607,14 @@ export default function Home({
 
 			<AppShell.Main h="100%" >
 				<AppShell.Section>
-					<Group gap={0} ml={15} mr={15} h="auto">
-						<Group flex={1} justify='center'>
-							<Text>
+					<Group gap={0} pl={15} pr={15} style={{ borderBottom: '1px solid var(--app-shell-border-color)' }} h="auto">
+						<Group>
+							<Button h="auto" onClick={() => setActiveTab({ ...activeTab, fontSize: activeTab.fontSize - 0.5})}>-</Button>
+							<Text w={15} m={0} align="center">{activeTab && activeTab?.fontSize}</Text>
+							<Button h="auto" onClick={() => setActiveTab({ ...activeTab, fontSize: activeTab.fontSize + 0.5})}>+</Button>
+						</Group>
+						<Group flex={1} justify='center' >
+							<Text >
 								{activeTab && `${activeTab['songName'].replaceAll(/[ ',.]/g, '').toLowerCase()}.${activeTab['artistName'].replaceAll(/[ ',.]/g, '').toLowerCase()}.tab`}
 							</Text>
 						</Group>
@@ -624,6 +629,7 @@ export default function Home({
 					<Editor
 						key={activeTab?.['_id']}
 						initialText={activeTab?.tabText ?? ""}
+						fontSize={activeTab?.['fontSize']}
 						onTextChange={(val) => {
 							editorTextRef.current = val;
 							if (!modified) setModified(true);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Textarea } from "@mantine/core";
 
-export default function Editor({ initialText, onTextChange, disabled=false }) {
+export default function Editor({ initialText, onTextChange, fontSize=12, disabled=false }) {
 	// console.log('editor tab:', tab)
 
 	const [editorText, setEditorText] = useState(initialText);
@@ -27,7 +27,7 @@ export default function Editor({ initialText, onTextChange, disabled=false }) {
 			input: {
 				// flex: 1,
 				fontFamily: 'var(--mantine-font-family-monospace)',
-				fontSize: '12px',
+				fontSize: `${fontSize+4}px`,
 				lineHeight: '1.25',
 			},
 		}}
