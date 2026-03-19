@@ -2,7 +2,7 @@
 import { TabsContext } from 'components/Context.js'
 import { useState, useEffect, useContext } from 'react'
 import Header from '@/components/Header';
-import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress } from '@mantine/core';
+import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress, Burger } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import Editor from '@/components/Editor';
@@ -165,6 +165,7 @@ export default function Projects({ }) {
 	const [editModalOpened, editModalHandlers] = useDisclosure();
 	const [deleteModalOpened, deleteModalHandlers] = useDisclosure();
 	const [pickTabModalOpened, pickTabModalHandlers] = useDisclosure();
+	const [sidebarOpened, sidebarHandlers] = useDisclosure(true);
 
 	useEffect(() => {
 		// const sortedTabs = sortBy(userTabs, sortStatus?.columnAccessor)
@@ -388,14 +389,19 @@ export default function Projects({ }) {
 			style={{ overflow: 'hidden' }}
 			header={{ height: 50 }}
 			navbar={{
-				width: 300
+				width: 300,
+				breakpoint: 'md',
+				collapsed: { mobile: !sidebarOpened, desktop: !sidebarOpened },
 			}}
 			footer={{
 				height: 25
 			}}
 		>
 			<AppShell.Header>
-				<Header />
+				<Group h="100%" >
+					<Burger ml={10} opened={sidebarOpened} onClick={() => sidebarHandlers.toggle() } />
+					<Header />
+				</Group>
 			</AppShell.Header>
 
 			<AppShell.Navbar >
