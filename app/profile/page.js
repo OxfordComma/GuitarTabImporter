@@ -74,7 +74,6 @@ export default function Home({
 			...saveObj,
 		}
 
-		// console.log('saving tab:', saveObj)
 		let savedRecord = await fetch(`api/profile`, {
 			method: 'PUT',
 			body: JSON.stringify({ profile: saveObj })
@@ -94,8 +93,11 @@ export default function Home({
 			...profile,
 			[updateFolder]: newFolderId,
 		}
+		
+		setProfile( saveObj )
 
 		saveProfile( saveObj )
+
 	}
 
 	const form = useForm({
