@@ -365,7 +365,7 @@ export async function PUT(request, { params }) {
 			},
 		}, {
 			'insertText': {
-				'text': "-----------------------------------------------------------------------------\u000b_Artist_ - _Song_\u000b----------------------------------------------------------------------------",
+				'text': "----------------------------------------------------------------------------\u000b_Artist_ - _Song_\u000b----------------------------------------------------------------------------",
 				location: {
 					index: 1
 				}
@@ -374,7 +374,7 @@ export async function PUT(request, { params }) {
 			'updateTextStyle': {
 				'range': {
 					startIndex: 1,
-					endIndex: columns === 2 ? 200 : 192
+					endIndex: columns === 2 ? 200 : 191
 				},
 				textStyle: {
 					weightedFontFamily: {

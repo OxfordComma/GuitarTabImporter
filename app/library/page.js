@@ -68,7 +68,7 @@ function EditModal({ opened, close, tab, saveTab, isNewTab }) {
 					<TextInput label="Artist Name" key={form.key('artistName')} {...form.getInputProps('artistName')} />
 					<Select label="Tuning" key={form.key('tuning')} {...form.getInputProps('tuning')} data={['EADGBe', 'EbAbDbGbBbeb', 'DADGBe', 'DADF#AD']} />
 					<NumberInput label="Capo" key={form.key('capo')} {...form.getInputProps('capo')} />
-					<Checkbox label="Draft" checked={tab?.['draft']} key={form.key('draft')} {...form.getInputProps('draft')} />
+					<Checkbox label="Draft" defaultChecked={tab?.['draft']} key={form.key('draft')} {...form.getInputProps('draft')} />
 					<Group justify="flex-end" mt="md">
 						<Button type='submit'>Save</Button>
 					</Group>
@@ -143,6 +143,7 @@ export default function Home({
 			lastUpdatedTime: new Date(),
 		}
 		console.log('saving tab:', saveObj)
+		setFooterText('Exporting Tab...')
 
 		// Export to Google Docs
 		let exportedDocument = await fetch(`api/document`, {
@@ -156,6 +157,7 @@ export default function Home({
 			...saveObj,
 			googleDocsId: exportedDocument.id,
 		}
+		setFooterText('Saving Tab...')
 
 		if (isNewTab) {
 			let savedTab = await fetch(`api/tab`, {
@@ -195,6 +197,7 @@ export default function Home({
 
 		setIsNewTab(false)
 		setModified(false)
+		setFooterText('')
 	}
 
 	async function deleteTab(deleteObj) {

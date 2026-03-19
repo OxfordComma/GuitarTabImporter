@@ -170,6 +170,8 @@ export default function Editor({ initialText, onTextChange, fontSize=12, disable
 			// Find our current line index based on how many newlines are before the cursor
 			const currIdx = (textBefore.match(/\n/g) || []).length;
 
+			if (lines[currIdx].trim() === "") return;
+
 			let chordAIdx = -1, lyricAIdx = -1, chordBIdx = -1, lyricBIdx = -1;
 			let cursorOnLyric = false;
 
@@ -250,73 +252,32 @@ export default function Editor({ initialText, onTextChange, fontSize=12, disable
 		}
 
 		if (event.key === "Tab") {
-			event.preventDefault();
+			event.preventDefault(); // Prevent focus from leaving the textarea
 			const textarea = event.currentTarget;
 			const selectionStart = textarea.selectionStart;
+			const selectionEnd = textarea.selectionEnd;
 			const tabSize = 4;
-			
-			const lines = editorText.split("\n");
-			const textBefore = editorText.substring(0, selectionStart);
-			const currIdx = (textBefore.match(/\n/g) || []).length;
-			const col = selectionStart - (textBefore.lastIndexOf("\n") + 1);
+			const spaces = " ".repeat(tabSize);
 
-			// Identify Partner Line
-			let partnerIdx = -1;
-			if (isChordLine(lines[currIdx])) {
-				if (currIdx + 1 < lines.length && !isChordLine(lines[currIdx + 1])) partnerIdx = currIdx + 1;
-			} else {
-				if (currIdx - 1 >= 0 && isChordLine(lines[currIdx - 1])) partnerIdx = currIdx - 1;
-			}
+			// Insert spaces at the cursor (handles highlighted text replacement too)
+			const newText = 
+				editorText.substring(0, selectionStart) + 
+				spaces + 
+				editorText.substring(selectionEnd);
 
-			const newLines = [...lines];
-			let shiftAmount = 0;
+			const newCursorPos = selectionStart + tabSize;
 
-			if (event.shiftKey) {
-				// --- UNTAB (Shift + Tab) ---
-				// Determine how many spaces we can actually remove (max of tabSize)
-				const currentLinePrefix = lines[currIdx].substring(0, col);
-				const match = currentLinePrefix.match(/ +$/); // Match trailing spaces
-				const spacesToDelete = match ? Math.min(match[0].length, tabSize) : 0;
+			// Update UI
+			setEditorText(newText);
+			onTextChange(newText);
 
-				if (spacesToDelete > 0) {
-					shiftAmount = -spacesToDelete;
-					// Update Current Line
-					newLines[currIdx] = lines[currIdx].substring(0, col - spacesToDelete) + lines[currIdx].substring(col);
-					
-					// Update Partner Line
-					if (partnerIdx !== -1) {
-						const pLine = lines[partnerIdx];
-						// Only delete spaces from partner if they exist at that column
-						const pPrefix = pLine.substring(0, col);
-						const pMatch = pPrefix.match(/ +$/);
-						const pDelete = pMatch ? Math.min(pMatch[0].length, spacesToDelete) : 0;
-						newLines[partnerIdx] = pLine.substring(0, col - pDelete) + pLine.substring(col);
-					}
-				}
-			} else {
-				// --- TAB ---
-				shiftAmount = tabSize;
-				const spaces = " ".repeat(tabSize);
-				
-				newLines[currIdx] = lines[currIdx].substring(0, col) + spaces + lines[currIdx].substring(col);
-				
-				if (partnerIdx !== -1) {
-					const pLine = lines[partnerIdx].padEnd(col, " ");
-					newLines[partnerIdx] = pLine.substring(0, col) + spaces + pLine.substring(col);
-				}
-			}
+			// Push an immediate snapshot to history for a clean Undo
+			updateHistory(newText, newCursorPos);
 
-			if (shiftAmount !== 0) {
-				const newText = newLines.join("\n");
-				setEditorText(newText);
-				onTextChange(newText);
-
-				const newCursorPos = selectionStart + shiftAmount;
-				updateHistory(newText, newCursorPos);
-				setTimeout(() => {
-					textarea.setSelectionRange(newCursorPos, newCursorPos);
-				}, 0);
-			}
+			// Reposition cursor
+			setTimeout(() => {
+				textarea.setSelectionRange(newCursorPos, newCursorPos);
+			}, 0);
 		}
     };
 
