@@ -194,6 +194,7 @@ export default function Home({
 		}	
 
 		setIsNewTab(false)
+		setModified(false)
 	}
 
 	async function deleteTab(deleteObj) {
