@@ -15,9 +15,6 @@ export default function Header ({
 
   const router = useRouter()
 
-  // const [signInOutModalOpened, { open, close, toggle }] = useDisclosure();
-  // const [modalMethod, setModalMethod] = useState()
-
   if (session) {
     headings = [
       { title: 'Library', href: '/library' },
@@ -42,51 +39,9 @@ export default function Header ({
     }}) }>Sign Out</Button>)
   }
 
-  // function SignUp({}) {
-  //   return (<Button onClick={() => {toggle(); setModalMethod("Sign Up") }}>Sign Up</Button>)
-  // }
-
-  // const form = useForm({
-  //   initialValues: {
-  //     name: "",
-  //     email: "",
-  //     password: "",
-  //   }
-  // })
-
-  // async function onFormSubmit({ }) {
-    // if (modalMethod === "Sign Up") {
-    //   const { data, error } = await authClient.signUp.email({
-    //     name,
-    //     email,
-    //     password
-    //   });
-
-    //   if (error) {
-    //     console.log('Error!', error)
-    //   }
-    //   else {
-    //     // console.log('Success!', data)
-    //     close();
-    //   }
-    // }
-    // else if (modalMethod === "Sign In") {
-      // const { data, error } = await authClient.signIn.social({
-      //   provider: "google",
-      //   callbackURL: "/library"
-      // });
-      // if (error) {
-      //   console.log('Error!', error)
-      // }
-      // else {
-      //   // console.log('Success!', data)
-      //   close();
-      // }
-    // }
-  // }
   
   return (
-    <Group h="100%" px="md">
+    <Group flex={1} h="100%" px="md">
       <Anchor size='xl' c='white' fw={1000} href='/' component={Link}>TABR</Anchor>
       { 
         headings.map(h => (

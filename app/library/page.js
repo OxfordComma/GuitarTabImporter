@@ -3,7 +3,7 @@ import { useState, useContext, useEffect, useRef } from 'react'
 import Header from '@/components/Header';
 import { TabsContext } from 'components/Context.js'
 
-import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress } from '@mantine/core';
+import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress, Burger } from '@mantine/core';
 import { sortBy, orderBy, filter } from 'lodash';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
@@ -106,7 +106,7 @@ export default function Home({
 
 	const [tabs, setTabs] = useState([]);
 	const [activeTab, setActiveTab] = useState();
-	// const [activeTabId, setActiveTabId] = useState();
+
 	const [modified, setModified] = useState(false);
 	const [sortStatus, setSortStatus] = useState({ 
 		columnName: 'lastUpdatedTime',
@@ -124,6 +124,7 @@ export default function Home({
 
 	const [editModalOpened, editModalHandlers] = useDisclosure();
 	const [deleteModalOpened, deleteModalHandlers] = useDisclosure();
+	const [sidebarOpened, sidebarHandlers] = useDisclosure(true);
 
 	// useEffect(() => {
 	// 	setTabs(userTabs)
@@ -277,15 +278,19 @@ export default function Home({
 			style={{ overflow: 'hidden' }}
 			header={{ height: 50 }}
 			navbar={{
-				width: 300
+				width: 300,
+				breakpoint: 'md',
+				collapsed: { mobile: !sidebarOpened, desktop: !sidebarOpened },
 			}}
 			footer={{
 				height: 25
 			}}
 		>
 			<AppShell.Header>
-				<Header />
-
+				<Group h="100%" >
+					<Burger ml={10} opened={sidebarOpened} onClick={() => sidebarHandlers.toggle() } />
+					<Header />
+				</Group>
 			</AppShell.Header>
 
 			<AppShell.Navbar >
