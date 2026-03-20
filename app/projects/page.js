@@ -390,7 +390,7 @@ export default function Projects({ }) {
 			header={{ height: 50 }}
 			navbar={{
 				width: 300,
-				breakpoint: 'md',
+				breakpoint: 'sm',
 				collapsed: { mobile: !sidebarOpened, desktop: !sidebarOpened },
 			}}
 			footer={{

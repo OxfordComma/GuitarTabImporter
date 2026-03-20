@@ -218,8 +218,8 @@ export default function Editor({ initialText, onTextChange, fontSize=12, disable
 				const offset = Math.max(chordA.length, lyricA.length);
 				
 				// 2. Pad Couplet A with spaces so both lines end at the exact same horizontal point
-				const mergedChord = chordA.padEnd(offset, " ") + chordB;
-				const mergedLyric = lyricA.padEnd(offset, " ") + lyricB;
+				const mergedChord = chordA.padEnd(offset, " ") + " " + chordB.trimStart();
+				const mergedLyric = lyricA.padEnd(offset, " ") + " " + lyricB.trimStart();
 
 				// 3. Rebuild the document array
 				const newLines = [];
@@ -240,8 +240,8 @@ export default function Editor({ initialText, onTextChange, fontSize=12, disable
 				const basePos = linesBeforeTarget.length > 0 ? linesBeforeTarget.join("\n").length + 1 : 0;
 
 				const newCursorPos = cursorOnLyric
-					? basePos + mergedChord.length + 1 + offset // Land exactly on the lyric split
-					: basePos + offset;                         // Land exactly on the chord split
+					? basePos + mergedChord.length + 1 + offset + 1 // Land exactly on the lyric split
+					: basePos + offset;                             // Land exactly on the chord split
 
 				updateHistory(newText, newCursorPos);
 
