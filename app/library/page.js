@@ -133,7 +133,13 @@ export default function Home({
 	});
 
 	useEffect(() => {
-		const sortedTabs = orderBy(userTabs, sortStatus?.columnAccessor, [sortStatus?.direction])
+		let sortedTabs = [];
+		if (sortStatus.columnName === "artistName") {
+			sortedTabs = orderBy(userTabs, ['artistName', 'songName'], [sortStatus?.direction])
+		}
+		else {
+			sortedTabs = orderBy(userTabs, sortStatus?.columnAccessor, [sortStatus?.direction])
+		}
 		const filteredTabs = filter(sortedTabs, filterStatus?.filterFunction)
 		setTabs(filteredTabs)
 	}, [sortStatus, filterStatus, userTabs]);
