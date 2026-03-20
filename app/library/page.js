@@ -498,15 +498,15 @@ export default function Home({
 							<Menu.Item
 								onClick={() => {
 									setSortStatus({
-										columnName: 'lastModifiedTime',
-										columnAccessor: d => new Date(d['lastModifiedTime']),
+										columnName: 'lastUpdatedTime',
+										columnAccessor: d => new Date(d['lastUpdatedTime']),
 										direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
 									})
 									scrollIntoView();
 								}}
 								rightSection={
-									sortStatus?.columnName ==='lastModifiedTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
-									sortStatus?.columnName ==='lastModifiedTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
+									sortStatus?.columnName ==='lastUpdatedTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
+									sortStatus?.columnName ==='lastUpdatedTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
 								}
 							>
 								Last modified
