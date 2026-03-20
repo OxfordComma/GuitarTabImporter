@@ -279,7 +279,7 @@ export default function Home({
 			header={{ height: 50 }}
 			navbar={{
 				width: 300,
-				breakpoint: 'sm',
+				breakpoint: 'xs',
 				collapsed: { mobile: !sidebarOpened, desktop: !sidebarOpened },
 			}}
 			footer={{
@@ -288,14 +288,14 @@ export default function Home({
 		>
 			<AppShell.Header>
 				<Group h="100%" >
-					<Burger ml={10} opened={sidebarOpened} onClick={() => sidebarHandlers.toggle() } />
+					<Burger ml={5} opened={sidebarOpened} onClick={() => sidebarHandlers.toggle() } />
 					<Header />
 				</Group>
 			</AppShell.Header>
 
 			<AppShell.Navbar >
 				<AppShell.Section>
-					<Group gap={0} justify='space-between' wrap='nowrap'>
+					<Group gap={1} justify='start' wrap='nowrap'>
 					<Menu position='bottom-start' shadow="md" color="#4B0082">
 						<Menu.Target>
 							<Button size='xs'>file</Button>
