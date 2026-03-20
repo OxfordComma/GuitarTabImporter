@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import { TabsContext } from 'components/Context.js'
 
 import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress, Burger } from '@mantine/core';
+import { useScrollIntoView } from '@mantine/hooks';
 import { sortBy, orderBy, filter } from 'lodash';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
@@ -119,22 +120,36 @@ export default function Home({
     const [syncStatus, setSyncStatus] = useState({ current: 0, total: 0, label: '' });
 	const [footerText, setFooterText] = useState();
 	
-	
 	const editorTextRef = useRef("");
 
 	const [editModalOpened, editModalHandlers] = useDisclosure();
 	const [deleteModalOpened, deleteModalHandlers] = useDisclosure();
 	const [sidebarOpened, sidebarHandlers] = useDisclosure(true);
 
-	// useEffect(() => {
-	// 	setTabs(userTabs)
-	// }, [userTabs]);
+	const { scrollIntoView, targetRef, scrollableRef } = useScrollIntoView({
+		duration: 200,
+		offset: 20, // Gives it some "breathing room" from the top/bottom
+		cancelable: true,
+	});
 
 	useEffect(() => {
 		const sortedTabs = orderBy(userTabs, sortStatus?.columnAccessor, [sortStatus?.direction])
 		const filteredTabs = filter(sortedTabs, filterStatus?.filterFunction)
 		setTabs(filteredTabs)
 	}, [sortStatus, filterStatus, userTabs]);
+	
+
+	useEffect(() => {
+    if (activeTab?._id && tabs.length > 0) {
+        // A tiny delay (even 0ms) pushes the execution to the end of the 
+        // event loop, ensuring the DOM is stable and the sort is finished.
+        const frame = requestAnimationFrame(() => {
+            scrollIntoView({ alignment: 'center' });
+        });
+        
+        return () => cancelAnimationFrame(frame);
+    }
+}, [activeTab?._id, tabs, scrollIntoView]);
 
 
 	async function saveTab(saveObj) {
@@ -424,17 +439,23 @@ export default function Home({
 						</Menu.Target>
 						<Menu.Dropdown>
 							<Menu.Item
-								onClick={() => setSortStatus({})}
+								onClick={() => { 
+									setSortStatus({})
+									scrollIntoView();
+								}}
 								rightSection={Object.keys(sortStatus).length === 0 && (<IconCheck size={12}/>)}
 							>
 								None
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => setSortStatus({
-									columnName: 'artistName',
-									columnAccessor: 'artistName',
-									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
-								})}
+								onClick={() => {
+									setSortStatus({
+										columnName: 'artistName',
+										columnAccessor: 'artistName',
+										direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
+									})
+									scrollIntoView();
+								}}
 								rightSection={
 									sortStatus?.columnName ==='artistName' && sortStatus?.['direction'] === 'asc' && (<IconTriangleInverted size={12}/>) || 
 									sortStatus?.columnName ==='artistName' && sortStatus?.['direction'] === 'desc' && (<IconTriangle size={12}/>)
@@ -443,11 +464,14 @@ export default function Home({
 								Artist
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => setSortStatus({
-									columnName: 'songName',
-									columnAccessor: 'songName',
-									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
-								})}
+								onClick={() => {
+									setSortStatus({
+										columnName: 'songName',
+										columnAccessor: 'songName',
+										direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
+									})
+									scrollIntoView();
+								}}
 								rightSection={
 									sortStatus?.columnName ==='songName' && sortStatus?.['direction'] === 'asc' && (<IconTriangleInverted size={12}/>) || 
 									sortStatus?.columnName ==='songName' && sortStatus?.['direction'] === 'desc' && (<IconTriangle size={12}/>)
@@ -456,11 +480,14 @@ export default function Home({
 								Song
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => setSortStatus({
-									columnName: 'createdTime',
-									columnAccessor: d => new Date(d['createdTime']),
-									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
-								})}
+								onClick={() => {
+									setSortStatus({
+										columnName: 'createdTime',
+										columnAccessor: d => new Date(d['createdTime']),
+										direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
+									})
+									scrollIntoView();
+								}}
 								rightSection={
 									sortStatus?.columnName ==='createdTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
 									sortStatus?.columnName ==='createdTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
@@ -469,11 +496,14 @@ export default function Home({
 								Created
 							</Menu.Item>
 							<Menu.Item
-								onClick={() => setSortStatus({
-									columnName: 'lastModifiedTime',
-									columnAccessor: d => new Date(d['lastModifiedTime']),
-									direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
-								})}
+								onClick={() => {
+									setSortStatus({
+										columnName: 'lastModifiedTime',
+										columnAccessor: d => new Date(d['lastModifiedTime']),
+										direction: sortStatus?.['direction'] === 'asc' ? 'desc' : 'asc'
+									})
+									scrollIntoView();
+								}}
 								rightSection={
 									sortStatus?.columnName ==='lastModifiedTime' && sortStatus?.['direction'] === 'asc' && (<IconTriangle size={12}/>) || 
 									sortStatus?.columnName ==='lastModifiedTime' && sortStatus?.['direction'] === 'desc' && (<IconTriangleInverted size={12}/>)
@@ -655,10 +685,11 @@ export default function Home({
 					</Group>
 				</AppShell.Section>
 
-				<AppShell.Section h="100%" style={{ overflowY: 'scroll' }}>
+				<AppShell.Section h="100%" ref={scrollableRef} style={{ overflowY: 'scroll' }}>
 					{tabs.map(tab => (
 						<NavLink
 							key={tab['_id']}
+							ref={activeTab && (tab['_id'] === activeTab['_id']) ? targetRef : null}
 							label={
 								<Indicator offset={5} color='red' disabled={!(activeTab && (tab['_id'] === activeTab['_id']) && modified)}>
 									<Stack gap={0}>
