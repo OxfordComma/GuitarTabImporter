@@ -3,7 +3,7 @@ import { useState, useContext, useEffect, useRef } from 'react'
 import Header from '@/components/Header';
 import { TabsContext } from 'components/Context.js'
 
-import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress, Burger } from '@mantine/core';
+import { AppShell, Box, Button, Center, Flex, Group, Indicator, Menu, NavLink, NumberInput, Stack, Text, Textarea, Modal, TextInput, Select, Checkbox, Progress, Burger, LoadingOverlay, Loader } from '@mantine/core';
 import { useScrollIntoView } from '@mantine/hooks';
 import { sortBy, orderBy, filter } from 'lodash';
 import { useForm } from '@mantine/form';
@@ -119,6 +119,7 @@ export default function Home({
 	// const [editorText, setEditorText] = useState("")
     const [syncStatus, setSyncStatus] = useState({ current: 0, total: 0, label: '' });
 	const [footerText, setFooterText] = useState();
+	const [loading, setLoading] = useState(false);
 	
 	const editorTextRef = useRef("");
 
@@ -159,6 +160,8 @@ export default function Home({
 
 
 	async function saveTab(saveObj) {
+		setLoading(true);
+
 		saveObj = {
 			...saveObj,
 			tabText: isNewTab ? "" : editorTextRef.current,
@@ -220,6 +223,8 @@ export default function Home({
 		setIsNewTab(false)
 		setModified(false)
 		setFooterText('')
+		setLoading(false);
+
 	}
 
 	async function deleteTab(deleteObj) {
@@ -705,7 +710,12 @@ export default function Home({
 								</Indicator>
 							}
 							// leftSection={<IconSettings size={16} stroke={1.5} />}
-							onClick={() => { setActiveTab(tab); setModified(false); editorTextRef.current = tab['tabText'] }}
+							onClick={() => {
+								if (activeTab && modified) activeTab.tabText = editorTextRef.current;
+								setActiveTab(tab);
+								setModified(false);
+								editorTextRef.current = tab['tabText']
+							}}
 							active={activeTab && tab['_id'] === activeTab['_id']}
 						/>
 					))}
@@ -733,15 +743,20 @@ export default function Home({
 				</AppShell.Section>
 
 				<AppShell.Section h="95%" grow style={{ overflow: 'none' }}>
-					<Editor
-						key={activeTab?.['_id']}
-						initialText={activeTab?.tabText ?? ""}
-						fontSize={activeTab?.['fontSize']}
-						onTextChange={(val) => {
-							editorTextRef.current = val;
-							if (!modified) setModified(true);
-						}}
-					/>
+					{loading ? 
+						<Center h="100%">
+							<Loader/>
+						</Center> : 
+						<Editor
+							key={activeTab?.['_id']}
+							initialText={activeTab?.tabText ?? ""}
+							fontSize={activeTab?.['fontSize']}
+							onTextChange={(val) => {
+								editorTextRef.current = val;
+								if (!modified) setModified(true);
+							}}
+						/>
+					}
 				</AppShell.Section>
 
 				<EditModal
