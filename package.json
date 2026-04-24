@@ -31,7 +31,7 @@
     "@types/node": "25.3.3",
     "eslint": "^10.0.2",
     "eslint-config-next": "^16.1.6",
-    "postcss": "^8.5.8",
+    "postcss": "^8.5.10",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1"
   }
